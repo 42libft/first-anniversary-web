@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* Intro: star layers + shooting star */
@@ -424,7 +425,7 @@
 .global-starfield { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
 .global-stars { position: absolute; inset: 0; white-space: pre; line-height: 1.1; opacity: 0.9; }
 .global-moon { display: none; }
-.global-moon-svg { position: absolute; top: 1.2ch; right: 4ch; width: 28px; height: 28px; opacity: 0.9; }
+.global-moon-svg { position: absolute; top: 1.2ch; right: 4ch; width: 36px; height: 36px; opacity: 0.9; }
 /* Reserve space for ground on the Intro start scene so stars don't overlap ground */
 .scene-intro .global-starfield { bottom: 10ch; }
 .ascii-bottom-mask { position: absolute; left:0; right:0; bottom:0; height: 10ch; background: linear-gradient(180deg, rgba(10,12,42,0), #090320 60%, #090320 100%); }
