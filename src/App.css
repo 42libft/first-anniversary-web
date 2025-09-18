@@ -404,21 +404,21 @@
   pointer-events: none;
   color: rgba(230, 235, 255, 0.9);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  display: grid;
-  grid-template-rows: 1fr auto auto;
+  display: block; /* avoid grid layout pushing layers */
+  overflow: hidden;
 }
 .ascii-layer { white-space: pre; line-height: 1.1; opacity: 0.9; overflow: hidden; }
 .ascii-scroll { display: inline-block; will-change: transform; animation: scroll-h 28s linear infinite; }
 .ascii-scroll--slow { animation-duration: 32s; opacity: 0.9; }
 .ascii-scroll--fast { animation-duration: 20s; }
 @keyframes scroll-h { 0% { transform: translateX(0);} 100% { transform: translateX(-50%);} }
-.ascii-ground { color: rgba(200,210,255,0.85); }
+.ascii-ground { color: rgba(200,210,255,0.85); position: absolute; left:0; right:0; bottom:0; }
 .ascii-yatai { display: none; }
 .ascii-sky { color: rgba(180,195,255,0.85); opacity: 0.75; }
 .twinkle-a { position: absolute; inset: 0; animation: twinkle 2.5s ease-in-out infinite; }
 .twinkle-b { animation: twinkle 2.5s ease-in-out 1.25s infinite; opacity: 0.0; }
 @keyframes twinkle { 0%, 100% { opacity: 0.0;} 50% { opacity: 0.6; } }
-.ascii-characters { position: absolute; bottom: 7ch; left: 50%; transform: translateX(-50%); font-weight: 700; }
+.ascii-characters { position: absolute; bottom: 6ch; left: 50%; transform: translateX(-50%); font-weight: 700; }
 .ascii-walk { display: inline-block; animation: walk 0.7s steps(2,end) infinite; }
 @keyframes walk { 0% { transform: translateY(0);} 50% { transform: translateY(1px);} 100% { transform: translateY(0);} }
 .global-starfield { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
