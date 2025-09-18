@@ -424,3 +424,5 @@
 .global-starfield { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
 .global-stars { position: absolute; inset: 0; white-space: pre; line-height: 1.1; opacity: 0.9; }
 .global-moon { position: absolute; top: 1ch; right: 4ch; opacity: 0.9; }
+/* Reserve space for ground on the Intro start scene so stars don't overlap ground */
+.scene-intro .global-starfield { bottom: 10ch; }
