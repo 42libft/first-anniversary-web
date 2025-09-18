@@ -1,7 +1,8 @@
 export const GlobalStarfield = () => {
   const makeStars = (seed: number) => {
-    const rows = 9
-    const cols = 72
+    // 大きめに生成して右/下で切れないようにする（密度は従来比）
+    const rows = 80
+    const cols = 300
     const stars: string[] = []
     for (let r = 0; r < rows; r++) {
       let line = ''
@@ -23,4 +24,3 @@ export const GlobalStarfield = () => {
     </div>
   )
 }
-
