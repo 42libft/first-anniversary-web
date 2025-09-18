@@ -18,7 +18,12 @@ export const GlobalStarfield = () => {
   const skyB = makeStars(2)
   return (
     <div className="global-starfield" aria-hidden="true">
-      <div className="global-moon">☽</div>
+      {/* ultra-thin crescent (waxing) */}
+      <svg className="global-moon-svg" viewBox="0 0 24 24" aria-hidden>
+        <circle cx="12" cy="12" r="8" fill="#ffd98a" />
+        {/* cutout to make it thin crescent */}
+        <circle cx="13.8" cy="12" r="8.2" fill="#0a0c2a" />
+      </svg>
       <pre className="global-stars twinkle-a">{skyA}</pre>
       <pre className="global-stars twinkle-b">{skyB}</pre>
     </div>
