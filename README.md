@@ -64,6 +64,23 @@
 
 推奨: 変更前後で `npm run lint` を実行し、Safe Area 対応やモバイル表示をブラウザで確認してください。
 
+## デプロイ（GitHub Pages）
+- このリポジトリには GitHub Actions の Pages デプロイが含まれています。
+- `main` ブランチに push すると自動でビルド・デプロイされます。
+- Vite の `base` は Pages のプロジェクトURL `/first-anniversary-web/` に合わせて `build:pages` スクリプト内で指定しています。
+
+手元でデプロイ挙動を確認（本番と同条件のビルド）
+```bash
+npm run build:pages
+npx vite preview
+```
+
+Vercel / 任意ホストに出す場合は、`npm run build`（`base=/`）を使ってください。
+
+## 実データの追加
+- `src/data/journeys.ts` の各要素（`caption`, `photoURL`, `distanceKm` など）を実データに置き換えてください。
+- 画像は `public/` 直下か外部URLのどちらでもOKです。
+
 ## ディレクトリ構成
 ```
 src/
