@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 
 import './App.css'
 import { DistanceHUD } from './components/DistanceHUD'
+import { GlobalStarfield } from './components/GlobalStarfield'
 import { journeys } from './data/journeys'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
 import { IntroScene } from './scenes/IntroScene'
@@ -94,6 +95,7 @@ function App() {
 
   return (
     <div className={`app-shell scene-${currentSceneId}`}>
+      <GlobalStarfield />
       <DistanceHUD distanceKm={totalDistance} />
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}

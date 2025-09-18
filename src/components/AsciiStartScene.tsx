@@ -20,8 +20,6 @@ export const AsciiStartScene = () => {
   const groundUnit = '__^___—_____^____—__  '
   const groundBlock = (groundUnit.repeat(12) + '\n').repeat(2)
 
-  const yataiUnit = ' [◎]屋台  [○]提灯  [◎]屋台  '
-  const yataiBlock = (yataiUnit.repeat(8) + '\n')
 
   return (
     <div className="ascii-scene" aria-hidden="true">
@@ -32,12 +30,7 @@ export const AsciiStartScene = () => {
         <span className="twinkle-a">{skyBlockA}</span>
         <span className="twinkle-b" style={{ position: 'absolute', inset: 0 }}>{skyBlockB}</span>
       </div>
-      <div className="ascii-layer ascii-yatai">
-        <span className="ascii-scroll ascii-scroll--slow">
-          {yataiBlock}
-          {yataiBlock}
-        </span>
-      </div>
+      {/* yatai removed as requested */}
       <div className="ascii-layer ascii-ground">
         <span className="ascii-scroll ascii-scroll--slow">
           {groundBlock}
