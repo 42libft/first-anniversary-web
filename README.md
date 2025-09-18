@@ -94,6 +94,7 @@ src/
 
 補足ドキュメント
 - 要件メモ: `docs/requirements.md`
+- 対話の記録（最新）: `docs/discussions/2025-09-18-alignment.md`
 
 ## マイルストーン（改訂版）
 1. **M1**: 環境構築＋骨組み（本コミット）
