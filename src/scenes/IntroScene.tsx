@@ -23,8 +23,26 @@ const useBootLines = () => {
 export const IntroScene = ({ onAdvance }: SceneComponentProps) => {
   const lines = useBootLines()
   const sectionRef = useRef<HTMLElement | null>(null)
+  const [effectsOn, setEffectsOn] = useState(false)
+
+  useEffect(() => {
+    const prefersReduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (!prefersReduce) {
+      setEffectsOn(true)
+      document.body.classList.add('force-motion')
+    }
+    return () => {
+      document.body.classList.remove('force-motion')
+    }
+  }, [])
 
   const handleAdvance = () => onAdvance()
+  const toggleEffects = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const next = !effectsOn
+    setEffectsOn(next)
+    document.body.classList.toggle('force-motion', next)
+  }
 
   return (
     <section
@@ -74,6 +92,27 @@ export const IntroScene = ({ onAdvance }: SceneComponentProps) => {
       <div className="tap-indicator" aria-hidden="true">
         <span className="tap-indicator__dot" /> TAP ANYWHERE
       </div>
+
+      <button
+        type="button"
+        aria-label="Toggle visual effects"
+        onClick={toggleEffects}
+        style={{
+          position: 'absolute',
+          top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+          right: '12px',
+          background: 'rgba(12,18,52,0.6)',
+          color: '#cdd7ff',
+          border: '1px solid rgba(163,174,255,0.35)',
+          borderRadius: 999,
+          padding: '6px 10px',
+          fontSize: '12px',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+        }}
+      >
+        FX: {effectsOn ? 'ON' : 'OFF'}
+      </button>
     </section>
   )
 }

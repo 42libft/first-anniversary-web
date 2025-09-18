@@ -36,12 +36,11 @@
 
 .intro-sky__shooting {
   position: absolute;
-  top: -10%;
-  left: -10%;
-  width: 160%;
-  height: 160%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  mask-image: linear-gradient(180deg, #000 40%, transparent);
 }
 
 .intro-sky__shooting::before {
@@ -53,10 +52,10 @@
   height: 120px;
   background: linear-gradient(180deg, #ffffff, rgba(255,255,255,0));
   filter: drop-shadow(0 0 6px rgba(255,255,255,0.9));
-  transform: rotate(45deg) translate(-40%, -40%);
+  transform: translate(-20vw, -20vh) rotate(45deg);
   transform-origin: top left;
   opacity: 0.0;
-  animation: shooting 6s ease-in-out infinite;
+  animation: shooting 7s ease-in-out infinite;
 }
 
 .intro-sky__shooting--2::before { animation-delay: 3s; }
@@ -76,16 +75,20 @@
 }
 
 @keyframes shooting {
-  0%, 70% { opacity: 0; transform: rotate(45deg) translate(-40%, -40%); }
-  72% { opacity: 1; }
-  90% { opacity: 0; }
-  100% { transform: rotate(45deg) translate(60%, 60%); }
+  0% { opacity: 0; transform: translate(-20vw, -20vh) rotate(45deg); }
+  10% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(120vw, 120vh) rotate(45deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .intro-sky__layer { animation: none; }
-  .intro-sky__shooting::before { animation: none; opacity: 0.4; }
+  .intro-sky__shooting::before { animation: none; opacity: 0.2; }
 }
+
+/* Allow user to override reduced motion */
+.force-motion .intro-sky__layer { animation: sky-drift 80s linear infinite !important; }
+.force-motion .intro-sky__shooting::before { animation: shooting 7s ease-in-out infinite !important; opacity: 1 !important; }
 
 .scene-container {
   flex: 1;
@@ -344,15 +347,16 @@
 }
 
 @media (min-width: 768px) {
-  .app-shell {
-    border-radius: 24px;
-    max-width: 480px;
-    margin: 3rem auto;
-    box-shadow: 0 40px 120px rgba(6, 9, 30, 0.5);
-  }
-
-  .scene-container {
-    padding: calc(env(safe-area-inset-top, 0px) + 2.5rem) 2.5rem
-      calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
+  @media (orientation: portrait) {
+    .app-shell {
+      border-radius: 24px;
+      max-width: 480px;
+      margin: 3rem auto;
+      box-shadow: 0 40px 120px rgba(6, 9, 30, 0.5);
+    }
+    .scene-container {
+      padding: calc(env(safe-area-inset-top, 0px) + 2.5rem) 2.5rem
+        calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
+    }
   }
 }
