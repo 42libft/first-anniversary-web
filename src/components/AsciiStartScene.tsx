@@ -17,8 +17,33 @@ export const AsciiStartScene = () => {
       </div>
 
       {/* two characters fixed center */}
-      <div className="ascii-characters">
-        <div className="ascii-walk">(•‿•) ♡  (•‿•)</div>
+      <div className="ascii-characters" style={{ textAlign: 'center' }}>
+        <div style={{ display: 'inline-grid', gridTemplateColumns: 'auto auto', gap: '6ch' }}>
+          <div style={{ position: 'relative', minHeight: '5.4em' }}>
+            <pre className="frame-a" style={{ margin: 0 }}>{`  __ 
+ |==|
+ |__|
+ /##\\
+ /  \\`}</pre>
+            <pre className="frame-b" style={{ margin: 0 }}>{`  __ 
+ |==|
+ |__|
+ /##\\
+ \\  /`}</pre>
+          </div>
+          <div style={{ position: 'relative', minHeight: '5.2em' }}>
+            <pre className="frame-a" style={{ margin: 0 }}>{`  __~
+ |==|
+ |__|
+ /##\\
+ /  \\`}</pre>
+            <pre className="frame-b" style={{ margin: 0 }}>{`  __~
+ |==|
+ |__|
+ /##\\
+ \\  /`}</pre>
+          </div>
+        </div>
       </div>
     </div>
   )
