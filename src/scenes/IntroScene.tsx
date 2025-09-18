@@ -35,8 +35,7 @@ export const IntroScene = ({ onAdvance }: SceneComponentProps) => {
   }, [stage, lines])
 
   const handleClick = () => {
-    if (stage === 'boot') setStage('start')
-    else onAdvance()
+    if (stage === 'start') onAdvance()
   }
 
   return (

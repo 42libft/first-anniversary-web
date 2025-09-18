@@ -1,17 +1,21 @@
 export const AsciiStartScene = () => {
   // random-ish starfield (deterministic within one render)
-  const rows = 8
-  const cols = 64
-  const stars = [] as string[]
-  for (let r = 0; r < rows; r++) {
-    let line = ''
-    for (let c = 0; c < cols; c++) {
-      const n = (r * 17 + c * 23) % 97
-      line += n % 19 === 0 ? '*' : n % 31 === 0 ? '·' : ' '
+  const makeStars = (seed: number) => {
+    const rows = 9
+    const cols = 72
+    const stars: string[] = []
+    for (let r = 0; r < rows; r++) {
+      let line = ''
+      for (let c = 0; c < cols; c++) {
+        const n = (r * 131 + c * 73 + seed * 97) % 211
+        line += n % 37 === 0 ? '*' : n % 53 === 0 ? '·' : ' '
+      }
+      stars.push(line)
     }
-    stars.push(line)
+    return stars.join('\n') + '\n'
   }
-  const skyBlock = stars.join('\n') + '\n'
+  const skyBlockA = makeStars(1)
+  const skyBlockB = makeStars(2)
 
   const groundUnit = '__^___—_____^____—__  '
   const groundBlock = (groundUnit.repeat(12) + '\n').repeat(2)
@@ -21,13 +25,12 @@ export const AsciiStartScene = () => {
 
   return (
     <div className="ascii-scene" aria-hidden="true">
-      {/* moon (static) */}
-      <div style={{ position: 'absolute', top: '1ch', right: '4ch', opacity: 0.9 }}>○</div>
+      {/* moon (static crescent) */}
+      <div style={{ position: 'absolute', top: '1ch', right: '4ch', opacity: 0.9 }}>☽</div>
 
       <div className="ascii-layer ascii-sky">
-        <span>
-          {skyBlock}
-        </span>
+        <span className="twinkle-a">{skyBlockA}</span>
+        <span className="twinkle-b" style={{ position: 'absolute', inset: 0 }}>{skyBlockB}</span>
       </div>
       <div className="ascii-layer ascii-yatai">
         <span className="ascii-scroll ascii-scroll--slow">
