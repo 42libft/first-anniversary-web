@@ -38,6 +38,9 @@ export const IntroScene = ({ onAdvance }: SceneComponentProps) => {
         <div className="intro-sky__layer" />
         <div className="intro-sky__layer intro-sky__layer--2" />
         <div className="intro-sky__shooting" />
+        <div className="intro-sky__shooting intro-sky__shooting--2" />
+        <div className="intro-sky__shooting intro-sky__shooting--3" />
+        <div className="intro-vignette" />
       </div>
 
       <div className="scene-layout__content">
@@ -50,7 +53,14 @@ export const IntroScene = ({ onAdvance }: SceneComponentProps) => {
           <div className="terminal" role="status" aria-live="polite">
             {lines.map((l, i) => (
               <div className="terminal__line" key={i}>
-                {l}
+                {i === lines.length - 1 ? (
+                  <>
+                    {l}
+                    <span className="terminal__cursor" aria-hidden="true" />
+                  </>
+                ) : (
+                  l
+                )}
               </div>
             ))}
           </div>
@@ -60,6 +70,10 @@ export const IntroScene = ({ onAdvance }: SceneComponentProps) => {
       <button type="button" className="primary-button" onClick={handleAdvance}>
         Tap to start
       </button>
+
+      <div className="tap-indicator" aria-hidden="true">
+        <span className="tap-indicator__dot" /> TAP ANYWHERE
+      </div>
     </section>
   )
 }
