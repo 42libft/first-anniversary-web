@@ -346,17 +346,4 @@
   font-weight: 600;
 }
 
-@media (min-width: 768px) {
-  @media (orientation: portrait) {
-    .app-shell {
-      border-radius: 24px;
-      max-width: 480px;
-      margin: 3rem auto;
-      box-shadow: 0 40px 120px rgba(6, 9, 30, 0.5);
-    }
-    .scene-container {
-      padding: calc(env(safe-area-inset-top, 0px) + 2.5rem) 2.5rem
-        calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
-    }
-  }
-}
+/* removed fixed phone frame on large screens to allow full-bleed both orientations */
