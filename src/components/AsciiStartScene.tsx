@@ -1,6 +1,7 @@
 export const AsciiStartScene = () => {
-  const groundUnit = '__^___—_____^____—__  '
-  const groundBlock = (groundUnit.repeat(12) + '\n').repeat(2)
+  // flatter ground (reduced undulation)
+  const groundUnit = '____________________  '
+  const groundBlock = (groundUnit.repeat(16) + '\n').repeat(2)
 
 
   return (
