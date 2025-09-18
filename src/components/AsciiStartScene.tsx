@@ -30,6 +30,8 @@ export const AsciiStartScene = () => {
         <span className="twinkle-a">{skyBlockA}</span>
         <span className="twinkle-b" style={{ position: 'absolute', inset: 0 }}>{skyBlockB}</span>
       </div>
+      {/* mask to prevent stars overlapping the ground area */}
+      <div className="ascii-bottom-mask" />
       {/* yatai removed as requested */}
       <div className="ascii-layer ascii-ground">
         <span className="ascii-scroll ascii-scroll--slow">
