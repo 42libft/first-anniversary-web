@@ -5,6 +5,7 @@ import { DistanceHUD } from './components/DistanceHUD'
 import { GlobalStarfield } from './components/GlobalStarfield'
 import { BuildStamp } from './components/BuildStamp'
 import { journeys } from './data/journeys'
+import { meetups } from './data/meetups'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
 import { IntroScene } from './scenes/IntroScene'
 import { JourneysScene } from './scenes/JourneysScene'
@@ -92,6 +93,7 @@ function App() {
     totalDistance,
     responses,
     saveResponse,
+    meetups,
   }
 
   return (

@@ -3,6 +3,7 @@ import type {
   JourneyPromptResponse,
   SaveJourneyResponsePayload,
 } from './experience'
+import type { MeetupEntry } from './meetup'
 
 export type SceneId =
   | 'intro'
@@ -22,6 +23,7 @@ export interface SceneComponentProps {
   totalDistance: number
   responses: JourneyPromptResponse[]
   saveResponse: (payload: SaveJourneyResponsePayload) => void
+  meetups: MeetupEntry[]
 }
 
 export const sceneOrder: SceneId[] = [
