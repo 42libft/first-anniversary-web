@@ -5,7 +5,6 @@ import { DistanceHUD } from './components/DistanceHUD'
 import { GlobalStarfield } from './components/GlobalStarfield'
 import { BuildStamp } from './components/BuildStamp'
 import { journeys } from './data/journeys'
-import { meetups } from './data/meetups'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
 import { IntroScene } from './scenes/IntroScene'
 import { JourneysScene } from './scenes/JourneysScene'
@@ -59,10 +58,12 @@ function App() {
   const [sceneIndex, setSceneIndex] = useState(0)
   const currentSceneId = sceneOrder[sceneIndex]
 
-  const totalDistance = useMemo(
+  const totalJourneyDistance = useMemo(
     () => journeys.reduce((sum, journey) => sum + journey.distanceKm, 0),
     []
   )
+
+  const [distanceTraveled, setDistanceTraveled] = useState(0)
 
   const { responses, saveResponse } = useStoredJourneyResponses()
 
@@ -83,6 +84,7 @@ function App() {
 
   const restartExperience = () => {
     setSceneIndex(0)
+    setDistanceTraveled(0)
   }
 
   const sceneProps: SceneComponentProps = {
@@ -90,16 +92,20 @@ function App() {
     goToScene,
     onRestart: restartExperience,
     journeys,
-    totalDistance,
+    distanceTraveled,
+    totalJourneyDistance,
     responses,
     saveResponse,
-    meetups,
+    setDistanceTraveled,
   }
 
   return (
     <div className={`app-shell scene-${currentSceneId}`}>
       {currentSceneId !== 'intro' && <GlobalStarfield />}
-      <DistanceHUD distanceKm={totalDistance} />
+      <DistanceHUD
+        distanceKm={distanceTraveled}
+        goalKm={totalJourneyDistance}
+      />
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}
       </main>

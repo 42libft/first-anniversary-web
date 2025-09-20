@@ -20,7 +20,7 @@ export const prologueScript: PrologueLine[] = [
   {
     id: 'partner-greeting',
     variant: 'partner',
-    speaker: '彼女',
+    speaker: '彩音',
     text: 'もしもし？今大丈夫？夜風が気持ちよくて、つい掛けちゃった。',
   },
   {
@@ -32,7 +32,7 @@ export const prologueScript: PrologueLine[] = [
   {
     id: 'partner-meteor',
     variant: 'partner',
-    speaker: '彼女',
+    speaker: '彩音',
     text: 'ほんとだ、窓の外に流れ星。ねえ、今日って空フェスの日じゃなかった？',
   },
   {
@@ -60,7 +60,7 @@ export const prologueScript: PrologueLine[] = [
   {
     id: 'partner-alert',
     variant: 'partner',
-    speaker: '彼女',
+    speaker: '彩音',
     text: 'こっちも出たよ。「タイムラインを巻き戻します」って。どういうこと？',
   },
   {
@@ -77,7 +77,7 @@ export const prologueScript: PrologueLine[] = [
   {
     id: 'partner-surprise',
     variant: 'partner',
-    speaker: '彼女',
+    speaker: '彩音',
     text: 'うそ。記念日の前夜と同じ？そんなの、もう一回やるしかないじゃん。',
   },
   {

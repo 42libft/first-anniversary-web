@@ -7,7 +7,7 @@ const formatNumber = (value: number) =>
 export const ResultScene = ({
   onRestart,
   journeys,
-  totalDistance,
+  distanceTraveled,
   responses,
 }: SceneComponentProps) => {
   const recordedResponses = responses.length
@@ -23,7 +23,7 @@ export const ResultScene = ({
       <div className="result-grid">
         <div className="result-card">
           <p className="result-label">TRAVELLED</p>
-          <p className="result-value">{formatNumber(Math.round(totalDistance))} km</p>
+          <p className="result-value">{formatNumber(Math.round(distanceTraveled))} km</p>
         </div>
         <div className="result-card">
           <p className="result-label">JOURNEYS</p>
