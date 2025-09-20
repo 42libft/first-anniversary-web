@@ -21,22 +21,46 @@
 | Result | Apexリザルト画面をオマージュ。合計距離／メッセージ数／好き回数／会った日数／バッジを表示し、Introとループ。 |
 
 ## データとステート設計
-- `journeys[]` は以下の構造で編集可能です。
+- `journeys[]` は以下のステップ指向モデルに統一しました。`distanceKm` は move ステップの合計値です。
   ```ts
+  type JourneyStep =
+    | {
+        id: string
+        type: 'move'
+        from: string
+        to: string
+        transport: 'plane' | 'bus' | 'train'
+        distanceKm: number
+        artKey: string
+        description?: string
+      }
+    | {
+        id: string
+        type: 'episode'
+        title: string
+        caption: string
+        artKey: string
+        media: { src: string; alt: string; objectPosition?: string }
+      }
+    | {
+        id: string
+        type: 'question'
+        prompt: string
+        placeholder?: string
+        helper?: string
+      }
+
   type Journey = {
+    id: string
+    title: string
     date: string
-    from: string
-    to: string
-    transport: 'plane' | 'bus' | 'train'
-    caption: string
-    photoURL: string
-    artKey: string
     distanceKm: number
-    prompts: { q: string; answer?: string }[]
+    steps: JourneyStep[]
   }
   ```
-- 合計距離は常時HUDに表示し、クイズやResultで再利用。
-- `useStoredJourneyResponses` フックで自由回答をローカルストレージに保存し、`recordedAt`（ISO日時）付きで追跡。
+- move ステップ完了時に距離HUDへ累計を反映。Reduced Motion 環境ではアニメをスキップしつつ距離だけ即時更新します。
+- question ステップの回答は `useStoredJourneyResponses` が localStorage を正とし、既存回答は閲覧モードから編集モードに切り替えて更新します。
+- Meetups セクションのデータは `src/data/meetups.ts` に集約。各ページ固有のメディアアート背景（グラデーション）とノートを記述します。
 - シーンの進行順は `src/types/scenes.ts` の `sceneOrder` で一元管理。`App` が現在シーンとナビゲーションロジックを保持します。
 
 ## 技術スタック
@@ -78,7 +102,8 @@ npx vite preview
 Vercel / 任意ホストに出す場合は、`npm run build`（`base=/`）を使ってください。
 
 ## 実データの追加
-- `src/data/journeys.ts` の各要素（`caption`, `photoURL`, `distanceKm` など）を実データに置き換えてください。
+- `src/data/journeys.ts` の各ステップ（move / episode / question）を実データに差し替えてください。`distanceKm` は move ステップごとに設定し、合計が旅の距離になります。
+- `src/data/meetups.ts` で月ごとのアルバムページを編集できます。`background` はCSSグラデーション文字列、`memoryPoints` は箇条書きメモです。
 - 画像は `public/` 直下か外部URLのどちらでもOKです。
 
 ## ディレクトリ構成
@@ -87,6 +112,7 @@ src/
 ├── App.tsx              # シーン遷移とHUDを司るルートコンポーネント
 ├── components/          # HUDやシーン用レイアウトなど共通UI
 ├── data/journeys.ts     # Journeysセクションのベースデータ
+├── data/meetups.ts      # Meetupsセクションの月別メディアアート設定
 ├── hooks/               # ローカルストレージなど状態管理系フック
 ├── scenes/              # 各シーンの骨組みコンポーネント
 └── types/               # Journey/シーン/回答データの型定義
@@ -95,6 +121,29 @@ src/
 補足ドキュメント
 - 要件メモ: `docs/requirements.md`
 - 対話の記録（最新）: `docs/discussions/2025-09-18-alignment.md`
+
+## 主要変更ファイル（ダイジェスト）
+- `src/data/journeys.ts`: Journeys データを move / episode / question ステップ構造に刷新。
+- `src/scenes/JourneysScene.tsx`: ステップ進行・距離HUD連動・回答の閲覧/編集トグルを統合。
+- `src/data/meetups.ts`: Meetups の月別メディアアート設定とノートを定義。
+- `src/scenes/MeetupsScene.tsx`: インタラクティブなアルバムUIとタイムラインナビゲーションを実装。
+- `src/App.css`: Journeys/Meetups 向けのスタイル拡張とHUD調整。
+
+## 衝突回避ガイド
+- Journeys の move ステップIDは `distanceTraveled` 計算のキーになるため削除せず、編集時はIDを据え置いてください。
+- question ステップの `prompt` を変更する際は同じIDを使いつつ文言だけ差し替えると、保存済み回答が維持されます。
+- Meetups の `background` には文字列のCSSグラデーションを渡す前提です。変数化する場合も `--meetups-accent`/`--meetups-ambient` を残してください。
+- `DistanceHUD` は全シーン共通で表示されるため、レイアウト変更時は `app-shell` や `scene-container` の余白調整をセットで確認してください。
+
+## 簡易E2Eチェック手順
+1. `npm run build` で型チェック付きビルドが通ることを確認。
+2. `npm run dev` を起動し、以下の流れを手動で辿る。
+   - Intro: BOOT → START をタップで進行。
+   - Prologue: ノベルUIを最後まで進めて Journeys へ。
+   - Journeys: 各旅の move ステップをタップして距離HUDが増えること、question ステップで回答を保存→閲覧モード切替できることを確認。
+   - Meetups: タイムラインボタンで月を切替、最後のページで「Letterへ」ボタンが SceneLayout の次シーンへ遷移すること。
+   - Result: 累計距離と記録件数が反映され、`もう一度再生` でIntroへループすること。
+3. ブラウザの DevTools で `prefers-reduced-motion` を有効にし、Journeys の move ステップが瞬時に完了して距離が加算されることを確認。
 
 ## マイルストーン（改訂版）
 1. **M1**: 環境構築＋骨組み（本コミット）

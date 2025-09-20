@@ -1,3 +1,5 @@
+import type { Dispatch, SetStateAction } from 'react'
+
 import type { Journey } from './journey'
 import type {
   JourneyPromptResponse,
@@ -20,15 +22,15 @@ export interface SceneComponentProps {
   onRestart: () => void
   journeys: Journey[]
   /**
-   * Sum of the journey distances that have been experienced so far.
-   * Displayed in the persistent HUD and reused by later scenes (quizzes/result).
+   * moveステップの移動距離を積算した合計値。
+   * 距離HUDおよびMessages/Resultで利用する。
    */
   distanceTraveled: number
   /** Total distance if every journey in the dataset is completed. */
   totalJourneyDistance: number
   responses: JourneyPromptResponse[]
   saveResponse: (payload: SaveJourneyResponsePayload) => void
-  setDistanceTraveled: (value: number) => void
+  setDistanceTraveled: Dispatch<SetStateAction<number>>
 }
 
 export const sceneOrder: SceneId[] = [
