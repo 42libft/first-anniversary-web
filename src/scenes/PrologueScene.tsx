@@ -1,30 +1,41 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { prologueScript } from '../data/prologue'
 import type { SceneComponentProps } from '../types/scenes'
 
-const CALL_LABELS = [
-  'シンクロリンク確立',
-  '夜空回線 稼働中',
-  '時刻同期 完了間近',
-]
+const CALL_LABELS = ['RTC接続中']
+const CALL_AVATAR_SRC = '/images/gimmie-placeholder.svg'
 
 export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
-  const [visibleCount, setVisibleCount] = useState(1)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const totalLines = prologueScript.length
+  const isComplete = activeIndex >= totalLines - 1
+  const activeLabel = CALL_LABELS[Math.min(activeIndex, CALL_LABELS.length - 1)]
+  const currentLine = prologueScript[activeIndex]
+  const [activeBackdrop, setActiveBackdrop] = useState<'self' | 'partner'>(() => {
+    const firstSpeaker = prologueScript.find((line) =>
+      line.variant === 'self' || line.variant === 'partner'
+    )?.variant
 
-  const isComplete = visibleCount >= prologueScript.length
-  const activeLabel = CALL_LABELS[Math.max(0, (visibleCount - 1) % CALL_LABELS.length)]
+    return firstSpeaker === 'partner' ? 'partner' : 'self'
+  })
+
+  useEffect(() => {
+    if (currentLine?.variant === 'self' || currentLine?.variant === 'partner') {
+      setActiveBackdrop(currentLine.variant)
+    }
+  }, [currentLine?.variant])
 
   const handleAdvance = useCallback(() => {
-    setVisibleCount((current) => {
-      if (current >= prologueScript.length) {
+    setActiveIndex((current) => {
+      if (current >= totalLines - 1) {
         onAdvance()
         return current
       }
 
-      return Math.min(current + 1, prologueScript.length)
+      return current + 1
     })
-  }, [onAdvance])
+  }, [onAdvance, totalLines])
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLElement>) => {
@@ -45,37 +56,55 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
       onKeyDown={handleKeyDown}
       aria-label={isComplete ? 'Journeysへ進む' : 'タップでセリフを進める'}
     >
-      <div className="prologue__backdrop" aria-hidden="true" />
+      <div className="prologue__backdrops" aria-hidden="true">
+        <div
+          className={`prologue__backdrop prologue__backdrop--self ${
+            activeBackdrop === 'self' ? 'is-active' : ''
+          }`}
+        />
+        <div
+          className={`prologue__backdrop prologue__backdrop--partner ${
+            activeBackdrop === 'partner' ? 'is-active' : ''
+          }`}
+        />
+        <div className="prologue__backdrop-overlay" />
+      </div>
       <div className="prologue__content">
         <header className="prologue__call-ui" aria-live="polite">
           <div className="prologue__call-id">
-            <span className="prologue__call-avatar" aria-hidden="true">
-              ✦
-            </span>
+            <div className="prologue__call-avatar">
+              <img
+                src={CALL_AVATAR_SRC}
+                alt="Gimmie x Gimmieのサーバーアイコン"
+                loading="lazy"
+              />
+            </div>
             <div>
-              <p className="prologue__call-label">彼女 — Rooftop Channel</p>
+              <p className="prologue__call-label">彩音 — Gimmie x Gimmie</p>
               <p className="prologue__call-status">{activeLabel}</p>
             </div>
           </div>
           <div className="prologue__call-meter" aria-hidden="true">
-            <span className={visibleCount > 2 ? 'is-active' : ''} />
-            <span className={visibleCount > 4 ? 'is-active' : ''} />
-            <span className={visibleCount > 6 ? 'is-active' : ''} />
+            {([0.33, 0.66, 0.92] as const).map((threshold) => (
+              <span
+                key={threshold}
+                className={
+                  activeIndex / Math.max(totalLines - 1, 1) >= threshold ? 'is-active' : ''
+                }
+              />
+            ))}
           </div>
         </header>
 
         <div className="prologue__dialogue" role="presentation">
-          {prologueScript.slice(0, visibleCount).map((line) => (
-            <div
-              key={line.id}
-              className={`prologue-line prologue-line--${line.variant}`}
-            >
-              {line.speaker ? (
-                <span className="prologue-line__speaker">{line.speaker}</span>
+          {currentLine ? (
+            <div key={currentLine.id} className={`prologue-line prologue-line--${currentLine.variant}`}>
+              {currentLine.speaker ? (
+                <span className="prologue-line__speaker">{currentLine.speaker}</span>
               ) : null}
-              <p className="prologue-line__text">{line.text}</p>
+              <p className="prologue-line__text">{currentLine.text}</p>
             </div>
-          ))}
+          ) : null}
         </div>
 
         <footer className="prologue__footer" aria-hidden="true">
@@ -83,7 +112,7 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
             {prologueScript.map((line, index) => (
               <span
                 key={line.id}
-                className={index < visibleCount ? 'is-active' : undefined}
+                className={index <= activeIndex ? 'is-active' : undefined}
               />
             ))}
           </div>

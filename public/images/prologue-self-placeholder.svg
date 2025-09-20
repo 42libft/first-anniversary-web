@@ -1,0 +1,67 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ps-night" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f1848" />
+      <stop offset="45%" stop-color="#1b2e73" />
+      <stop offset="100%" stop-color="#1a1042" />
+    </linearGradient>
+    <linearGradient id="ps-window" x1="10%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#6aa8ff" stop-opacity="0.92" />
+      <stop offset="55%" stop-color="#2b53c7" stop-opacity="0.88" />
+      <stop offset="100%" stop-color="#1a2d7a" stop-opacity="0.95" />
+    </linearGradient>
+    <linearGradient id="ps-desk" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1b123d" />
+      <stop offset="50%" stop-color="#281b58" />
+      <stop offset="100%" stop-color="#1b123d" />
+    </linearGradient>
+    <linearGradient id="ps-lamp" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffd5f6" />
+      <stop offset="100%" stop-color="#ff8ad5" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient id="ps-glow" cx="50%" cy="15%" r="70%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#ps-night)" />
+  <circle cx="1280" cy="120" r="48" fill="#ffe8ad" opacity="0.7" />
+  <g opacity="0.85">
+    <rect x="220" y="120" width="640" height="380" rx="32" fill="#0b112e" opacity="0.45" />
+    <rect x="240" y="140" width="600" height="340" rx="26" fill="url(#ps-window)" />
+    <g fill="#ffffff" opacity="0.16">
+      <circle cx="360" cy="220" r="8" />
+      <circle cx="500" cy="260" r="6" />
+      <circle cx="680" cy="200" r="5" />
+      <circle cx="430" cy="320" r="7" />
+      <circle cx="610" cy="310" r="9" />
+      <circle cx="700" cy="260" r="6" />
+    </g>
+  </g>
+  <path d="M160 520h960v140c0 32-26 58-58 58H218c-32 0-58-26-58-58V520z" fill="url(#ps-desk)" opacity="0.92" />
+  <rect x="220" y="470" width="320" height="90" rx="20" fill="#1f2658" opacity="0.85" />
+  <rect x="580" y="470" width="180" height="90" rx="20" fill="#1f2658" opacity="0.85" />
+  <rect x="1120" y="430" width="120" height="230" rx="28" fill="#1f1748" opacity="0.82" />
+  <path d="M1180 420c0-46 36-82 82-82h40" stroke="#f4c1ff" stroke-width="18" stroke-linecap="round" opacity="0.45" />
+  <circle cx="1240" cy="338" r="8" fill="#fdf4ff" opacity="0.7" />
+  <path d="M1180 430h88v24h-88z" fill="#272065" opacity="0.9" />
+  <path d="M360 520c0-64 48-110 124-110 60 0 102 28 126 72" stroke="#9db4ff" stroke-width="16" stroke-linecap="round" stroke-opacity="0.35" />
+  <g transform="translate(1020 460)">
+    <path d="M80 0h64v160c0 26-18 44-44 44H44c-26 0-44-18-44-44V44C0 18 18 0 44 0z" fill="#241748" opacity="0.72" />
+    <path d="M60 36h56v56H60z" fill="#32255f" opacity="0.92" />
+    <path d="M48 140h80v16H48z" fill="#352968" opacity="0.9" />
+  </g>
+  <ellipse cx="520" cy="612" rx="90" ry="14" fill="#0c0d24" opacity="0.3" />
+  <ellipse cx="1220" cy="622" rx="70" ry="12" fill="#0c0d24" opacity="0.25" />
+  <path d="M220 520h600" stroke="#3e4ca0" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+  <ellipse cx="460" cy="520" rx="160" ry="32" fill="url(#ps-lamp)" opacity="0.6" />
+  <circle cx="420" cy="496" r="22" fill="#ffd9f4" opacity="0.8" />
+  <circle cx="420" cy="496" r="12" fill="#fff0ff" opacity="0.6" />
+  <path d="M540 440h120" stroke="#7f8cff" stroke-width="10" stroke-linecap="round" opacity="0.35" />
+  <path d="M540 460h140" stroke="#7f8cff" stroke-width="6" stroke-linecap="round" opacity="0.3" />
+  <path d="M540 480h180" stroke="#7f8cff" stroke-width="6" stroke-linecap="round" opacity="0.25" />
+  <rect x="920" y="540" width="220" height="46" rx="20" fill="#ff8ad5" opacity="0.45" />
+  <path d="M0 780h1600v120H0z" fill="#0c0d24" opacity="0.7" />
+  <path d="M0 720h1600v80H0z" fill="#120c32" opacity="0.7" />
+  <ellipse cx="1400" cy="176" rx="140" ry="48" fill="url(#ps-glow)" opacity="0.22" />
+</svg>

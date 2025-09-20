@@ -3,7 +3,6 @@ import type {
   JourneyPromptResponse,
   SaveJourneyResponsePayload,
 } from './experience'
-import type { MeetupEntry } from './meetup'
 
 export type SceneId =
   | 'intro'
@@ -20,10 +19,16 @@ export interface SceneComponentProps {
   goToScene: (scene: SceneId) => void
   onRestart: () => void
   journeys: Journey[]
-  totalDistance: number
+  /**
+   * Sum of the journey distances that have been experienced so far.
+   * Displayed in the persistent HUD and reused by later scenes (quizzes/result).
+   */
+  distanceTraveled: number
+  /** Total distance if every journey in the dataset is completed. */
+  totalJourneyDistance: number
   responses: JourneyPromptResponse[]
   saveResponse: (payload: SaveJourneyResponsePayload) => void
-  meetups: MeetupEntry[]
+  setDistanceTraveled: (value: number) => void
 }
 
 export const sceneOrder: SceneId[] = [
