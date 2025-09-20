@@ -444,12 +444,12 @@
 .global-moon { display: none; }
 .global-moon-svg { position: absolute; top: 1.2ch; right: 4ch; width: 36px; height: 36px; opacity: 0.9; }
 /* Shooting stars */
-.shooting-star { position: absolute; width: 2px; height: 120px; pointer-events: none; filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
-  background: linear-gradient(180deg, #ffffff, rgba(255,255,255,0)); opacity: 0; transform-origin: top left; }
-.shooting-a { top: 4vh; left: 8vw; animation: shootingDiag 14s ease-in-out 2s infinite; }
-.shooting-b { top: 12vh; left: 22vw; animation: shootingDiag 19s ease-in-out 7s infinite; }
-.shooting-c { top: -6vh; left: -4vw; animation: shootingDiag 23s ease-in-out 13s infinite; }
-@keyframes shootingDiag { 0%, 75% { opacity: 0; transform: translate(-20vw,-20vh) rotate(45deg);} 78% { opacity: 1;} 95% { opacity: 0;} 100% { transform: translate(120vw,120vh) rotate(45deg);} }
+.shooting-star { position: absolute; height: 2px; width: 120px; pointer-events: none; filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
+  background: linear-gradient(90deg, #ffffff, rgba(255,255,255,0)); opacity: 0; }
+.shooting-a { top: 8vh; left: -15vw; animation: shootingX 22s linear 3s infinite; }
+.shooting-b { top: 16vh; left: -20vw; animation: shootingX 31s linear 9s infinite; }
+.shooting-c { top: 24vh; left: -25vw; animation: shootingX 43s linear 15s infinite; }
+@keyframes shootingX { 0%, 70% { opacity: 0; transform: translateX(0);} 74% { opacity: 1;} 88% { opacity: 0.8;} 100% { opacity: 0; transform: translateX(160vw);} }
 /* Reserve space for ground on the Intro start scene so stars don't overlap ground */
 .scene-intro .global-starfield { bottom: 10ch; }
 .ascii-bottom-mask { position: absolute; left:0; right:0; bottom:0; height: 10ch; background: linear-gradient(180deg, rgba(10,12,42,0), #090320 60%, #090320 100%); }
