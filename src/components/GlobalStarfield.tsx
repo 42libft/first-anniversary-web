@@ -32,6 +32,10 @@ export const GlobalStarfield = () => {
       </svg>
       <pre className="global-stars twinkle-a">{skyA}</pre>
       <pre className="global-stars twinkle-b">{skyB}</pre>
+      {/* occasional shooting stars */}
+      <div className="shooting-star shooting-a" />
+      <div className="shooting-star shooting-b" />
+      <div className="shooting-star shooting-c" />
     </div>
   )
 }
