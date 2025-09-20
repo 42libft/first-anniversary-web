@@ -1,14 +1,20 @@
 export const GlobalStarfield = () => {
   const makeStars = (seed: number) => {
-    // 大きめに生成して右/下で切れないようにする（密度は従来比）
     const rows = 80
     const cols = 300
     const stars: string[] = []
+    const hash = (r: number, c: number) => {
+      let x = (r * 374761393) ^ (c * 668265263) ^ (seed * 1597334677)
+      x = (x ^ (x >>> 13)) * 1274126177
+      x = (x ^ (x >>> 16)) >>> 0
+      return x / 4294967295
+    }
     for (let r = 0; r < rows; r++) {
-      let line = ''
+      const offset = (r * 7 + seed * 11) % 5
+      let line = ''.padEnd(offset, ' ')
       for (let c = 0; c < cols; c++) {
-        const n = (r * 131 + c * 73 + seed * 97) % 211
-        line += n % 37 === 0 ? '*' : n % 53 === 0 ? '·' : ' '
+        const p = hash(r, c)
+        line += p < 0.015 ? '*' : p < 0.035 ? '·' : ' '
       }
       stars.push(line)
     }
