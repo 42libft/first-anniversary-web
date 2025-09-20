@@ -429,7 +429,7 @@
 .ascii-walk { display: inline-block; animation: walk 0.7s steps(2,end) infinite; }
 @keyframes walk { 0% { transform: translateY(0);} 50% { transform: translateY(1px);} 100% { transform: translateY(0);} }
 /* equalize sprite block width to improve visual centering */
-.ascii-sprite { position: relative; min-height: 5.6em; width: 8ch; }
+.ascii-sprite { position: relative; min-height: 5.6em; width: 9ch; }
 @media (max-width: 480px) {
   /* raise baseline slightly on mobile to avoid burying */
   .ascii-characters { bottom: 7.5ch; }
@@ -444,12 +444,12 @@
 .global-moon { display: none; }
 .global-moon-svg { position: absolute; top: 1.2ch; right: 4ch; width: 36px; height: 36px; opacity: 0.9; }
 /* Shooting stars */
-.shooting-star { position: absolute; height: 2px; width: 120px; pointer-events: none; filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
-  background: linear-gradient(90deg, #ffffff, rgba(255,255,255,0)); opacity: 0; }
-.shooting-a { top: 8vh; left: -15vw; animation: shootingX 22s linear 3s infinite; }
-.shooting-b { top: 16vh; left: -20vw; animation: shootingX 31s linear 9s infinite; }
-.shooting-c { top: 24vh; left: -25vw; animation: shootingX 43s linear 15s infinite; }
-@keyframes shootingX { 0%, 70% { opacity: 0; transform: translateX(0);} 74% { opacity: 1;} 88% { opacity: 0.8;} 100% { opacity: 0; transform: translateX(160vw);} }
+.shooting-star { position: absolute; width: 2px; height: 80px; pointer-events: none; filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
+  background: linear-gradient(180deg, #ffffff, rgba(255,255,255,0)); opacity: 0; transform-origin: top left; }
+.shooting-a { top: 6vh; left: 5vw; animation: shootingDiag 26s ease-in-out 5s infinite; }
+.shooting-b { top: 14vh; left: 18vw; animation: shootingDiag 34s ease-in-out 12s infinite; }
+.shooting-c { top: -8vh; left: -10vw; animation: shootingDiag 48s ease-in-out 20s infinite; }
+@keyframes shootingDiag { 0%, 80% { opacity: 0; transform: translate(-15vw,-15vh) rotate(45deg);} 84% { opacity: 1;} 96% { opacity: 0.8;} 100% { opacity: 0; transform: translate(120vw,120vh) rotate(45deg);} }
 /* Reserve space for ground on the Intro start scene so stars don't overlap ground */
 .scene-intro .global-starfield { bottom: 10ch; }
 .ascii-bottom-mask { position: absolute; left:0; right:0; bottom:0; height: 10ch; background: linear-gradient(180deg, rgba(10,12,42,0), #090320 60%, #090320 100%); }

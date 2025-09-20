@@ -18,7 +18,7 @@ export const AsciiStartScene = () => {
 
       {/* two characters fixed center */}
       <div className="ascii-characters" style={{ textAlign: 'center', transform: 'translateX(-50%)' }}>
-        <div style={{ display: 'inline-grid', gridTemplateColumns: 'auto auto', gap: '3.5ch' }}>
+        <div style={{ display: 'inline-grid', gridTemplateColumns: 'auto auto', gap: '3ch' }}>
           <div className="ascii-sprite">
             <pre className="frame-a" style={{ margin: 0 }}>{` (•‿•)
   /|\\

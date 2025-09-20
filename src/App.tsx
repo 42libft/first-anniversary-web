@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import './App.css'
 import { DistanceHUD } from './components/DistanceHUD'
 import { GlobalStarfield } from './components/GlobalStarfield'
+import { BuildStamp } from './components/BuildStamp'
 import { journeys } from './data/journeys'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
 import { IntroScene } from './scenes/IntroScene'
@@ -100,6 +101,7 @@ function App() {
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}
       </main>
+      <BuildStamp />
       <footer className="scene-footer" aria-hidden="true">
         <span className="scene-footer__label">SCENE</span>
         <span className="scene-footer__value">{sceneTitleMap[currentSceneId]}</span>
