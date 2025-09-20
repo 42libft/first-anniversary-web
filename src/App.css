@@ -425,11 +425,11 @@
 .twinkle-a { position: absolute; inset: 0; animation: twinkle 2.5s ease-in-out infinite; }
 .twinkle-b { animation: twinkle 2.5s ease-in-out 1.25s infinite; opacity: 0.0; }
 @keyframes twinkle { 0%, 100% { opacity: 0.0;} 50% { opacity: 0.6; } }
-.ascii-characters { position: absolute; bottom: 6ch; left: 50%; transform: translateX(-50%); font-weight: 700; }
+.ascii-characters { position: absolute; bottom: 6ch; left: 50%; transform: translateX(-50%); font-weight: 700; width: calc(10ch * 2 + 3ch); }
 .ascii-walk { display: inline-block; animation: walk 0.7s steps(2,end) infinite; }
 @keyframes walk { 0% { transform: translateY(0);} 50% { transform: translateY(1px);} 100% { transform: translateY(0);} }
 /* equalize sprite block width to improve visual centering */
-.ascii-sprite { position: relative; min-height: 5.6em; width: 9ch; }
+.ascii-sprite { position: relative; min-height: 5.6em; width: 10ch; }
 @media (max-width: 480px) {
   /* raise baseline slightly on mobile to avoid burying */
   .ascii-characters { bottom: 7.5ch; }
