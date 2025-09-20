@@ -1,6 +1,7 @@
 export interface SaveJourneyResponsePayload {
   journeyId: string
   stepId: string
+  storageKey: string
   prompt: string
   answer: string
 }
