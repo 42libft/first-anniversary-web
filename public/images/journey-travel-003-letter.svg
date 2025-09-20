@@ -1,0 +1,35 @@
+<svg width="640" height="900" viewBox="0 0 640 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Travel 003 Letter Exchange</title>
+  <desc id="desc">A stylised illustration placeholder of a letter exchange by the riverside.</desc>
+  <defs>
+    <linearGradient id="evening" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#10142c" />
+      <stop offset="100%" stop-color="#241042" />
+    </linearGradient>
+    <linearGradient id="letter" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffe3a8" />
+      <stop offset="100%" stop-color="#ffc0d7" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="900" fill="url(#evening)" />
+  <g fill="rgba(255,255,255,0.2)">
+    <circle cx="160" cy="200" r="6" />
+    <circle cx="220" cy="180" r="5" />
+    <circle cx="320" cy="160" r="7" />
+    <circle cx="420" cy="190" r="4" />
+    <circle cx="500" cy="170" r="6" />
+  </g>
+  <g>
+    <path d="M100 720 Q320 640 540 720" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="3" />
+    <path d="M80 760 Q320 680 560 760" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="3" />
+  </g>
+  <g>
+    <rect x="220" y="360" width="200" height="150" rx="20" fill="url(#letter)" />
+    <path d="M220 360 L320 440 L420 360" fill="rgba(255,140,200,0.45)" />
+    <path d="M220 510 L320 430 L420 510" fill="rgba(255,105,180,0.38)" />
+  </g>
+  <g fill="#f4edff" font-family="'Noto Sans JP', 'Segoe UI', sans-serif" text-anchor="middle">
+    <text x="320" y="620" font-size="34" font-weight="600">LETTER IN THE NIGHT</text>
+    <text x="320" y="662" font-size="22" opacity="0.75">Promises under river breeze</text>
+  </g>
+</svg>
