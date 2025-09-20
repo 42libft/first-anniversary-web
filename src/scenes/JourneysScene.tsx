@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
 } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
@@ -11,9 +12,11 @@ import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion'
 import type {
   Journey,
   JourneyEpisodeStep,
+  JourneyMoveMode,
   JourneyMoveStep,
   JourneyQuestionStep,
   JourneyStep,
+  JourneyCoordinate,
 } from '../types/journey'
 import type { SceneComponentProps } from '../types/scenes'
 
@@ -63,11 +66,12 @@ const formatRecordedAt = (value?: string) => {
   return timestampFormatter.format(date)
 }
 
-const transportMeta = {
-  plane: { label: 'AIR ROUTE', icon: '✈️' },
-  train: { label: 'TRAIN ROUTE', icon: '🚅' },
-  bus: { label: 'BUS ROUTE', icon: '🚌' },
-} as const
+const transportMeta: Record<JourneyMoveMode, { label: string; icon: string }> = {
+  flight: { label: 'FLIGHT', icon: '✈️' },
+  walk: { label: 'WALK', icon: '🚶' },
+  bus: { label: 'BUS', icon: '🚌' },
+  train: { label: 'TRAIN', icon: '🚆' },
+}
 
 const artBackgrounds: Record<string, string> = {
   'night-sky-market':
@@ -81,7 +85,8 @@ const artBackgrounds: Record<string, string> = {
 const defaultArtBackground =
   'linear-gradient(150deg, rgba(20, 24, 60, 0.92), rgba(8, 10, 32, 0.95))'
 
-const getArtBackground = (key: string) => artBackgrounds[key] ?? defaultArtBackground
+const getArtBackground = (key?: string) =>
+  (key ? artBackgrounds[key] : undefined) ?? defaultArtBackground
 
 const stepTypeLabel: Record<JourneyStep['type'], string> = {
   move: '移動',
@@ -131,6 +136,38 @@ const isQuestionStep = (
   step: JourneyStep | undefined
 ): step is JourneyQuestionStep => step?.type === 'question'
 
+const defaultRoute: JourneyCoordinate[] = [
+  [12, 78],
+  [28, 66],
+  [50, 54],
+  [72, 42],
+  [88, 28],
+]
+
+const getRoutePoints = (step: JourneyMoveStep): JourneyCoordinate[] => {
+  if (step.route && step.route.length >= 2) {
+    return step.route
+  }
+
+  if (step.fromCoord && step.toCoord) {
+    return [step.fromCoord, step.toCoord]
+  }
+
+  return defaultRoute
+}
+
+const toRoutePath = (points: JourneyCoordinate[]): string => {
+  if (!points.length) {
+    return ''
+  }
+
+  const [first, ...rest] = points
+  return rest.reduce(
+    (acc, point) => `${acc} L ${point[0]} ${point[1]}`,
+    `M ${first[0]} ${first[1]}`
+  )
+}
+
 export const JourneysScene = ({
   onAdvance,
   journeys,
@@ -154,20 +191,19 @@ export const JourneysScene = ({
   const responseMap = useMemo(() => {
     const map = new Map<string, typeof responses[number]>()
     responses.forEach((entry) => {
-      map.set(`${entry.journeyId}:${entry.stepId}`, entry)
+      map.set(entry.storageKey, entry)
     })
     return map
   }, [responses])
 
   const [activeJourneyIndex, setActiveJourneyIndex] = useState(0)
   const [activeStepIndex, setActiveStepIndex] = useState(0)
-  const [animationState, setAnimationState] = useState<'idle' | 'animating' | 'complete'>(
-    'idle'
-  )
+  const [animationState, setAnimationState] = useState<
+    'idle' | 'animating' | 'complete'
+  >('idle')
   const animationTimeoutRef = useRef<number | null>(null)
   const [animationToken, setAnimationToken] = useState(0)
   const [draftAnswer, setDraftAnswer] = useState('')
-  const [editingStepKey, setEditingStepKey] = useState<string | null>(null)
 
   useEffect(
     () => () => {
@@ -206,21 +242,24 @@ export const JourneysScene = ({
   const activeJourney = journeys[activeJourneyIndex]
   const activeStep = activeJourney?.steps[activeStepIndex]
 
-  const stepKey = activeJourney && activeStep ? `${activeJourney.id}:${activeStep.id}` : ''
-  const storedResponse = stepKey ? responseMap.get(stepKey) : undefined
-  const isEditing = stepKey && editingStepKey === stepKey
+  const questionStorageKey = isQuestionStep(activeStep)
+    ? activeStep.storageKey
+    : null
+  const storedResponse = questionStorageKey
+    ? responseMap.get(questionStorageKey)
+    : undefined
+
+  const isQuestionReadOnly = isQuestionStep(activeStep)
+    ? Boolean(storedResponse) && activeStep.readonlyAfterSave !== false
+    : false
 
   useEffect(() => {
-    if (isQuestionStep(activeStep) && activeJourney) {
-      const key = `${activeJourney.id}:${activeStep.id}`
-      const stored = responseMap.get(key)
-      setDraftAnswer(stored?.answer ?? '')
-      setEditingStepKey(stored ? null : key)
+    if (isQuestionStep(activeStep)) {
+      setDraftAnswer(storedResponse?.answer ?? '')
     } else {
       setDraftAnswer('')
-      setEditingStepKey(null)
     }
-  }, [activeJourney, activeStep, responseMap])
+  }, [activeStep, storedResponse])
 
   useEffect(() => {
     if (!isMoveStep(activeStep)) {
@@ -260,7 +299,7 @@ export const JourneysScene = ({
     ? completedDistance >= moveMeta.cumulativeAfter - COMPLETION_EPSILON
     : false
 
-  const planeState: 'idle' | 'animating' | 'complete' = animationState
+  const moveState: 'idle' | 'animating' | 'complete' = animationState
 
   const handleStartMove = () => {
     if (!isMoveStep(activeStep) || !activeJourney) {
@@ -346,22 +385,16 @@ export const JourneysScene = ({
     setActiveStepIndex(0)
   }
 
-  const handleToggleEditing = () => {
-    if (!isQuestionStep(activeStep) || !activeJourney || !stepKey) {
-      return
-    }
-
-    setEditingStepKey((current) => (current === stepKey ? null : stepKey))
-  }
-
   const handleAnswerChange = useCallback(
     (value: string) => {
       if (!isQuestionStep(activeStep) || !activeJourney) {
         return
       }
 
-      const key = `${activeJourney.id}:${activeStep.id}`
-      if (storedResponse && editingStepKey !== key) {
+      if (
+        activeStep.readonlyAfterSave !== false &&
+        storedResponse !== undefined
+      ) {
         return
       }
 
@@ -369,11 +402,12 @@ export const JourneysScene = ({
       saveResponse({
         journeyId: activeJourney.id,
         stepId: activeStep.id,
+        storageKey: activeStep.storageKey,
         prompt: activeStep.prompt,
         answer: value,
       })
     },
-    [activeJourney, activeStep, editingStepKey, saveResponse, storedResponse]
+    [activeJourney, activeStep, saveResponse, storedResponse]
   )
 
   if (!activeJourney || !activeStep) {
@@ -390,8 +424,14 @@ export const JourneysScene = ({
     )
   }
 
-  const transport = isMoveStep(activeStep)
-    ? transportMeta[activeStep.transport]
+  const transportStep: JourneyMoveStep | undefined = isMoveStep(activeStep)
+    ? activeStep
+    : (activeJourney.steps.find((step) => step.type === 'move') as
+        | JourneyMoveStep
+        | undefined)
+
+  const transport = transportStep
+    ? transportMeta[transportStep.mode]
     : undefined
 
   const statusLabel = (() => {
@@ -405,6 +445,15 @@ export const JourneysScene = ({
 
     if (isMoveCompleted) {
       return '到着済み — 記録を残そう'
+    }
+
+    if (activeStep.mode === 'flight' && activeStep.meta?.flightNo) {
+      const times = [activeStep.meta.dep, activeStep.meta.arr]
+        .filter(Boolean)
+        .join(' → ')
+      return times
+        ? `${activeStep.meta.flightNo} ${times} (タップ)`
+        : `${activeStep.meta.flightNo} (タップ)`
     }
 
     return `${activeStep.from} → ${activeStep.to} を開始 (タップ)`
@@ -424,11 +473,33 @@ export const JourneysScene = ({
   const prevDisabled = activeJourneyIndex === 0 && activeStepIndex === 0
   const nextDisabled = isMoveStep(activeStep) && !isMoveCompleted
 
+  const planeStyle: CSSProperties | undefined =
+    isMoveStep(activeStep) && activeStep.mode === 'flight'
+      ? {
+          ['--plane-from-x' as string]: `${activeStep.fromCoord?.[0] ?? 12}%`,
+          ['--plane-from-y' as string]: `${activeStep.fromCoord?.[1] ?? 50}%`,
+          ['--plane-to-x' as string]: `${activeStep.toCoord?.[0] ?? 88}%`,
+          ['--plane-to-y' as string]: `${activeStep.toCoord?.[1] ?? 50}%`,
+        }
+      : undefined
+
+  const routePoints =
+    isMoveStep(activeStep) && activeStep.mode !== 'flight'
+      ? getRoutePoints(activeStep)
+      : []
+  const routePath =
+    isMoveStep(activeStep) && activeStep.mode !== 'flight'
+      ? toRoutePath(routePoints)
+      : ''
+
+  const routeStart = routePoints[0]
+  const routeEnd = routePoints[routePoints.length - 1]
+
   return (
     <SceneLayout
       eyebrow="Journeys"
-      title="移動演出と思い出ギャラリー"
-      description="東京⇄福岡の移動をタップで辿り、到着ごとに写真と質問へ答えを残していきます。"
+      title="旅の移動演出ログ"
+      description="この一年で実際に会いに行った旅を、移動演出とエピソード、質問で振り返ります。"
     >
       <div className="journeys-experience">
         <header className="journeys-header">
@@ -445,6 +516,17 @@ export const JourneysScene = ({
             STEP {activeStepIndex + 1}/{activeJourney.steps.length} ·{' '}
             {stepTypeLabel[activeStep.type]}
           </p>
+          <div className="journeys-header__meta">
+            <span className="journeys-header__date">
+              {formatJourneyDate(activeJourney.date)}
+            </span>
+            {transport ? (
+              <span className="journeys-header__mode">
+                <span aria-hidden="true">{transport.icon}</span>
+                {transport.label}
+              </span>
+            ) : null}
+          </div>
           <div className="journeys-progress-bar" aria-hidden="true">
             <div
               className="journeys-progress-bar__fill"
@@ -486,7 +568,9 @@ export const JourneysScene = ({
             <>
               <button
                 type="button"
-                className="journey-map"
+                className={`journey-map${
+                  activeStep.mode !== 'flight' ? ' journey-map--route' : ''
+                }`}
                 onClick={handleStartMove}
                 disabled={animationState === 'animating'}
                 aria-live="polite"
@@ -494,42 +578,83 @@ export const JourneysScene = ({
                 style={{ background: getArtBackground(activeStep.artKey) }}
               >
                 <span className="journey-map__glow" aria-hidden="true" />
-                <div className="journey-map__line" aria-hidden="true">
-                  <span className="journey-map__line-track" />
-                  <span
-                    key={`progress-${activeStep.id}-${animationToken}-${planeState}`}
-                    className="journey-map__line-progress"
-                    data-state={planeState}
-                  />
-                </div>
+                {activeStep.mode === 'flight' ? (
+                  <div className="journey-map__line" aria-hidden="true">
+                    <span className="journey-map__line-track" />
+                    <span
+                      key={`progress-${activeStep.id}-${animationToken}-${moveState}`}
+                      className="journey-map__line-progress"
+                      data-state={moveState}
+                    />
+                  </div>
+                ) : (
+                  <div className="journey-map__route-visual" aria-hidden="true">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+                      <path className="journey-map__route-track" d={routePath} />
+                      <path
+                        key={`route-${activeStep.id}-${animationToken}-${moveState}`}
+                        className="journey-map__route-progress"
+                        data-state={moveState}
+                        d={routePath}
+                      />
+                      {routeStart ? (
+                        <circle
+                          className="journey-map__route-node"
+                          cx={routeStart[0]}
+                          cy={routeStart[1]}
+                          r={2.2}
+                        />
+                      ) : null}
+                      {routeEnd ? (
+                        <circle
+                          className="journey-map__route-node journey-map__route-node--end"
+                          cx={routeEnd[0]}
+                          cy={routeEnd[1]}
+                          r={2.8}
+                        />
+                      ) : null}
+                    </svg>
+                  </div>
+                )}
                 <span
-                  key={`plane-${activeStep.id}-${animationToken}-${planeState}`}
+                  key={`plane-${activeStep.id}-${animationToken}-${moveState}`}
                   className={`journey-map__plane${
-                    prefersReducedMotion && planeState === 'complete'
+                    activeStep.mode !== 'flight'
+                      ? ' journey-map__plane--route'
+                      : ''
+                  }${
+                    prefersReducedMotion && moveState === 'complete'
                       ? ' journey-map__plane--static'
                       : ''
                   }`}
-                  data-state={planeState}
+                  data-state={moveState}
                   aria-hidden="true"
+                  style={planeStyle}
                 >
-                  <svg viewBox="0 0 60 32" role="img" aria-hidden="true">
-                    <path
-                      d="M2 14h24l8-10h7l-7 10h18l4 2-4 2H34l7 10h-7l-8-10H2l-2-2z"
-                      fill="url(#planeGradient)"
-                    />
-                    <defs>
-                      <linearGradient
-                        id="planeGradient"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="100%"
-                      >
-                        <stop offset="0%" stopColor="#ff66c4" />
-                        <stop offset="100%" stopColor="#4d7bff" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
+                  {activeStep.mode === 'flight' ? (
+                    <svg viewBox="0 0 60 32" role="img" aria-hidden="true">
+                      <path
+                        d="M2 14h24l8-10h7l-7 10h18l4 2-4 2H34l7 10h-7l-8-10H2l-2-2z"
+                        fill="url(#planeGradient)"
+                      />
+                      <defs>
+                        <linearGradient
+                          id="planeGradient"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="100%"
+                        >
+                          <stop offset="0%" stopColor="#ff66c4" />
+                          <stop offset="100%" stopColor="#4d7bff" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  ) : (
+                    <span className="journey-map__route-icon" aria-hidden="true">
+                      {transport?.icon ?? '•'}
+                    </span>
+                  )}
                 </span>
                 <div className="journey-map__labels" aria-hidden="true">
                   <span>{activeStep.from}</span>
@@ -590,6 +715,34 @@ export const JourneysScene = ({
                       </p>
                     </div>
                   </div>
+                  {activeStep.meta ? (
+                    <dl className="journey-card__meta-grid">
+                      {activeStep.meta.flightNo ? (
+                        <div>
+                          <dt>便名</dt>
+                          <dd>{activeStep.meta.flightNo}</dd>
+                        </div>
+                      ) : null}
+                      {activeStep.meta.dep ? (
+                        <div>
+                          <dt>出発</dt>
+                          <dd>{activeStep.meta.dep}</dd>
+                        </div>
+                      ) : null}
+                      {activeStep.meta.arr ? (
+                        <div>
+                          <dt>到着</dt>
+                          <dd>{activeStep.meta.arr}</dd>
+                        </div>
+                      ) : null}
+                      {activeStep.meta.note ? (
+                        <div className="journey-card__meta-note">
+                          <dt>NOTE</dt>
+                          <dd>{activeStep.meta.note}</dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                  ) : null}
                 </div>
               </article>
             </>
@@ -603,12 +756,12 @@ export const JourneysScene = ({
               >
                 <img
                   className="journey-card__photo"
-                  src={activeStep.media.src}
-                  alt={activeStep.media.alt}
+                  src={activeStep.photo.src}
+                  alt={activeStep.photo.alt}
                   loading="lazy"
                   style={
-                    activeStep.media.objectPosition
-                      ? { objectPosition: activeStep.media.objectPosition }
+                    activeStep.photo.objectPosition
+                      ? { objectPosition: activeStep.photo.objectPosition }
                       : undefined
                   }
                 />
@@ -628,8 +781,18 @@ export const JourneysScene = ({
                     {formatJourneyDate(activeJourney.date)}
                   </span>
                 </div>
-                <h3 className="journey-card__episode-title">{activeStep.title}</h3>
-                <p className="journey-card__caption">{activeStep.caption}</p>
+                {activeStep.title ? (
+                  <h3 className="journey-card__episode-title">
+                    {activeStep.title}
+                  </h3>
+                ) : null}
+                <div className="journey-card__text-group">
+                  {activeStep.text.map((paragraph, index) => (
+                    <p key={index} className="journey-card__caption">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
               </div>
             </article>
           ) : null}
@@ -646,7 +809,7 @@ export const JourneysScene = ({
                   </span>
                 </div>
                 <div className="journey-prompts journey-prompts--single">
-                  <label className="journey-prompt" htmlFor={activeStep.id}>
+                  <div className="journey-prompt" role="group">
                     <span className="journey-prompt__question">
                       {activeStep.prompt}
                     </span>
@@ -655,19 +818,45 @@ export const JourneysScene = ({
                         {activeStep.helper}
                       </span>
                     ) : null}
-                    <textarea
-                      id={activeStep.id}
-                      className="journey-prompt__input"
-                      value={draftAnswer}
-                      placeholder={
-                        activeStep.placeholder ?? 'ここに感じたことをメモ'
-                      }
-                      onChange={(event) =>
-                        handleAnswerChange(event.currentTarget.value)
-                      }
-                      disabled={Boolean(storedResponse && !isEditing)}
-                      rows={3}
-                    />
+                    {activeStep.style === 'choice' ? (
+                      <div className="journey-prompt__choices">
+                        {(activeStep.choices ?? []).map((choice) => {
+                          const isSelected = draftAnswer === choice
+                          return (
+                            <button
+                              key={choice}
+                              type="button"
+                              className={`journey-choice${
+                                isSelected ? ' is-selected' : ''
+                              }${
+                                isQuestionReadOnly ? ' is-locked' : ''
+                              }`}
+                              onClick={() => handleAnswerChange(choice)}
+                              disabled={isQuestionReadOnly}
+                            >
+                              <span className="journey-choice__icon" aria-hidden="true">
+                                {isSelected ? '●' : '○'}
+                              </span>
+                              <span className="journey-choice__label">{choice}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <textarea
+                        id={activeStep.id}
+                        className="journey-prompt__input"
+                        value={draftAnswer}
+                        placeholder={
+                          activeStep.placeholder ?? 'ここに感じたことをメモ'
+                        }
+                        onChange={(event) =>
+                          handleAnswerChange(event.currentTarget.value)
+                        }
+                        disabled={isQuestionReadOnly}
+                        rows={3}
+                      />
+                    )}
                     <div className="journey-prompt__footer">
                       <span className="journey-prompt__status">
                         {storedResponse?.recordedAt
@@ -676,17 +865,13 @@ export const JourneysScene = ({
                             )}`
                           : '未記録'}
                       </span>
-                      {storedResponse ? (
-                        <button
-                          type="button"
-                          className="journey-prompt__toggle"
-                          onClick={handleToggleEditing}
-                        >
-                          {isEditing ? '閲覧モードに戻す' : '編集する'}
-                        </button>
+                      {isQuestionReadOnly ? (
+                        <span className="journey-prompts__locked">
+                          保存済みのため編集できません。
+                        </span>
                       ) : null}
                     </div>
-                  </label>
+                  </div>
                 </div>
               </div>
             </article>

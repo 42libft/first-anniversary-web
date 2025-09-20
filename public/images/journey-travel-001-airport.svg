@@ -1,0 +1,32 @@
+<svg width="640" height="900" viewBox="0 0 640 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Travel 001 Airport Reunion</title>
+  <desc id="desc">A stylised illustration placeholder showing two people meeting at an airport lobby.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#211f6b" />
+      <stop offset="100%" stop-color="#402c7a" />
+    </linearGradient>
+    <radialGradient id="light" cx="0.3" cy="0.28" r="0.6">
+      <stop offset="0%" stop-color="rgba(255, 170, 220, 0.65)" />
+      <stop offset="100%" stop-color="rgba(33, 31, 107, 0)" />
+    </radialGradient>
+  </defs>
+  <rect width="640" height="900" fill="url(#bg)" />
+  <rect width="640" height="900" fill="url(#light)" />
+  <g fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5">
+    <path d="M80 760 L560 760" />
+    <path d="M80 780 L560 780" />
+    <path d="M140 220 Q320 140 500 220" />
+    <path d="M140 260 Q320 180 500 260" />
+  </g>
+  <g fill="#f4edff" font-family="'Noto Sans JP', 'Segoe UI', sans-serif" text-anchor="middle">
+    <text x="320" y="430" font-size="38" font-weight="600">AIRPORT LOBBY</text>
+    <text x="320" y="480" font-size="22" opacity="0.78">First Meeting in Fukuoka</text>
+    <text x="320" y="525" font-size="20" opacity="0.6">2024.10</text>
+  </g>
+  <g fill="rgba(255,255,255,0.22)">
+    <circle cx="200" cy="600" r="46" />
+    <circle cx="440" cy="600" r="46" />
+    <path d="M200 646 L320 680 L440 646" />
+  </g>
+</svg>
