@@ -1,0 +1,58 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pp-dusk" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0d3c" />
+      <stop offset="50%" stop-color="#3c1a60" />
+      <stop offset="100%" stop-color="#421245" />
+    </linearGradient>
+    <linearGradient id="pp-window" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffb3d5" stop-opacity="0.95" />
+      <stop offset="60%" stop-color="#ff739b" stop-opacity="0.88" />
+      <stop offset="100%" stop-color="#e33f76" stop-opacity="0.95" />
+    </linearGradient>
+    <linearGradient id="pp-table" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#331840" />
+      <stop offset="50%" stop-color="#441f52" />
+      <stop offset="100%" stop-color="#32143d" />
+    </linearGradient>
+    <radialGradient id="pp-glow" cx="50%" cy="10%" r="70%">
+      <stop offset="0%" stop-color="#fff7e6" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#fff7e6" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#pp-dusk)" />
+  <circle cx="360" cy="150" r="42" fill="#ffe7b9" opacity="0.7" />
+  <g opacity="0.88">
+    <rect x="980" y="120" width="520" height="360" rx="34" fill="#2d0e3b" opacity="0.5" />
+    <rect x="1000" y="140" width="480" height="320" rx="28" fill="url(#pp-window)" />
+    <g fill="#ffffff" opacity="0.2">
+      <circle cx="1120" cy="240" r="9" />
+      <circle cx="1260" cy="220" r="6" />
+      <circle cx="1400" cy="260" r="7" />
+      <circle cx="1320" cy="300" r="8" />
+      <circle cx="1180" cy="320" r="6" />
+    </g>
+  </g>
+  <path d="M240 520h1030v160c0 34-26 60-60 60H300c-34 0-60-26-60-60V520z" fill="url(#pp-table)" opacity="0.9" />
+  <rect x="360" y="470" width="240" height="90" rx="22" fill="#462058" opacity="0.82" />
+  <rect x="640" y="460" width="160" height="96" rx="24" fill="#54286a" opacity="0.86" />
+  <g transform="translate(280 420)" opacity="0.9">
+    <path d="M60 0h120v140c0 26-20 44-44 44H44c-26 0-44-18-44-44V44C0 18 18 0 44 0z" fill="#2b113a" />
+    <path d="M52 32h72v64H52z" fill="#3c1d51" />
+    <path d="M40 130h96v18H40z" fill="#40205a" />
+  </g>
+  <g transform="translate(880 450)" opacity="0.9">
+    <path d="M0 90c0-50 42-90 96-90h180c54 0 96 40 96 90v90c0 32-24 56-56 56H56c-32 0-56-24-56-56V90z" fill="#2f1340" />
+    <path d="M96 28h180c40 0 72 28 72 62v40c0 24-18 42-42 42H66c-24 0-42-18-42-42V90c0-34 32-62 72-62z" fill="#3d1e53" />
+    <rect x="142" y="102" width="88" height="22" rx="10" fill="#ff89b8" opacity="0.6" />
+  </g>
+  <circle cx="560" cy="520" r="110" fill="#ff86b9" opacity="0.18" />
+  <circle cx="520" cy="500" r="60" fill="#ffd1e6" opacity="0.32" />
+  <path d="M420 512c0-42 34-76 76-76 32 0 60 20 70 48" stroke="#ffc7e7" stroke-width="12" stroke-linecap="round" opacity="0.35" />
+  <ellipse cx="540" cy="640" rx="110" ry="18" fill="#0d0820" opacity="0.3" />
+  <ellipse cx="1100" cy="650" rx="140" ry="20" fill="#0d0820" opacity="0.28" />
+  <rect x="200" y="540" width="340" height="48" rx="20" fill="#ff94c6" opacity="0.38" />
+  <path d="M0 780h1600v120H0z" fill="#13071f" opacity="0.72" />
+  <path d="M0 720h1600v80H0z" fill="#1c0a2b" opacity="0.68" />
+  <ellipse cx="420" cy="160" rx="150" ry="50" fill="url(#pp-glow)" opacity="0.2" />
+</svg>

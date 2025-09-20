@@ -453,3 +453,285 @@
 /* Reserve space for ground on the Intro start scene so stars don't overlap ground */
 .scene-intro .global-starfield { bottom: 10ch; }
 .ascii-bottom-mask { position: absolute; left:0; right:0; bottom:0; height: 10ch; background: linear-gradient(180deg, rgba(10,12,42,0), #090320 60%, #090320 100%); }
+
+/* Prologue novel scene */
+.prologue {
+  position: relative;
+  flex: 1;
+  display: flex;
+  border-radius: 1.75rem;
+  padding: 1.75rem 1.5rem 1.5rem;
+  background: rgba(10, 14, 44, 0.6);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(130, 150, 255, 0.35);
+  box-shadow: 0 28px 60px rgba(8, 6, 32, 0.55);
+  cursor: pointer;
+  color: inherit;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.prologue:focus-visible {
+  outline: 2px solid rgba(255, 153, 255, 0.7);
+  outline-offset: 4px;
+}
+
+.prologue__backdrops {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.prologue__backdrop {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.025);
+  opacity: 0;
+  transition: opacity 420ms ease, transform 420ms ease;
+}
+
+.prologue__backdrop.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.prologue__backdrop--self {
+  background-image: linear-gradient(160deg, rgba(46, 64, 160, 0.25), rgba(18, 12, 48, 0.65)),
+    url('/images/prologue-self-placeholder.svg');
+}
+
+.prologue__backdrop--partner {
+  background-image: linear-gradient(160deg, rgba(188, 76, 160, 0.35), rgba(32, 18, 68, 0.7)),
+    url('/images/prologue-partner-placeholder.svg');
+}
+
+.prologue__backdrop-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 188, 255, 0.18), transparent 45%),
+    radial-gradient(circle at 82% 85%, rgba(82, 140, 255, 0.22), transparent 55%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.prologue__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.prologue__call-ui {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.prologue__call-id {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.prologue__call-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 1.25rem;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(160deg, rgba(29, 36, 96, 0.65), rgba(90, 120, 210, 0.45));
+  border: 1px solid rgba(170, 190, 255, 0.35);
+  box-shadow: 0 12px 24px rgba(12, 8, 40, 0.35);
+}
+
+.prologue__call-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prologue__call-label {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 244, 255, 0.65);
+}
+
+.prologue__call-status {
+  margin: 0.2rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.prologue__call-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.prologue__call-meter span {
+  width: 6px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(245, 244, 255, 0.28);
+  transition: background 0.35s ease;
+}
+
+.prologue__call-meter span.is-active {
+  background: linear-gradient(180deg, rgba(255, 102, 196, 0.7), rgba(87, 132, 255, 0.9));
+}
+
+.prologue__dialogue {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0.5rem 0;
+}
+
+.prologue-line {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.15rem;
+  border-radius: 1.2rem 1.2rem 1.2rem 0.6rem;
+  max-width: min(78vw, 500px);
+  background: rgba(18, 23, 58, 0.68);
+  border: 1px solid rgba(118, 146, 255, 0.38);
+  box-shadow: 0 18px 36px rgba(5, 6, 24, 0.4);
+  backdrop-filter: blur(12px);
+  animation: prologue-line-in 320ms ease forwards;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.prologue-line--self {
+  align-self: flex-end;
+  border-radius: 1.2rem 1.2rem 0.5rem 1.2rem;
+  background: linear-gradient(160deg, rgba(255, 126, 213, 0.82), rgba(93, 139, 255, 0.88));
+  border: 1px solid rgba(255, 176, 225, 0.5);
+  color: #090320;
+  box-shadow: 0 22px 38px rgba(255, 126, 213, 0.3);
+}
+
+.prologue-line--partner {
+  align-self: flex-start;
+  border-radius: 1.2rem 1.2rem 1.2rem 0.5rem;
+  background: rgba(18, 23, 58, 0.72);
+  border: 1px solid rgba(148, 176, 255, 0.45);
+}
+
+.prologue-line--narration,
+.prologue-line--system {
+  align-self: center;
+  border-radius: 1.2rem;
+  background: rgba(12, 18, 52, 0.6);
+  border: 1px solid rgba(170, 190, 255, 0.25);
+  text-align: center;
+  box-shadow: none;
+}
+
+.prologue-line--system {
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(235, 238, 255, 0.75);
+}
+
+.prologue-line__speaker {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 244, 255, 0.65);
+}
+
+.prologue-line--self .prologue-line__speaker {
+  color: rgba(9, 3, 32, 0.72);
+}
+
+.prologue-line__text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.prologue__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding-top: 0.25rem;
+}
+
+.prologue__progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.prologue__progress span {
+  display: block;
+  width: 12px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(245, 244, 255, 0.25);
+  transition: background 0.3s ease;
+}
+
+.prologue__progress span.is-active {
+  background: linear-gradient(90deg, rgba(255, 102, 196, 0.85), rgba(97, 140, 255, 0.95));
+}
+
+.prologue__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(245, 244, 255, 0.75);
+}
+
+@keyframes prologue-line-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prologue {
+    transition: none;
+  }
+
+  .prologue-line {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .prologue__backdrop {
+    transition: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .prologue {
+    padding: 1.5rem 1.25rem 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .prologue__call-avatar {
+    width: 40px;
+    height: 40px;
+  }
+}
