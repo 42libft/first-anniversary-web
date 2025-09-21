@@ -25,6 +25,12 @@ export interface JourneyMoveStep {
   toCoord?: JourneyCoordinate
   /** 抽象マップ上のルート。 */
   route?: JourneyCoordinate[]
+  /** 実際の地図を差し込む場合のイラスト情報。 */
+  mapIllustration?: {
+    src: string
+    alt: string
+    caption?: string
+  }
   /** フライト番号や発着時間などの補足情報。 */
   meta?: JourneyMoveMeta
   /** ステップ固有のラベルや補足文。 */

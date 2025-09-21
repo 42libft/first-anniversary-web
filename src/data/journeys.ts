@@ -55,6 +55,11 @@ const journeyDefinitions: JourneyInput[] = [
           [68, 58],
           [78, 52],
         ],
+        mapIllustration: {
+          src: '/images/maps/travel-001-walk.svg',
+          alt: '福岡空港から博多駅前までの徒歩ルートを描いた夜景マップ',
+          caption: '空港連絡通路から博多駅方面へ向かう道筋を夜景のトーンで表現した地図',
+        },
         description: '空港の通路を抜け、夕方の風を浴びながらホテルへ向かった。',
       },
       {
@@ -147,6 +152,11 @@ const journeyDefinitions: JourneyInput[] = [
           [55, 38],
           [72, 28],
         ],
+        mapIllustration: {
+          src: '/images/maps/travel-002-train.svg',
+          alt: '羽田空港から渋谷へ向かう鉄道路線をネオンで描いた地図',
+          caption: '東京湾沿いから都心部へ向かう夜景のラインを記録したビジュアルマップ',
+        },
         meta: {
           note: '空港線から渋谷まで乗り換え1回。',
         },
@@ -214,6 +224,11 @@ const journeyDefinitions: JourneyInput[] = [
           [74, 34],
           [82, 26],
         ],
+        mapIllustration: {
+          src: '/images/maps/travel-003-bus.svg',
+          alt: '福岡空港から夏祭りの会場へ向かうバスルートを描いた地図',
+          caption: '河川敷の灯りと臨時バスのラインをブルートーンでまとめた地図イラスト',
+        },
         meta: {
           note: '臨時バスで30分ほどの移動。',
         },

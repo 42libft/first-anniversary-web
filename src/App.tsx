@@ -102,10 +102,7 @@ function App() {
   return (
     <div className={`app-shell scene-${currentSceneId}`}>
       {currentSceneId !== 'intro' && <GlobalStarfield />}
-      <DistanceHUD
-        distanceKm={distanceTraveled}
-        goalKm={totalJourneyDistance}
-      />
+      <DistanceHUD distanceKm={distanceTraveled} />
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}
       </main>
