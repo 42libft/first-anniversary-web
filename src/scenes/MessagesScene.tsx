@@ -7,7 +7,7 @@ import {
   totalMessages,
 } from '../data/messages'
 import { QuizCard } from '../components/QuizCard'
-import { CanvasBubbles } from '../components/CanvasBubbles'
+import { CanvasMemoryStream } from '../components/CanvasMemoryStream'
 import type { SceneComponentProps } from '../types/scenes'
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
@@ -31,31 +31,19 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
   const [bubbleLog, setBubbleLog] = useState<BubbleLogEntry[]>([])
 
   // Build a simple pool from existing previews
-  const messagePool = useMemo((): Array<{ speaker: 'me' | 'you'; text: string }> => {
-    const pool: Array<{ speaker: 'me' | 'you'; text: string }> = []
+  const messageStrings = useMemo(() => {
+    const out: string[] = []
     messageMilestones.forEach((m) => {
-      m.preview.forEach((p) => pool.push({ speaker: p.speaker, text: p.text }))
-      // also split highlight as extra flavor
+      m.preview.forEach((p) => out.push(p.text))
       m.highlight.split('。').forEach((s) => {
         const t = s.trim()
-        if (t) pool.push({ speaker: 'me', text: t })
+        if (t) out.push(t)
       })
     })
-    // try to hydrate from external corpus (optional)
-    try {
-      // kick async fetch without blocking first render
-      fetch('/data/messages-corpus.json')
-        .then((r) => (r.ok ? r.json() : []))
-        .then(() => {})
-        .catch(() => void 0)
-    } catch {}
-    return pool.length ? pool : [{ speaker: 'me', text: 'だいすき' }]
+    return out.length ? out : ['だいすき']
   }, [])
 
-  const nextMessageFromPool = (): { speaker: 'me' | 'you'; text: string } => {
-    const i = Math.floor(Math.random() * messagePool.length)
-    return messagePool[i]
-  }
+  // message selection is handled by CanvasMemoryStream via messages prop
 
   // Counter pop animation toggle
   useEffect(() => {
@@ -73,14 +61,13 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
   }, [count, targetTotal, onAdvance])
 
   // Canvas側のバブルがポップしたら呼ばれる
-  const handlePop = () => {
+  const handleReveal = (text: string) => {
     setCount((c) => (c < targetTotal ? c + 1 : c))
-    const msg = nextMessageFromPool()
     const id = `log-${Date.now()}-${Math.floor(Math.random() * 1e6)}`
     const entry: BubbleLogEntry = {
       id,
-      speaker: msg.speaker,
-      text: msg.text,
+      speaker: Math.random() > 0.5 ? 'me' : 'you',
+      text,
       timestamp: new Date().toTimeString().slice(0, 5),
     }
     setBubbleLog((log) => [...log, entry])
@@ -142,8 +129,8 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
         </section>
 
         <section className="chat-preview">
-          <div ref={bubbleFieldRef} className="pop-field" role="button" aria-label="画面タップでバブルを弾けさせる" tabIndex={0}>
-            <CanvasBubbles onPop={handlePop} />
+          <div ref={bubbleFieldRef} className="pop-field" role="button" aria-label="画面タップで文字の流れを生成" tabIndex={0}>
+            <CanvasMemoryStream messages={messageStrings} onReveal={handleReveal} />
             <div className="pop-field__hint">画面のどこでもタップ</div>
           </div>
           <div className="chat-preview__log">
