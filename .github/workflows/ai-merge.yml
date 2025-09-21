@@ -1,0 +1,167 @@
+name: AI Merge & Automerge (no API key)
+
+on:
+  pull_request:
+    types: [labeled, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  models: read   # ← GitHub Models を呼ぶのに必要
+
+jobs:
+  ai-merge:
+    if: >
+      (github.event.action == 'labeled' && github.event.label.name == 'ai-resolve') ||
+      contains(github.event.pull_request.labels.*.name, 'ai-resolve')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Resolve conflicts with GitHub Models (LLM)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # ← これだけでOK
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+          # 1) ベースを取り込んで競合を発生させる（PRヘッドに対してベースをマージ）
+          git fetch origin "$BASE"
+          if git merge --no-commit --no-ff "origin/$BASE"; then
+            echo "No conflicts. Nothing to do."
+            exit 0
+          fi
+
+          # 2) 競合ファイル一覧
+          CONFLICTS=$(git diff --name-only --diff-filter=U)
+          echo "Conflicted files:"
+          echo "$CONFLICTS"
+
+          # 3) 各ファイルを戦略分岐して解決
+          node - <<'NODE'
+          import { execSync } from "node:child_process";
+          import fs from "node:fs";
+
+          const GHTOKEN = process.env.GITHUB_TOKEN;
+          const conflicts = execSync("git diff --name-only --diff-filter=U").toString().trim().split("\n").filter(Boolean);
+
+          // 戦略：生成物＆ロックは片側優先、ドキュメントは両取り、コードはLLM
+          const ALWAYS_THEIRS = [/^dist\//, /^build\//, \.min\./, /^package-lock\.json$/, /^yarn\.lock$/, /^pnpm-lock\.yaml$/];
+          const UNION = [/\.md$/, /\.svg$/, /\.ya?ml$/];
+
+          const pick = (p)=>ALWAYS_THEIRS.some(r=>r.test(p))?"theirs":UNION.some(r=>r.test(p))?"union":"ai";
+
+          const show = (spec, file) => {
+            try { return execSync(`git show ${spec}:${file}`, {stdio:['ignore','pipe','pipe']}).toString(); }
+            catch { return ""; } // base(:1:)は無いこともある
+          }
+
+          const callModel = async (model, messages) => {
+            const res = await fetch("https://models.github.ai/inference/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type":"application/json",
+                "Authorization":`Bearer ${GHTOKEN}`
+              },
+              body: JSON.stringify({
+                model,
+                temperature: 0.1,
+                messages,
+                max_tokens: 8000
+              })
+            });
+            if (!res.ok) throw new Error(`Model HTTP ${res.status}`);
+            const j = await res.json();
+            return j.choices?.[0]?.message?.content ?? "";
+          };
+
+          const aiMerge = async (file) => {
+            const base = show(":1", file);
+            const ours = show(":2", file);
+            const theirs = show(":3", file);
+
+            const system = "You merge two conflicting versions of ONE file. Keep buildable, deduplicate imports, keep both intentional changes. Output ONLY the final file, no fences, no commentary.";
+            const user = `FILE: ${file}
+BASE (may be empty):
+${base}
+
+HEAD (ours):
+${ours}
+
+INCOMING (theirs):
+${theirs}
+
+Return the merged file content only.`;
+
+            // まず軽量モデル
+            try {
+              const merged = await callModel("openai/gpt-4o-mini", [
+                {role:"system", content: system},
+                {role:"user", content: user}
+              ]);
+              if (merged && merged.trim().length>0) return merged;
+            } catch(e) {
+              // あとでフォールバック
+            }
+            // ダメなら両取り(マーカー除去)にフォールバック
+            const withMarkers = fs.readFileSync(file,"utf8");
+            return withMarkers
+              .replace(/^<<<<<<<[^\n]*\n/gm,"")
+              .replace(/^\={7,}\n/gm,"")
+              .replace(/^>>>>>>>[^\n]*\n/gm,"");
+          };
+
+          const main = async ()=>{
+            for (const f of conflicts) {
+              const s = pick(f);
+              console.log(`Resolving ${f} [${s}]`);
+              if (s === "theirs") {
+                execSync(`git checkout --theirs -- "${f}"`);
+                continue;
+              }
+              if (s === "union") {
+                const txt = fs.readFileSync(f,"utf8")
+                  .replace(/^<<<<<<<[^\n]*\n/gm,"")
+                  .replace(/^\={7,}\n/gm,"")
+                  .replace(/^>>>>>>>[^\n]*\n/gm,"");
+                fs.writeFileSync(f, txt);
+                continue;
+              }
+              const merged = await aiMerge(f);
+              fs.writeFileSync(f, merged);
+            }
+          };
+          await main();
+
+          NODE
+
+          # 4) マージ継続（残ってたら最終的にマーカー除去）
+          if ! git -c core.editor=true merge --continue; then
+            for f in $CONFLICTS; do
+              sed -i -e '/^<<<<<<< /d' -e '/^=======/d' -e '/^>>>>>>> /d' "$f" || true
+            done
+            git -c core.editor=true merge --continue || true
+          fi
+
+          # 5) 依存インストール＆軽いテスト（あるなら）
+          if [ -f package.json ]; then
+            npm ci || npm i
+            npm test || true
+            npm run build || true
+          fi
+
+          # 6) 変更があればプッシュ
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name  "ai-merge-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add -A
+            git commit -m "chore: AI-resolved merge conflicts"
+            git push
+          fi
+
+      - name: Enable auto-merge if clean
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} --merge --auto || true
