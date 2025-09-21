@@ -1,0 +1,4 @@
+id,title,mode,origin,destination,waypoints,departAt,distanceKm,mapLink
+travel-001-walk,福岡空港→ホテル,walk,"福岡空港","博多駅前ホテル","東比恵駅; 博多駅",,3,
+travel-002-train,羽田→渋谷,train,"羽田空港第1ターミナル駅","渋谷駅","浜松町駅; 品川駅",,18,
+travel-003-bus,ホテル→会場,bus,"博多駅前ホテル","イベント会場","祇園","2024-10-05T10:00:00+09:00",5,

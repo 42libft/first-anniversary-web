@@ -28,7 +28,9 @@ const readFromStorage = (): JourneyPromptResponse[] => {
     return parsed.filter(
       (entry) =>
         typeof entry === 'object' &&
-        typeof entry.journeyKey === 'string' &&
+        typeof entry.journeyId === 'string' &&
+        typeof entry.stepId === 'string' &&
+        typeof entry.storageKey === 'string' &&
         typeof entry.prompt === 'string' &&
         typeof entry.answer === 'string' &&
         typeof entry.recordedAt === 'string'
@@ -60,8 +62,7 @@ export const useStoredJourneyResponses = () => {
     (payload: SaveJourneyResponsePayload) => {
       setResponses((prev) => {
         const filtered = prev.filter(
-          (entry) =>
-            !(entry.journeyKey === payload.journeyKey && entry.prompt === payload.prompt)
+          (entry) => entry.storageKey !== payload.storageKey
         )
 
         const updated: JourneyPromptResponse = {

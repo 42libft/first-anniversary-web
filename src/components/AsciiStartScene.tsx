@@ -1,8 +1,41 @@
+const BACKSLASH = '\\'
+
+const createFrame = (lines: string[]) => lines.join('\n') + '\n'
+
+const CHARACTER_LEFT = {
+  frameA: createFrame([
+    ' (•‿•)',
+    '  /|\\',
+    `  / ${BACKSLASH}${BACKSLASH}`,
+    '+',
+  ]),
+  frameB: createFrame([
+    ' (•‿•)',
+    `  ${BACKSLASH}|/`,
+    `  / ${BACKSLASH}${BACKSLASH}`,
+    '+',
+  ]),
+}
+
+const CHARACTER_RIGHT = {
+  frameA: createFrame([
+    ' (•‿•)~',
+    '  /|\\',
+    `  / ${BACKSLASH}${BACKSLASH}`,
+    '+',
+  ]),
+  frameB: createFrame([
+    ' (•‿•)~',
+    `  ${BACKSLASH}|/`,
+    `  / ${BACKSLASH}${BACKSLASH}`,
+    '+',
+  ]),
+}
+
 export const AsciiStartScene = () => {
   // flatter ground (reduced undulation)
   const groundUnit = '____________________  '
   const groundBlock = (groundUnit.repeat(16) + '\n').repeat(2)
-
 
   return (
     <div className="ascii-scene" aria-hidden="true">
@@ -20,20 +53,12 @@ export const AsciiStartScene = () => {
       <div className="ascii-characters" style={{ textAlign: 'center', transform: 'translateX(-50%)' }}>
         <div style={{ display: 'inline-grid', gridTemplateColumns: 'auto auto', gap: '3.5ch' }}>
           <div className="ascii-sprite">
-            <pre className="frame-a" style={{ margin: 0 }}>{` (•‿•)
-  /|\\
-  / \\\n+`}</pre>
-            <pre className="frame-b" style={{ margin: 0 }}>{` (•‿•)
-  \|/
-  / \\\n+`}</pre>
+            <pre className="frame-a" style={{ margin: 0 }}>{CHARACTER_LEFT.frameA}</pre>
+            <pre className="frame-b" style={{ margin: 0 }}>{CHARACTER_LEFT.frameB}</pre>
           </div>
           <div className="ascii-sprite">
-            <pre className="frame-a" style={{ margin: 0 }}>{` (•‿•)~
-  /|\\
-  / \\\n+`}</pre>
-            <pre className="frame-b" style={{ margin: 0 }}>{` (•‿•)~
-  \|/
-  / \\\n+`}</pre>
+            <pre className="frame-a" style={{ margin: 0 }}>{CHARACTER_RIGHT.frameA}</pre>
+            <pre className="frame-b" style={{ margin: 0 }}>{CHARACTER_RIGHT.frameB}</pre>
           </div>
         </div>
       </div>

@@ -1,0 +1,43 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="train-bg" x1="60" y1="40" x2="580" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1c123a" />
+      <stop offset="1" stop-color="#08122c" />
+    </linearGradient>
+    <linearGradient id="train-route" x1="120" y1="96" x2="520" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b9dff" />
+      <stop offset="1" stop-color="#66ffe3" />
+    </linearGradient>
+    <pattern id="station-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M0 32L32 0" stroke="#253969" stroke-width="4" stroke-linecap="round" />
+    </pattern>
+    <filter id="train-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="7" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#train-bg)" />
+  <rect x="40" y="40" width="560" height="280" rx="20" fill="rgba(12,22,48,0.55)" stroke="rgba(138,150,255,0.25)" />
+  <rect x="56" y="56" width="528" height="248" rx="18" fill="url(#station-grid)" opacity="0.28" />
+  <g stroke="#1b2f5e" stroke-width="10" stroke-linecap="round" opacity="0.45">
+    <path d="M120 96C172 134 238 178 304 214C370 250 428 282 492 304" />
+  </g>
+  <path d="M120 100C172 138 236 180 300 216C364 252 428 286 492 308" stroke="url(#train-route)" stroke-width="6" stroke-linecap="round" stroke-dasharray="18 10" filter="url(#train-glow)" />
+  <g fill="#f5f4ff" font-family="'Noto Sans JP', 'Inter', sans-serif" font-size="18">
+    <text x="112" y="82" opacity="0.85">羽田空港</text>
+    <text x="476" y="332" opacity="0.85">渋谷</text>
+  </g>
+  <g fill="#98b8ff" font-family="'Noto Sans JP', 'Inter', sans-serif" font-size="13" opacity="0.75">
+    <text x="204" y="132">天空橋</text>
+    <text x="276" y="180">品川</text>
+    <text x="344" y="218">浜松町</text>
+    <text x="420" y="262">大門</text>
+  </g>
+  <g fill="#66ffe3">
+    <circle cx="120" cy="100" r="10" stroke="#b6f7ff" stroke-width="3" />
+    <circle cx="492" cy="308" r="10" stroke="#c6fff6" stroke-width="3" />
+  </g>
+</svg>
