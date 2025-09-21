@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
+import { QuizCard } from '../components/QuizCard'
 import { confessionAnswer, likesMilestones, totalLikes } from '../data/likes'
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion'
 import type { SceneComponentProps } from '../types/scenes'
@@ -30,7 +31,7 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
     Math.min(2, likesMilestones.length)
   )
   const [counterPop, setCounterPop] = useState(false)
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [, setSelectedAnswer] = useState<string | null>(null)
   const [hearts, setHearts] = useState<FloatingHeart[]>([])
   const heartIdRef = useRef(0)
   const heartTimeouts = useRef<ReturnType<typeof setTimeout>[]>([])
@@ -111,11 +112,7 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
     }
   }
 
-  const handleSelectAnswer = (value: string) => {
-    setSelectedAnswer(value)
-  }
-
-  const isCorrect = selectedAnswer === confessionAnswer.correct
+  // correctness is handled by QuizCard now
 
   const timelineEntries = useMemo(
     () =>
@@ -190,41 +187,14 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
           ))}
         </section>
 
-        <section className="quiz-card likes-quiz">
-          <p className="quiz-card__question">最初に「好き」って言ったのはどっち？</p>
-          <div className="quiz-card__options">
-            {quizChoices.map((choice) => (
-              <button
-                key={choice.value}
-                type="button"
-                onClick={() => handleSelectAnswer(choice.value)}
-                className={`quiz-option${
-                  selectedAnswer === choice.value ? ' is-selected' : ''
-                }${
-                  selectedAnswer && choice.value === confessionAnswer.correct
-                    ? ' is-correct'
-                    : ''
-                }`}
-              >
-                <span className="quiz-option__label">{choice.label}</span>
-                <span className="quiz-option__meta">{choice.caption}</span>
-              </button>
-            ))}
-          </div>
-          {selectedAnswer ? (
-            <p
-              className={`quiz-card__feedback${
-                isCorrect ? ' is-success' : ' is-error'
-              }`}
-            >
-              {isCorrect
-                ? `正解！${confessionAnswer.explanation}`
-                : `実は${confessionAnswer.explanation}`}
-            </p>
-          ) : (
-            <p className="quiz-card__hint">ヒント：空フェス遠征の帰り道を思い出して。</p>
-          )}
-        </section>
+        <QuizCard
+          id="likes-first-confession"
+          question="最初に『好き』って言ったのはどっち？"
+          options={quizChoices.map((c) => ({ value: c.value, label: c.label, meta: c.caption }))}
+          correct={confessionAnswer.correct}
+          hint="ヒント：空フェス遠征の帰り道。"
+          onAnswered={(value) => setSelectedAnswer(value)}
+        />
       </div>
     </SceneLayout>
   )

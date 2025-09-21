@@ -6,6 +6,7 @@ import {
   messageMilestones,
   totalMessages,
 } from '../data/messages'
+import { QuizCard } from '../components/QuizCard'
 import type { SceneComponentProps } from '../types/scenes'
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
@@ -18,7 +19,7 @@ export const MessagesScene = ({
     Math.min(2, messageMilestones.length)
   )
   const [counterPop, setCounterPop] = useState(false)
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
+  const [, setSelectedMonth] = useState<string | null>(null)
 
   const safeVisibleSteps = Math.max(
     1,
@@ -91,12 +92,7 @@ export const MessagesScene = ({
     return options
   }, [])
 
-  const handleSelectMonth = (month: string) => {
-    setSelectedMonth(month)
-  }
-
-  const isCorrectSelection =
-    selectedMonth === busiestMessageMilestone.month
+  // correctness is handled by QuizCard now
 
   return (
     <SceneLayout
@@ -160,58 +156,18 @@ export const MessagesScene = ({
           ))}
         </section>
 
-        <section className="quiz-card">
-          <p className="quiz-card__question">
-            合計{formatNumber(Math.round(totalJourneyDistance))}kmを旅した一年。
-            いちばんメッセージが多かった月は？
-          </p>
-          <div className="quiz-card__options">
-            {quizOptions.map((option) => (
-              <button
-                key={option.month}
-                type="button"
-                onClick={() => handleSelectMonth(option.month)}
-                className={`quiz-option${
-                  selectedMonth === option.month ? ' is-selected' : ''
-                }${
-                  selectedMonth &&
-                  option.month === busiestMessageMilestone.month
-                    ? ' is-correct'
-                    : ''
-                }`}
-              >
-                <span className="quiz-option__label">{option.label}</span>
-                <span className="quiz-option__meta">
-                  {formatNumber(option.monthlyTotal)}通 / 距離{' '}
-                  {formatNumber(option.cumulativeDistanceKm)}km
-                </span>
-              </button>
-            ))}
-          </div>
-          {selectedMonth ? (
-            <p
-              className={`quiz-card__feedback${
-                isCorrectSelection ? ' is-success' : ' is-error'
-              }`}
-            >
-              {isCorrectSelection
-                ? `正解！距離${formatNumber(
-                    busiestMessageMilestone.cumulativeDistanceKm
-                  )}km到達の勢いそのままに、言葉の打ち上げ花火が続いた月です。`
-                : `惜しい…正解は ${
-                    busiestMessageMilestone.label
-                  }。距離${formatNumber(
-                    busiestMessageMilestone.cumulativeDistanceKm
-                  )}kmの瞬間に、会えない夜を埋めるようにメッセージが弾けました。`}
-            </p>
-          ) : (
-            <p className="quiz-card__hint">
-              ヒント：距離が
-              {formatNumber(busiestMessageMilestone.cumulativeDistanceKm)}kmに
-              到達したころの盛り上がりを思い出してみて。
-            </p>
-          )}
-        </section>
+        <QuizCard
+          id="messages-busiest-month"
+          question={`合計${formatNumber(Math.round(totalJourneyDistance))}kmを旅した一年。いちばんメッセージが多かった月は？`}
+          options={quizOptions.map((o) => ({
+            value: o.month,
+            label: o.label,
+            meta: `${formatNumber(o.monthlyTotal)}通 / 距離 ${formatNumber(o.cumulativeDistanceKm)}km`,
+          }))}
+          correct={busiestMessageMilestone.month}
+          hint={`ヒント：距離が${formatNumber(busiestMessageMilestone.cumulativeDistanceKm)}kmに到達した頃の盛り上がり。`}
+          onAnswered={(value) => setSelectedMonth(value)}
+        />
       </div>
     </SceneLayout>
   )
