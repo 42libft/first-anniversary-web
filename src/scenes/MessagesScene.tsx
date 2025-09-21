@@ -7,6 +7,7 @@ import {
   totalMessages,
 } from '../data/messages'
 import { QuizCard } from '../components/QuizCard'
+import { CanvasBubbles } from '../components/CanvasBubbles'
 import type { SceneComponentProps } from '../types/scenes'
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
@@ -19,10 +20,6 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
   const [, setSelectedMonth] = useState<string | null>(null)
 
   const bubbleFieldRef = useRef<HTMLDivElement | null>(null)
-  const [bubbles, setBubbles] = useState<
-    Array<{ id: number; x: number; y: number; delay: number; duration: number }>
-  >([])
-  const bubbleIdRef = useRef(0)
 
   type BubbleLogEntry = {
     id: string
@@ -44,6 +41,14 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
         if (t) pool.push({ speaker: 'me', text: t })
       })
     })
+    // try to hydrate from external corpus (optional)
+    try {
+      // kick async fetch without blocking first render
+      fetch('/data/messages-corpus.json')
+        .then((r) => (r.ok ? r.json() : []))
+        .then(() => {})
+        .catch(() => void 0)
+    } catch {}
     return pool.length ? pool : [{ speaker: 'me', text: 'だいすき' }]
   }, [])
 
@@ -67,40 +72,18 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
     }
   }, [count, targetTotal, onAdvance])
 
-  const spawnBubble = (x: number, y: number, multiplier = 3) => {
-    const rect = bubbleFieldRef.current?.getBoundingClientRect()
-    const baseX = rect ? x - rect.left : x
-    const baseY = rect ? y - rect.top : y
-    const n = Math.max(2, Math.min(6, multiplier))
-    const batch: Array<{ id: number; x: number; y: number; delay: number; duration: number }> = []
-    for (let i = 0; i < n; i += 1) {
-      bubbleIdRef.current += 1
-      batch.push({
-        id: bubbleIdRef.current,
-        x: baseX + (Math.random() - 0.5) * 80,
-        y: baseY + (Math.random() - 0.5) * 40,
-        delay: Math.random() * 120,
-        duration: 900 + Math.random() * 600,
-      })
+  // Canvas側のバブルがポップしたら呼ばれる
+  const handlePop = () => {
+    setCount((c) => (c < targetTotal ? c + 1 : c))
+    const msg = nextMessageFromPool()
+    const id = `log-${Date.now()}-${Math.floor(Math.random() * 1e6)}`
+    const entry: BubbleLogEntry = {
+      id,
+      speaker: msg.speaker,
+      text: msg.text,
+      timestamp: new Date().toTimeString().slice(0, 5),
     }
-    setBubbles((prev) => [...prev, ...batch])
-
-    // schedule pops -> increment count and append message
-    batch.forEach((b) => {
-      setTimeout(() => {
-        setBubbles((prev) => prev.filter((it) => it.id !== b.id))
-        setCount((c) => (c < targetTotal ? c + 1 : c))
-        const msg = nextMessageFromPool()
-        const id = `log-${b.id}`
-        const entry: BubbleLogEntry = {
-          id,
-          speaker: msg.speaker,
-          text: msg.text,
-          timestamp: new Date().toTimeString().slice(0, 5),
-        }
-        setBubbleLog((log) => [...log, entry])
-      }, b.delay + b.duration)
-    })
+    setBubbleLog((log) => [...log, entry])
   }
 
   const quizOptions = useMemo(() => {
@@ -159,26 +142,8 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
         </section>
 
         <section className="chat-preview">
-          <div
-            ref={bubbleFieldRef}
-            className="pop-field"
-            onClick={(e) => spawnBubble(e.clientX, e.clientY, 4)}
-            role="button"
-            aria-label="画面タップでバブルを弾けさせる"
-            tabIndex={0}
-          >
-            {bubbles.map((b) => (
-              <span
-                key={b.id}
-                className="pop-bubble"
-                style={{
-                  left: `${b.x}px`,
-                  top: `${b.y}px`,
-                  animationDelay: `${b.delay}ms`,
-                  animationDuration: `${b.duration}ms`,
-                }}
-              />)
-            )}
+          <div ref={bubbleFieldRef} className="pop-field" role="button" aria-label="画面タップでバブルを弾けさせる" tabIndex={0}>
+            <CanvasBubbles onPop={handlePop} />
             <div className="pop-field__hint">画面のどこでもタップ</div>
           </div>
           <div className="chat-preview__log">
