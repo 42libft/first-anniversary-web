@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 
 import './App.css'
 import { DistanceHUD } from './components/DistanceHUD'
-import { GlobalStarfield } from './components/GlobalStarfield'
 import { BuildStamp } from './components/BuildStamp'
 import { journeys } from './data/journeys'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
@@ -101,10 +100,10 @@ function App() {
 
   return (
     <div className={`app-shell scene-${currentSceneId}`}>
-      {(['intro', 'prologue'] as SceneId[]).includes(currentSceneId) && (
-        <GlobalStarfield />
+      {/* HUDはJourneysのみ表示 */}
+      {currentSceneId === 'journeys' && (
+        <DistanceHUD distanceKm={distanceTraveled} />
       )}
-      <DistanceHUD distanceKm={distanceTraveled} />
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}
       </main>

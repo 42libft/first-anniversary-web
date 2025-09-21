@@ -133,11 +133,19 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           if (L.bounces > 4) continue
           aliveLetters += 1
           const t1 = Math.max(0, Math.min(1, L.t))
-          const x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
-          const y = cubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
+          let x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+          let y = cubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
           const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
           const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
           const ang = Math.atan2(dy, dx)
+
+          // Edge bounce: if close to edges, reverse direction with damping
+          const margin = 24 * dprRef.current
+          if ((x < margin || x > w - margin || y < margin || y > h - margin) && L.bounces <= 8) {
+            L.dir *= -1
+            L.speed *= 0.9
+            L.bounces += 1
+          }
 
           const alpha = Math.min(1, Math.max(0.15, 1 - Math.abs(L.t - 0.5) * 1.2))
           ctx.save()
