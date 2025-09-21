@@ -5,14 +5,18 @@ type Trail = {
   text: string
   x: number
   y: number
-  vx: number
-  vy: number
+  dir: number
+  speed: number
   edgeBounces: number
   ageMs: number
   maxAgeMs: number
   hue: number
   size: number
   history: Array<[number, number]>
+  phase: number
+  img: HTMLCanvasElement
+  imgW: number
+  imgH: number
 }
 
 export type MemoryStreamProps = {
@@ -43,7 +47,32 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   }
 
   const MAX_TRAILS = 28
-  const HISTORY_LEN = 14
+  const HISTORY_LEN = 18
+
+  const makeTextBitmap = (text: string, size: number, hue: number) => {
+    const dpi = dprRef.current || 1
+    const canv = document.createElement('canvas')
+    const ctx = canv.getContext('2d')!
+    ctx.font = `${size}px 'Inter', 'Noto Sans JP', sans-serif`
+    const metrics = ctx.measureText(text)
+    const w = Math.ceil((metrics.width + 12) * dpi)
+    const h = Math.ceil((size + 12) * dpi)
+    canv.width = w
+    canv.height = h
+    ctx.scale(dpi, dpi)
+    ctx.font = `${size}px 'Inter', 'Noto Sans JP', sans-serif`
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'center'
+    const grad = ctx.createLinearGradient(-size, 0, size, 0)
+    grad.addColorStop(0, `hsl(${hue},95%,82%)`)
+    grad.addColorStop(1, `hsl(${hue + 40},95%,62%)`)
+    ctx.fillStyle = grad
+    ctx.shadowColor = `hsla(${hue},95%,70%,0.55)`
+    ctx.shadowBlur = 12
+    ctx.translate(w / (2 * dpi), h / (2 * dpi))
+    ctx.fillText(text, 0, 0)
+    return { canv, w, h }
+  }
 
   const spawnTrail = (x: number, y: number, msg: string) => {
     const c = canvasRef.current
@@ -54,12 +83,11 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     const cy = (y - rect.top) * d
 
     let ang = Math.random() * Math.PI * 2
-    const speed = 0.14 + Math.random() * 0.08 // px/ms（dpr適用後）
-    const vx = Math.cos(ang) * speed
-    const vy = -Math.abs(Math.sin(ang)) * speed // 上方向ベース
+    const speed = 0.16 + Math.random() * 0.08 // px/ms（dpr適用後）
 
     const hue = 200 + Math.random() * 90
-    const size = 14 + Math.random() * 10
+    const size = 16 + Math.random() * 10
+    const { canv, w, h } = makeTextBitmap(msg, size, hue)
 
     idRef.current += 1
     const trail: Trail = {
@@ -67,14 +95,18 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       text: msg,
       x: cx,
       y: cy,
-      vx,
-      vy,
+      dir: ang,
+      speed,
       edgeBounces: 0,
       ageMs: 0,
       maxAgeMs: 9000 + Math.random() * 4000, // 9〜13秒
       hue,
       size,
       history: [],
+      phase: Math.random() * Math.PI * 2,
+      img: canv,
+      imgW: w,
+      imgH: h,
     }
 
     const arr = trailsRef.current
@@ -105,7 +137,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       ctx.textBaseline = 'middle'
       ctx.textAlign = 'center'
 
-      const margin = 18 * dprRef.current
+      const margin = 20 * dprRef.current
       const trails = trailsRef.current
       for (let i = trails.length - 1; i >= 0; i -= 1) {
         const tr = trails[i]
@@ -115,27 +147,31 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           continue
         }
 
-        // 常に前進
-        tr.x += tr.vx * dt
-        tr.y += tr.vy * dt
+        // 常に前進（曲率付加：法線方向に微小ステア）
+        tr.phase += dt * 0.004
+        const steer = Math.sin(tr.phase) * 0.0015 * dt
+        tr.dir += steer
+        // 位置更新
+        tr.x += Math.cos(tr.dir) * tr.speed * dt
+        tr.y += Math.sin(tr.dir) * tr.speed * dt
 
         // 端で反射（3回で消滅）
         if (tr.x < margin) {
           tr.x = margin
-          tr.vx = Math.abs(tr.vx)
+          tr.dir = Math.PI - tr.dir
           tr.edgeBounces += 1
         } else if (tr.x > w - margin) {
           tr.x = w - margin
-          tr.vx = -Math.abs(tr.vx)
+          tr.dir = Math.PI - tr.dir
           tr.edgeBounces += 1
         }
         if (tr.y < margin) {
           tr.y = margin
-          tr.vy = Math.abs(tr.vy)
+          tr.dir = -tr.dir
           tr.edgeBounces += 1
         } else if (tr.y > h - margin) {
           tr.y = h - margin
-          tr.vy = -Math.abs(tr.vy)
+          tr.dir = -tr.dir
           tr.edgeBounces += 1
         }
 
@@ -143,26 +179,32 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
         tr.history.push([tr.x, tr.y])
         if (tr.history.length > HISTORY_LEN) tr.history.shift()
 
-        const ang = Math.atan2(tr.vy, tr.vx)
-        // 尾を描画（履歴に沿って、後方ほど薄く小さく）
-        for (let hsi = 0; hsi < tr.history.length; hsi += 1) {
-          const [hx, hy] = tr.history[hsi]
-          const f = hsi / tr.history.length
-          const alpha = Math.max(0, 1 - f * 1.2) * Math.max(0.35, 1 - tr.ageMs / tr.maxAgeMs)
-          const sizeScale = 0.85 + 0.15 * (1 - f)
+        const ang = tr.dir
+        // 尾（履歴）を1本のパスで軽量描画
+        if (tr.history.length > 1) {
           ctx.save()
-          ctx.translate(hx, hy)
-          ctx.rotate(ang)
-          ctx.font = `${tr.size * sizeScale}px 'Inter', 'Noto Sans JP', sans-serif`
-          const grad = ctx.createLinearGradient(-tr.size, 0, tr.size, 0)
-          grad.addColorStop(0, `hsla(${tr.hue}, 95%, 80%, ${0.22 * alpha})`)
-          grad.addColorStop(1, `hsla(${tr.hue + 40}, 95%, 60%, ${0.38 * alpha})`)
-          ctx.fillStyle = grad
-          ctx.shadowColor = `hsla(${tr.hue}, 95%, 70%, ${0.45 * alpha})`
-          ctx.shadowBlur = 10
-          ctx.fillText(tr.text, 0, 0)
+          ctx.lineCap = 'round'
+          ctx.lineJoin = 'round'
+          const baseAlpha = Math.max(0.25, 1 - tr.ageMs / tr.maxAgeMs)
+          ctx.strokeStyle = `hsla(${tr.hue + 24}, 95%, 66%, ${0.32 * baseAlpha})`
+          ctx.lineWidth = Math.max(1.5, tr.size * 0.18)
+          ctx.beginPath()
+          for (let hsi = 0; hsi < tr.history.length; hsi += 1) {
+            const [hx, hy] = tr.history[hsi]
+            if (hsi === 0) ctx.moveTo(hx, hy)
+            else ctx.lineTo(hx, hy)
+          }
+          ctx.stroke()
           ctx.restore()
         }
+
+        // 先頭の文字はビットマップで1回だけ描画
+        ctx.save()
+        ctx.translate(tr.x, tr.y)
+        ctx.rotate(ang)
+        ctx.globalAlpha = 0.95
+        ctx.drawImage(tr.img, -tr.imgW / (2 * (dprRef.current || 1)), -tr.imgH / (2 * (dprRef.current || 1)))
+        ctx.restore()
       }
 
       rafRef.current = requestAnimationFrame(loop)
