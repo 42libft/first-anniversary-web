@@ -1,36 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { SceneLayout } from '../components/SceneLayout'
-import {
-  busiestMessageMilestone,
-  messageMilestones,
-  totalMessages,
-} from '../data/messages'
-import { QuizCard } from '../components/QuizCard'
 import { CanvasMemoryStream } from '../components/CanvasMemoryStream'
+import { messageMilestones, totalMessages } from '../data/messages'
 import type { SceneComponentProps } from '../types/scenes'
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
-export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponentProps) => {
-  // Bubble-driven counter and log
+// フルブリードのメディアアートに刷新したMessagesシーン
+export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
   const targetTotal = totalMessages
   const [count, setCount] = useState(0)
-  const [counterPop, setCounterPop] = useState(false)
-  const [, setSelectedMonth] = useState<string | null>(null)
 
-  const bubbleFieldRef = useRef<HTMLDivElement | null>(null)
-
-  type BubbleLogEntry = {
-    id: string
-    speaker: 'me' | 'you'
-    text: string
-    timestamp: string
-    label?: string
-  }
-  const [bubbleLog, setBubbleLog] = useState<BubbleLogEntry[]>([])
-
-  // Build a simple pool from existing previews
+  // 文字プール（既存のプレビューとハイライトを合成）
   const messageStrings = useMemo(() => {
     const out: string[] = []
     messageMilestones.forEach((m) => {
@@ -43,16 +24,7 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
     return out.length ? out : ['だいすき']
   }, [])
 
-  // message selection is handled by CanvasMemoryStream via messages prop
-
-  // Counter pop animation toggle
-  useEffect(() => {
-    setCounterPop(true)
-    const timer = setTimeout(() => setCounterPop(false), 420)
-    return () => clearTimeout(timer)
-  }, [count])
-
-  // Auto-advance when filled
+  // カウントが満了したら自動前進
   useEffect(() => {
     if (count >= targetTotal) {
       const t = setTimeout(() => onAdvance(), 900)
@@ -60,125 +32,27 @@ export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponen
     }
   }, [count, targetTotal, onAdvance])
 
-  // Canvas側のバブルがポップしたら呼ばれる
-  const handleReveal = (text: string) => {
+  const handleReveal = () => {
     setCount((c) => (c < targetTotal ? c + 1 : c))
-    const id = `log-${Date.now()}-${Math.floor(Math.random() * 1e6)}`
-    const entry: BubbleLogEntry = {
-      id,
-      speaker: Math.random() > 0.5 ? 'me' : 'you',
-      text,
-      timestamp: new Date().toTimeString().slice(0, 5),
-    }
-    setBubbleLog((log) => [...log, entry])
   }
 
-  const quizOptions = useMemo(() => {
-    const candidateMonths = [
-      busiestMessageMilestone.month,
-      '2024-02',
-      '2024-07',
-      '2024-04',
-    ]
-
-    const options: typeof messageMilestones = []
-
-    for (const month of candidateMonths) {
-      const found = messageMilestones.find((milestone) => milestone.month === month)
-      if (!found) {
-        continue
-      }
-
-      if (options.some((option) => option.month === found.month)) {
-        continue
-      }
-
-      options.push(found)
-      if (options.length === 3) {
-        break
-      }
-    }
-
-    return options
-  }, [])
-
-  // correctness is handled by QuizCard now
-  const safeVisibleSteps = useMemo(() => {
-    if (targetTotal <= 0) return messageMilestones.length
-    const ratio = Math.min(1, count / targetTotal)
-    const steps = Math.max(1, Math.round(ratio * messageMilestones.length))
-    return steps
-  }, [count, targetTotal])
-
   return (
-    <SceneLayout
-      eyebrow="Messages"
-      title="メッセージの積み上げ"
-      description="チャットバブルが増えていき、合計メッセージ数を可視化。距離データと連動したクイズで一年の温度感を振り返ります。"
-      onAdvance={onAdvance}
-      advanceLabel="Likesへ"
-    >
-      <div className="messages-module">
-        <section className={`messages-counter${counterPop ? ' is-pop' : ''}`}>
-          <p className="messages-counter__label">累計メッセージ</p>
-          <p className="messages-counter__value">{formatNumber(count)}</p>
-          <p className="messages-counter__note">
-            全{formatNumber(targetTotal)}通のうち、タップでバブルを弾けさせてカウントアップ。
-          </p>
-          <p className="messages-counter__sub">最も賑やかだったのは {busiestMessageMilestone.label}</p>
-        </section>
+    <section className="messages-full" role="presentation" aria-label="画面全体で文字の流れを楽しむメディアアート">
+      {/* フルブリードCanvas（背景メディアアート） */}
+      <CanvasMemoryStream messages={messageStrings} onReveal={handleReveal} />
 
-        <section className="chat-preview">
-          <div ref={bubbleFieldRef} className="pop-field" role="button" aria-label="画面タップで文字の流れを生成" tabIndex={0}>
-            <CanvasMemoryStream messages={messageStrings} onReveal={handleReveal} />
-            <div className="pop-field__hint">画面のどこでもタップ</div>
-          </div>
-          <div className="chat-preview__log">
-            {bubbleLog.map((bubble) => (
-              <div
-                key={bubble.id}
-                className={`chat-bubble chat-bubble--${bubble.speaker}`}
-              >
-                <p className="chat-bubble__text">{bubble.text}</p>
-                <span className="chat-bubble__meta">{bubble.timestamp}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+      {/* 極小HUD（枠なし・重ね文字） */}
+      <header className="messages-hud" aria-hidden>
+        <div className="messages-hud__left">
+          <p className="messages-eyebrow">MESSAGES</p>
+          <p className="messages-sub">夜空に言葉を流す</p>
+        </div>
+        <div className="messages-hud__right">
+          <p className="messages-count">{formatNumber(count)}</p>
+        </div>
+      </header>
 
-        <section className="messages-timeline">
-          {messageMilestones.map((milestone, index) => (
-            <article
-              key={milestone.month}
-              className={`messages-timeline__item${
-                index < safeVisibleSteps ? ' is-active' : ''
-              }`}
-            >
-              <p className="messages-timeline__label">{milestone.label}</p>
-              <p className="messages-timeline__value">
-                {formatNumber(milestone.monthlyTotal)}通
-              </p>
-              <p className="messages-timeline__distance">
-                累計距離 {formatNumber(milestone.cumulativeDistanceKm)} km
-              </p>
-              <p className="messages-timeline__highlight">{milestone.highlight}</p>
-            </article>
-          ))}
-        </section>
-
-        <QuizCard
-          id="messages-busiest-month"
-          question={`合計${formatNumber(Math.round(totalJourneyDistance))}kmを旅した一年。いちばんメッセージが多かった月は？`}
-          options={quizOptions.map((o) => ({
-            value: o.month,
-            label: o.label,
-            meta: `${formatNumber(o.monthlyTotal)}通 / 距離 ${formatNumber(o.cumulativeDistanceKm)}km`,
-          }))}
-          correct={busiestMessageMilestone.month}
-          hint={`ヒント：距離が${formatNumber(busiestMessageMilestone.cumulativeDistanceKm)}kmに到達した頃の盛り上がり。`}
-          onAnswered={(value) => setSelectedMonth(value)}
-        />
-      </div>
-    </SceneLayout>
+      <div className="messages-hint">タップで流す</div>
+    </section>
   )
 }
