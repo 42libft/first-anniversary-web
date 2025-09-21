@@ -80,7 +80,7 @@ const journeyDefinitions: JourneyInput[] = [
         id: 'travel-001-question-food',
         type: 'question',
         style: 'choice',
-        prompt: '初めての食事。セブンイレブンでお互い買ったものは？',
+        prompt: '初めての夜、セブンでふたりが選んだ夜ごはんは？',
         storageKey: 'travel-001-food',
         choices: [
           'おにぎり＆ウーロン茶',

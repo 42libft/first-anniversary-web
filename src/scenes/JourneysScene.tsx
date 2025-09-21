@@ -1,25 +1,15 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
 import type {
   Journey,
+  JourneyCoordinate,
   JourneyEpisodeStep,
   JourneyMoveMode,
   JourneyMoveStep,
   JourneyQuestionStep,
-  JourneyStep,
-  JourneyCoordinate,
 } from '../types/journey'
 import type { SceneComponentProps } from '../types/scenes'
-
-const distanceFormatter = new Intl.NumberFormat('ja-JP', {
-  maximumFractionDigits: 0,
-})
 
 const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
   year: 'numeric',
@@ -35,28 +25,16 @@ const timestampFormatter = new Intl.DateTimeFormat('ja-JP', {
   minute: '2-digit',
 })
 
-const formatDistance = (value: number) =>
-  distanceFormatter.format(Math.round(value))
-
 const formatJourneyDate = (value: string) => {
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
+  if (Number.isNaN(date.getTime())) return value
   return dateFormatter.format(date)
 }
 
 const formatRecordedAt = (value?: string) => {
-  if (!value) {
-    return ''
-  }
-
+  if (!value) return ''
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
+  if (Number.isNaN(date.getTime())) return ''
   return timestampFormatter.format(date)
 }
 
@@ -67,22 +45,6 @@ const transportMeta: Record<JourneyMoveMode, { label: string; icon: string }> = 
   train: { label: 'TRAIN', icon: '🚆' },
 }
 
-const artBackgrounds: Record<string, string> = {
-  'night-sky-market':
-    'linear-gradient(145deg, rgba(30, 39, 89, 0.92), rgba(12, 17, 48, 0.96)), radial-gradient(circle at 20% 20%, rgba(255, 196, 255, 0.45), transparent 48%), radial-gradient(circle at 78% 70%, rgba(110, 190, 255, 0.38), transparent 55%)',
-  'valentine-neon':
-    'linear-gradient(160deg, rgba(55, 22, 76, 0.9), rgba(18, 16, 56, 0.96)), radial-gradient(circle at 82% 18%, rgba(255, 102, 196, 0.45), transparent 50%), radial-gradient(circle at 14% 78%, rgba(88, 147, 255, 0.38), transparent 52%)',
-  'stardust-finale':
-    'linear-gradient(150deg, rgba(18, 32, 78, 0.92), rgba(9, 12, 38, 0.95)), radial-gradient(circle at 32% 28%, rgba(255, 217, 140, 0.45), transparent 55%), radial-gradient(circle at 72% 72%, rgba(120, 225, 255, 0.4), transparent 50%)',
-}
-
-const defaultArtBackground =
-  'linear-gradient(150deg, rgba(20, 24, 60, 0.92), rgba(8, 10, 32, 0.95))'
-
-const getArtBackground = (key?: string) =>
-  (key ? artBackgrounds[key] : undefined) ?? defaultArtBackground
-
-
 const defaultRoute: JourneyCoordinate[] = [
   [12, 78],
   [28, 66],
@@ -92,121 +54,27 @@ const defaultRoute: JourneyCoordinate[] = [
 ]
 
 const getRoutePoints = (step: JourneyMoveStep): JourneyCoordinate[] => {
-  if (step.route && step.route.length >= 2) {
-    return step.route
-  }
-
-  if (step.fromCoord && step.toCoord) {
-    return [step.fromCoord, step.toCoord]
-  }
-
+  if (step.route && step.route.length >= 2) return step.route
+  if (step.fromCoord && step.toCoord) return [step.fromCoord, step.toCoord]
   return defaultRoute
-}
-
-const toRoutePath = (points: JourneyCoordinate[]): string => {
-  if (!points.length) {
-    return ''
-  }
-
-  const [first, ...rest] = points
-  return rest.reduce(
-    (acc, point) => `${acc} L ${point[0]} ${point[1]}`,
-    `M ${first[0]} ${first[1]}`
-  )
-}
-
-type StepEntry = {
-  journey: Journey
-  step: JourneyStep
-  journeyIndex: number
-  stepIndex: number
-  globalIndex: number
-}
-
-const buildStepEntries = (journeyList: Journey[]): StepEntry[] => {
-  const entries: StepEntry[] = []
-
-  journeyList.forEach((journey, journeyIndex) => {
-    journey.steps.forEach((step, stepIndex) => {
-      entries.push({
-        journey,
-        step,
-        journeyIndex,
-        stepIndex,
-        globalIndex: entries.length,
-      })
-    })
-  })
-
-  return entries
-}
-
-const isMoveStep = (step: JourneyStep | undefined): step is JourneyMoveStep =>
-  step?.type === 'move'
-
-const isEpisodeStep = (
-  step: JourneyStep | undefined
-): step is JourneyEpisodeStep => step?.type === 'episode'
-
-const isQuestionStep = (
-  step: JourneyStep | undefined
-): step is JourneyQuestionStep => step?.type === 'question'
-
-const findLatestEntry = (
-  entries: StepEntry[],
-  maxIndex: number,
-  matcher: (step: JourneyStep) => boolean
-): StepEntry | undefined => {
-  for (let index = Math.min(maxIndex, entries.length - 1); index >= 0; index -= 1) {
-    const entry = entries[index]
-    if (entry && matcher(entry.step)) {
-      return entry
-    }
-  }
-
-  return undefined
-}
-
-const computeTraveledDistance = (
-  journeyList: Journey[],
-  activeJourneyIndex: number,
-  activeStepIndex: number
-) => {
-  let sum = 0
-
-  journeyList.forEach((journey, journeyIndex) => {
-    journey.steps.forEach((step, stepIndex) => {
-      if (step.type !== 'move') {
-        return
-      }
-
-      const isBeforeActiveJourney = journeyIndex < activeJourneyIndex
-      const isSameJourney = journeyIndex === activeJourneyIndex
-      const isBeforeOrEqualStep = stepIndex <= activeStepIndex
-
-      if (isBeforeActiveJourney || (isSameJourney && isBeforeOrEqualStep)) {
-        sum += step.distanceKm
-      }
-    })
-  })
-
-  return sum
 }
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max)
 
-const createFlightRoutePath = (
-  from: JourneyCoordinate,
-  to: JourneyCoordinate
-): string => {
+const createFlightRoutePath = (from: JourneyCoordinate, to: JourneyCoordinate): string => {
   const [x1, y1] = from
   const [x2, y2] = to
   const midX = (x1 + x2) / 2
   const distance = Math.hypot(x2 - x1, y2 - y1)
   const arcHeight = clamp(Math.min(y1, y2) - distance * 0.18, 5, 95)
-
   return `M ${x1} ${y1} Q ${midX} ${arcHeight} ${x2} ${y2}`
+}
+
+const toRoutePath = (points: JourneyCoordinate[]): string => {
+  if (!points.length) return ''
+  const [first, ...rest] = points
+  return rest.reduce((acc, point) => `${acc} L ${point[0]} ${point[1]}`, `M ${first[0]} ${first[1]}`)
 }
 
 const JourneyRouteMap = ({ step }: { step: JourneyMoveStep }) => {
@@ -234,19 +102,13 @@ const JourneyRouteMap = ({ step }: { step: JourneyMoveStep }) => {
         {pathData ? (
           <>
             <path className="journey-route__track" d={pathData} />
-            <path
-              className="journey-route__path"
-              d={pathData}
-              stroke={`url(#${gradientId})`}
-            />
+            <path className="journey-route__path" d={pathData} stroke={`url(#${gradientId})`} />
           </>
         ) : null}
         {points.map((point, index) => (
           <circle
             key={`${point[0]}-${point[1]}-${index}`}
-            className={`journey-route__node${
-              index === points.length - 1 ? ' journey-route__node--end' : ''
-            }`}
+            className={`journey-route__node${index === points.length - 1 ? ' journey-route__node--end' : ''}`}
             cx={point[0]}
             cy={point[1]}
             r={index === 0 || index === points.length - 1 ? 2.8 : 1.6}
@@ -257,86 +119,85 @@ const JourneyRouteMap = ({ step }: { step: JourneyMoveStep }) => {
   )
 }
 
-const JourneyMovePage = ({
-  step,
-  journey,
-}: {
-  step: JourneyMoveStep
-  journey: Journey
-}) => {
+// Single-view cards
+const TitleCard = ({ eyebrow, title }: { eyebrow: string; title: string }) => (
+  <article className="journeys-card journeys-card--intro" tabIndex={-1}>
+    <p className="journeys-card__eyebrow">{eyebrow}</p>
+    <h3 className="journeys-card__title">{title}</h3>
+  </article>
+)
+const MoveCard = ({ step, journey }: { step: JourneyMoveStep; journey: Journey }) => {
   const transport = transportMeta[step.mode]
-
   return (
-    <article className="journey-card journey-card--move">
-      <div className="journey-card__body">
-        <div className="journey-card__meta">
-          <span className="journey-status journey-status--arrived">MOVE</span>
-          <span className="journey-card__date">{formatJourneyDate(journey.date)}</span>
-        </div>
-        <div className="journey-card__route">
-          <span className="journey-card__city">{step.from}</span>
-          <span className="journey-card__arrow" aria-hidden="true">
-            →
-          </span>
-          <span className="journey-card__city">{step.to}</span>
-        </div>
-        <JourneyRouteMap step={step} />
-        <div className="journey-card__transport">
+    <article className="journeys-card journeys-card--move" tabIndex={-1}>
+      <p className="journeys-card__eyebrow">MOVE</p>
+      <h3 className="journeys-card__title">
+        {step.from} → {step.to}
+      </h3>
+      <div className="journeys-card__meta">
+        <span className="journeys-card__tag" aria-label="Transport">
           <span aria-hidden="true">{transport?.icon ?? '•'}</span>
-          <span>{transport?.label ?? step.mode.toUpperCase()}</span>
-          <span>{formatDistance(step.distanceKm)} km</span>
-        </div>
-        {step.description ? (
-          <p className="journey-card__caption">{step.description}</p>
-        ) : null}
-        {step.meta ? (
-          <dl className="journey-card__meta-grid">
-            {step.meta.flightNo ? (
-              <div>
-                <dt>便名</dt>
-                <dd>{step.meta.flightNo}</dd>
-              </div>
-            ) : null}
-            {step.meta.dep ? (
-              <div>
-                <dt>出発</dt>
-                <dd>{step.meta.dep}</dd>
-              </div>
-            ) : null}
-            {step.meta.arr ? (
-              <div>
-                <dt>到着</dt>
-                <dd>{step.meta.arr}</dd>
-              </div>
-            ) : null}
-            {step.meta.note ? (
-              <div className="journey-card__meta-note">
-                <dt>NOTE</dt>
-                <dd>{step.meta.note}</dd>
-              </div>
-            ) : null}
-          </dl>
-        ) : null}
+          {transport?.label ?? step.mode.toUpperCase()}
+        </span>
+        <span className="journeys-card__tag" aria-label="Date">
+          {formatJourneyDate(journey.date)}
+        </span>
       </div>
+      <figure className="journeys-card__figure journeys-card__figure--map">
+        {step.mapImage ? (
+          <img
+            className="journeys-map journeys-map--image"
+            src={step.mapImage.src}
+            alt={step.mapImage.alt}
+            loading="lazy"
+          />
+        ) : (
+          <JourneyRouteMap step={step} />
+        )}
+      </figure>
+      {step.description ? (
+        <p className="journeys-card__description">{step.description}</p>
+      ) : null}
+      {step.meta ? (
+        <dl className="journeys-card__details">
+          {step.meta.flightNo ? (
+            <div className="journeys-card__detail">
+              <dt>便名</dt>
+              <dd>{step.meta.flightNo}</dd>
+            </div>
+          ) : null}
+          {step.meta.dep ? (
+            <div className="journeys-card__detail">
+              <dt>出発</dt>
+              <dd>{step.meta.dep}</dd>
+            </div>
+          ) : null}
+          {step.meta.arr ? (
+            <div className="journeys-card__detail">
+              <dt>到着</dt>
+              <dd>{step.meta.arr}</dd>
+            </div>
+          ) : null}
+          {step.meta.note ? (
+            <div className="journeys-card__detail">
+              <dt>NOTE</dt>
+              <dd>{step.meta.note}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
     </article>
   )
 }
 
-const JourneyEpisodePage = ({
-  step,
-  journey,
-}: {
-  step: JourneyEpisodeStep
-  journey: Journey
-}) => {
+const MemoryCard = ({ step, journey }: { step: JourneyEpisodeStep; journey: Journey }) => {
   return (
-    <article className="journey-card journey-card--episode">
-      <div
-        className="journey-card__media"
-        style={{ background: getArtBackground(step.artKey) }}
-      >
+    <article className="journeys-card journeys-card--memory" tabIndex={-1}>
+      <p className="journeys-card__eyebrow">MEMORIES</p>
+      <h3 className="journeys-card__title">{step.title ?? journey.title}</h3>
+      <figure className="journeys-card__figure">
         <img
-          className="journey-card__photo"
+          className="journeys-map journeys-map--image"
           src={step.photo.src}
           alt={step.photo.alt}
           loading="lazy"
@@ -346,39 +207,23 @@ const JourneyEpisodePage = ({
               : undefined
           }
         />
-        <span className="journey-card__badge">
-          <span className="journey-card__badge-icon" aria-hidden="true">
-            ✨
-          </span>
-          MEMORIES
-        </span>
-      </div>
-      <div className="journey-card__body">
-        <div className="journey-card__meta">
-          <span className="journey-status journey-status--arrived">EPISODE</span>
-          <span className="journey-card__date">{formatJourneyDate(journey.date)}</span>
-        </div>
-        {step.title ? (
-          <h3 className="journey-card__episode-title">{step.title}</h3>
-        ) : null}
-        <div className="journey-card__text-group">
-          {step.text.map((paragraph, index) => (
-            <p key={index} className="journey-card__caption">
-              {paragraph}
-            </p>
-          ))}
-        </div>
+      </figure>
+      <div className="journeys-card__text-group">
+        {step.text.map((paragraph, index) => (
+          <p key={index} className="journeys-card__text">
+            {paragraph}
+          </p>
+        ))}
       </div>
     </article>
   )
 }
 
-const JourneyQuestionPage = ({
+const QuestionCard = ({
   step,
   journey,
   value,
   storedResponse,
-  isActive,
   isLocked,
   onAnswerChange,
   onTextBlur,
@@ -387,7 +232,6 @@ const JourneyQuestionPage = ({
   journey: Journey
   value: string
   storedResponse?: SceneComponentProps['responses'][number]
-  isActive: boolean
   isLocked: boolean
   onAnswerChange?: (value: string) => void
   onTextBlur?: () => void
@@ -397,96 +241,69 @@ const JourneyQuestionPage = ({
     ? `記録: ${formatRecordedAt(storedResponse.recordedAt)}`
     : '未記録'
 
-  const lockMessage = !isActive
-    ? storedResponse
-      ? '保存済みの記録です。'
-      : '移動ページで進めると回答できます。'
-    : isLocked
-      ? '保存済みのため編集できません。'
-      : null
-
   return (
-    <article className="journey-card journey-card--question">
-      <div className="journey-card__body">
-        <div className="journey-card__meta">
-          <span className="journey-status journey-status--arrived">
-            {isChoice ? 'QUIZ' : 'NOTE'}
-          </span>
-          <span className="journey-card__date">{formatJourneyDate(journey.date)}</span>
-        </div>
-        <div className="journey-prompts journey-prompts--single">
-          <div className="journey-prompt" role="group">
-            <span className="journey-prompt__question">{step.prompt}</span>
-            {step.helper ? (
-              <span className="journey-prompt__helper">{step.helper}</span>
-            ) : null}
-            {isChoice ? (
-              <div className="journey-prompt__choices">
-                {(step.choices ?? []).map((choice) => {
-                  const isSelected = value === choice
-                  const disabled = isLocked || !isActive
-                  return (
-                    <button
-                      key={choice}
-                      type="button"
-                      className={`journey-choice${
-                        isSelected ? ' is-selected' : ''
-                      }${disabled ? ' is-locked' : ''}`}
-                      onClick={
-                        disabled || !onAnswerChange
-                          ? undefined
-                          : () => onAnswerChange(choice)
-                      }
-                      disabled={disabled}
-                    >
-                      <span className="journey-choice__icon" aria-hidden="true">
-                        {isSelected ? '●' : '○'}
-                      </span>
-                      <span className="journey-choice__label">{choice}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            ) : (
-              <textarea
-                id={step.id}
-                className="journey-prompt__input"
-                value={value}
-                placeholder={step.placeholder ?? 'ここに感じたことをメモ'}
-                onChange={
-                  !isLocked && isActive && onAnswerChange
-                    ? (event) => onAnswerChange(event.currentTarget.value)
-                    : undefined
+    <article
+      className={`journeys-card ${isChoice ? 'journeys-card--quiz' : 'journeys-card--free'}`}
+      tabIndex={-1}
+    >
+      <p className="journeys-card__eyebrow">{isChoice ? 'QUIZ' : 'NOTE'}</p>
+      <h3 className="journeys-card__title">{step.prompt}</h3>
+      {step.helper ? (
+        <p className="journeys-card__helper">{step.helper}</p>
+      ) : null}
+      {isChoice ? (
+        <div className="journeys-card__choices">
+          {(step.choices ?? []).map((choice) => {
+            const selected = value === choice
+            return (
+              <button
+                key={choice}
+                type="button"
+                className="journeys-choice"
+                data-selected={selected}
+                onClick={
+                  isLocked || !onAnswerChange ? undefined : () => onAnswerChange(choice)
                 }
-                onBlur={isActive && onTextBlur ? onTextBlur : undefined}
-                disabled={isLocked || !isActive}
-                rows={3}
-              />
-            )}
-            <div className="journey-prompt__footer">
-              <span className="journey-prompt__status">{recordedLabel}</span>
-              {lockMessage ? (
-                <span className="journey-prompts__locked">{lockMessage}</span>
-              ) : null}
-            </div>
+                disabled={isLocked}
+              >
+                <span className="journeys-choice__label">{choice}</span>
+                <span className="journeys-choice__icon" aria-hidden="true">
+                  {selected ? '●' : '○'}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="journeys-card__form">
+          <textarea
+            id={step.id}
+            className="journeys-card__textarea"
+            value={value}
+            placeholder={step.placeholder ?? 'ここに感じたことをメモ'}
+            onChange={
+              !isLocked && onAnswerChange
+                ? (event) => onAnswerChange(event.currentTarget.value)
+                : undefined
+            }
+            onBlur={onTextBlur}
+            disabled={isLocked}
+            rows={5}
+          />
+          <div className="journeys-card__form-footer">
+            <span className="journeys-card__timestamp">{recordedLabel}</span>
           </div>
         </div>
-      </div>
+      )}
+      <p className="journeys-card__status">
+        {isLocked ? '保存済みのため編集できません。' : '回答は自動保存されます。'}
+      </p>
+      <p className="journeys-card__timestamp">{formatJourneyDate(journey.date)}</p>
     </article>
   )
 }
 
-const JourneyPagePlaceholder = ({
-  variant,
-}: {
-  variant: 'move' | 'story'
-}) => (
-  <div className="journey-page__placeholder">
-    {variant === 'move'
-      ? '移動ステップを選ぶとルートが表示されます。'
-      : '思い出や記録のページはここに表示されます。'}
-  </div>
-)
+// (Unused after split pages; kept here earlier) — removed
 
 export const JourneysScene = ({
   onAdvance,
@@ -495,74 +312,58 @@ export const JourneysScene = ({
   saveResponse,
   setDistanceTraveled,
 }: SceneComponentProps) => {
-  const stepEntries = useMemo(() => buildStepEntries(journeys), [journeys])
+  type StoryPage =
+    | { kind: 'journeyTitle'; journey: Journey }
+    | { kind: 'moveTitle'; journey: Journey; step: JourneyMoveStep }
+    | { kind: 'move'; journey: Journey; step: JourneyMoveStep }
+    | { kind: 'memoryTitle'; journey: Journey; step: JourneyEpisodeStep }
+    | { kind: 'memory'; journey: Journey; step: JourneyEpisodeStep }
+    | { kind: 'freeTitle'; journey: Journey; step: JourneyQuestionStep }
+    | { kind: 'free'; journey: Journey; step: JourneyQuestionStep }
+    | { kind: 'quizTitle'; journey: Journey; step: JourneyQuestionStep }
+    | { kind: 'quiz'; journey: Journey; step: JourneyQuestionStep }
 
-  const [activeJourneyIndex, setActiveJourneyIndex] = useState(0)
-  const [activeStepIndex, setActiveStepIndex] = useState(0)
+  const pages: StoryPage[] = useMemo(() => {
+    const list: StoryPage[] = []
+    journeys.forEach((j) => {
+      list.push({ kind: 'journeyTitle', journey: j })
+      j.steps.forEach((s) => {
+        if (s.type === 'move') {
+          list.push({ kind: 'moveTitle', journey: j, step: s })
+          list.push({ kind: 'move', journey: j, step: s })
+        } else if (s.type === 'episode') {
+          list.push({ kind: 'memoryTitle', journey: j, step: s })
+          list.push({ kind: 'memory', journey: j, step: s })
+        } else if (s.type === 'question') {
+          if (s.style === 'choice') {
+            list.push({ kind: 'quizTitle', journey: j, step: s })
+            list.push({ kind: 'quiz', journey: j, step: s })
+          } else {
+            list.push({ kind: 'freeTitle', journey: j, step: s })
+            list.push({ kind: 'free', journey: j, step: s })
+          }
+        }
+      })
+    })
+    return list
+  }, [journeys])
+
+  const [pageIndex, setPageIndex] = useState(0)
   const [draftAnswer, setDraftAnswer] = useState('')
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  // Focus container for a11y on page change
 
-  useEffect(() => {
-    if (journeys.length === 0) {
-      setActiveJourneyIndex(0)
-      setActiveStepIndex(0)
-      return
+  const activePage = pages[pageIndex]
+  const activeJourney = activePage?.journey
+
+  const traveledDistance = useMemo(() => {
+    let sum = 0
+    for (let i = 0; i <= pageIndex && i < pages.length; i += 1) {
+      const p = pages[i]
+      if (p.kind === 'move') sum += p.step.distanceKm
     }
-
-    if (activeJourneyIndex >= journeys.length) {
-      setActiveJourneyIndex(journeys.length - 1)
-      setActiveStepIndex(0)
-    }
-  }, [activeJourneyIndex, journeys])
-
-  useEffect(() => {
-    const journey = journeys[activeJourneyIndex]
-    if (!journey) {
-      setActiveStepIndex(0)
-      return
-    }
-
-    if (activeStepIndex >= journey.steps.length) {
-      setActiveStepIndex(Math.max(journey.steps.length - 1, 0))
-    }
-  }, [activeJourneyIndex, activeStepIndex, journeys])
-
-  const activeJourney = journeys[activeJourneyIndex]
-  const activeStep = activeJourney?.steps[activeStepIndex]
-
-  const activeEntry = useMemo(
-    () =>
-      stepEntries.find(
-        (entry) =>
-          entry.journeyIndex === activeJourneyIndex &&
-          entry.stepIndex === activeStepIndex
-      ),
-    [activeJourneyIndex, activeStepIndex, stepEntries]
-  )
-
-  const latestMoveEntry = useMemo(
-    () =>
-      activeEntry
-        ? findLatestEntry(stepEntries, activeEntry.globalIndex, (step) =>
-            step.type === 'move'
-          )
-        : undefined,
-    [activeEntry, stepEntries]
-  )
-
-  const latestStoryEntry = useMemo(
-    () =>
-      activeEntry
-        ? findLatestEntry(stepEntries, activeEntry.globalIndex, (step) =>
-            step.type !== 'move'
-          )
-        : undefined,
-    [activeEntry, stepEntries]
-  )
-
-  const traveledDistance = useMemo(
-    () => computeTraveledDistance(journeys, activeJourneyIndex, activeStepIndex),
-    [journeys, activeJourneyIndex, activeStepIndex]
-  )
+    return sum
+  }, [pages, pageIndex])
 
   useEffect(() => {
     setDistanceTraveled(traveledDistance)
@@ -576,97 +377,57 @@ export const JourneysScene = ({
     return map
   }, [responses])
 
-  const questionStorageKey = isQuestionStep(activeStep)
-    ? activeStep.storageKey
-    : null
-  const storedResponse = questionStorageKey
-    ? responseMap.get(questionStorageKey)
+  const activeQuestion =
+    activePage && (activePage.kind === 'free' || activePage.kind === 'quiz')
+      ? activePage.step
+      : undefined
+  const storedResponse = activeQuestion
+    ? responseMap.get(activeQuestion.storageKey)
     : undefined
-
-  const isQuestionReadOnly = isQuestionStep(activeStep)
-    ? Boolean(storedResponse) && activeStep.readonlyAfterSave !== false
+  const isQuestionReadOnly = activeQuestion
+    ? Boolean(storedResponse) && activeQuestion.readonlyAfterSave !== false
     : false
 
   useEffect(() => {
-    if (isQuestionStep(activeStep)) {
-      setDraftAnswer(storedResponse?.answer ?? '')
-    } else {
-      setDraftAnswer('')
-    }
-  }, [activeStep, storedResponse])
+    if (activeQuestion) setDraftAnswer(storedResponse?.answer ?? '')
+    else setDraftAnswer('')
+  }, [activeQuestion, storedResponse])
 
   const handleAnswerChange = useCallback(
     (value: string) => {
-      if (!isQuestionStep(activeStep) || !activeJourney) {
-        return
-      }
-
-      if (
-        activeStep.readonlyAfterSave !== false &&
-        storedResponse !== undefined
-      ) {
-        return
-      }
-
+      if (!activeQuestion || !activeJourney) return
+      if (activeQuestion.readonlyAfterSave !== false && storedResponse !== undefined) return
       setDraftAnswer(value)
-
-      if (
-        activeStep.style === 'choice' ||
-        activeStep.readonlyAfterSave === false
-      ) {
-        if (storedResponse?.answer === value) {
-          return
-        }
-
+      if (activeQuestion.style === 'choice' || activeQuestion.readonlyAfterSave === false) {
+        if (storedResponse?.answer === value) return
         saveResponse({
           journeyId: activeJourney.id,
-          stepId: activeStep.id,
-          storageKey: activeStep.storageKey,
-          prompt: activeStep.prompt,
+          stepId: activeQuestion.id,
+          storageKey: activeQuestion.storageKey,
+          prompt: activeQuestion.prompt,
           answer: value,
         })
       }
     },
-    [activeJourney, activeStep, saveResponse, storedResponse]
+    [activeJourney, activeQuestion, saveResponse, storedResponse]
   )
 
   const handleTextBlur = useCallback(() => {
-    if (!isQuestionStep(activeStep) || !activeJourney) {
-      return
-    }
-
-    if (activeStep.style !== 'text') {
-      return
-    }
-
-    if (activeStep.readonlyAfterSave === false) {
-      return
-    }
-
-    if (storedResponse !== undefined) {
-      return
-    }
-
-    if (draftAnswer.trim().length === 0) {
-      return
-    }
-
+    if (!activeQuestion || !activeJourney) return
+    if (activeQuestion.style !== 'text') return
+    if (activeQuestion.readonlyAfterSave === false) return
+    if (storedResponse !== undefined) return
+    if (draftAnswer.trim().length === 0) return
     saveResponse({
       journeyId: activeJourney.id,
-      stepId: activeStep.id,
-      storageKey: activeStep.storageKey,
-      prompt: activeStep.prompt,
+      stepId: activeQuestion.id,
+      storageKey: activeQuestion.storageKey,
+      prompt: activeQuestion.prompt,
       answer: draftAnswer,
     })
-  }, [
-    activeJourney,
-    activeStep,
-    draftAnswer,
-    saveResponse,
-    storedResponse,
-  ])
+  }, [activeJourney, activeQuestion, draftAnswer, saveResponse, storedResponse])
 
-  if (!activeJourney || !activeStep || !activeEntry) {
+  if (!activeJourney || !activePage) {
     return (
       <SceneLayout
         eyebrow="Journeys"
@@ -680,187 +441,134 @@ export const JourneysScene = ({
     )
   }
 
-  const leftStep = isMoveStep(latestMoveEntry?.step)
-    ? latestMoveEntry.step
-    : undefined
-  const leftJourney = latestMoveEntry?.journey
-  const rightStep = latestStoryEntry?.step
-  const rightJourney = latestStoryEntry?.journey
-
-  const isLeftActive = isMoveStep(activeStep)
-  const isRightActive = !isLeftActive
-
-  const rightQuestionStep = isQuestionStep(rightStep) ? rightStep : undefined
-  const rightStoredResponse = rightQuestionStep
-    ? responseMap.get(rightQuestionStep.storageKey)
-    : undefined
-
-  const rightValue = rightQuestionStep
-    ? isRightActive
-      ? draftAnswer
-      : rightStoredResponse?.answer ?? ''
-    : ''
-
-  const rightLocked = rightQuestionStep
-    ? isRightActive
-      ? isQuestionReadOnly
-      : true
-    : false
-
-  const stepCount = stepEntries.length
-  const activeStepNumber = activeEntry.globalIndex + 1
+  const pageCount = pages.length
+  const activePageNumber = pageIndex + 1
 
   const headerSubtitle = (() => {
-    if (!activeStep) {
-      return ''
+    switch (activePage.kind) {
+      case 'journeyTitle':
+        return activeJourney.title
+      case 'moveTitle':
+      case 'move':
+        return `${activePage.step.from} → ${activePage.step.to}`
+      case 'memoryTitle':
+      case 'memory':
+        return activePage.step.title ?? activeJourney.title
+      case 'freeTitle':
+      case 'free':
+      case 'quizTitle':
+      case 'quiz':
+        return activePage.step.prompt
+      default:
+        return ''
     }
-
-    if (isMoveStep(activeStep)) {
-      return `${activeStep.from} → ${activeStep.to}`
-    }
-
-    if (isEpisodeStep(activeStep)) {
-      return activeStep.title ?? activeJourney.title
-    }
-
-    if (isQuestionStep(activeStep)) {
-      return activeStep.prompt
-    }
-
-    return ''
   })()
 
-  // description is handled by SceneLayout's description
-
-  const isFinalJourney =
-    activeJourneyIndex === journeys.length - 1 && journeys.length > 0
-  const isFinalStep =
-    isFinalJourney && activeStepIndex === activeJourney.steps.length - 1
-
-  const nextButtonLabel = isFinalStep
-    ? 'Messagesへ進む'
-    : activeStepIndex === activeJourney.steps.length - 1
-      ? '次の旅へ'
-      : '次のページ'
-
-  const prevDisabled = activeJourneyIndex === 0 && activeStepIndex === 0
-
-  const handlePrevStep = () => {
-    if (!activeJourney) {
-      return
-    }
-
-    if (activeStepIndex > 0) {
-      setActiveStepIndex((index) => Math.max(index - 1, 0))
-      return
-    }
-
-    if (activeJourneyIndex === 0) {
-      return
-    }
-
-    const nextJourneyIndex = activeJourneyIndex - 1
-    const nextJourney = journeys[nextJourneyIndex]
-    const nextStepIndex = Math.max((nextJourney?.steps.length ?? 1) - 1, 0)
-
-    setActiveJourneyIndex(nextJourneyIndex)
-    setActiveStepIndex(nextStepIndex)
+  const isLastPage = pageIndex >= pageCount - 1
+  const prevDisabled = pageIndex === 0
+  const goPrev = () => setPageIndex((i) => Math.max(i - 1, 0))
+  const goNext = () => {
+    if (isLastPage) onAdvance()
+    else setPageIndex((i) => Math.min(i + 1, pageCount - 1))
   }
 
-  const handleNextStep = () => {
-    if (!activeJourney) {
-      onAdvance()
-      return
-    }
-
-    if (activeStepIndex < activeJourney.steps.length - 1) {
-      setActiveStepIndex((index) => index + 1)
-      return
-    }
-
-    if (activeJourneyIndex >= journeys.length - 1) {
-      onAdvance()
-      return
-    }
-
-    const nextJourneyIndex = activeJourneyIndex + 1
-    setActiveJourneyIndex(nextJourneyIndex)
-    setActiveStepIndex(0)
+  const handleStageClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
+    const target = event.target as HTMLElement
+    const tag = target.tagName.toLowerCase()
+    if (['button', 'a', 'input', 'textarea', 'select', 'label'].includes(tag)) return
+    goNext()
   }
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement
+      const tag = target?.tagName?.toLowerCase()
+      const inForm = tag === 'textarea' || tag === 'input' || tag === 'select'
+      if (inForm) return
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        goNext()
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault()
+        goPrev()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [goNext])
+
+  useEffect(() => {
+    const scroller = document.querySelector('.scene-journeys .scene-container') as HTMLElement | null
+    if (scroller) scroller.scrollTo({ top: 0 })
+    const el = stageRef.current
+    if (el) el.focus()
+  }, [pageIndex])
 
   return (
-    <SceneLayout
-      eyebrow="Journeys"
-      title={`${activeStepNumber} / ${stepCount}`}
-      description={headerSubtitle}
-    >
-      <div className="journeys-stage journeys-stage--storybook">
-        <div
-          className={[
-            'journey-page',
-            'journey-page--left',
-            leftStep ? (isLeftActive ? 'is-active' : 'is-dimmed') : 'is-empty',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-        >
-          {leftStep && leftJourney ? (
-            <JourneyMovePage step={leftStep} journey={leftJourney} />
+    <SceneLayout eyebrow="Journeys" title={`${activePageNumber} / ${pageCount}`} description={headerSubtitle}>
+      <div
+        ref={stageRef}
+        className="journeys-stage"
+        data-can-advance={!prevDisabled}
+        onClick={handleStageClick}
+        role="region"
+        aria-label="Journeys story"
+        tabIndex={0}
+      >
+        {activePage.kind === 'journeyTitle' ? (
+          <TitleCard eyebrow="JOURNEY" title={activePage.journey.title} />
+        ) : activePage.kind === 'moveTitle' ? (
+          <TitleCard eyebrow="MOVE" title={`${activePage.step.from} → ${activePage.step.to}`} />
+        ) : activePage.kind === 'move' ? (
+          <MoveCard step={activePage.step} journey={activePage.journey} />
+        ) : activePage.kind === 'memoryTitle' ? (
+          <TitleCard eyebrow="MEMORIES" title={activePage.step.title ?? activePage.journey.title} />
+        ) : activePage.kind === 'memory' ? (
+          <MemoryCard step={activePage.step} journey={activePage.journey} />
+        ) : activePage.kind === 'freeTitle' ? (
+          <TitleCard eyebrow="NOTE" title={activePage.step.prompt} />
+        ) : (
+          activePage.kind === 'free' ? (
+            <QuestionCard
+              step={activePage.step}
+              journey={activePage.journey}
+              value={draftAnswer}
+              storedResponse={storedResponse}
+              isLocked={isQuestionReadOnly}
+              onAnswerChange={handleAnswerChange}
+              onTextBlur={handleTextBlur}
+            />
+          ) : activePage.kind === 'quizTitle' ? (
+            <TitleCard eyebrow="QUIZ" title={activePage.step.prompt} />
           ) : (
-            <JourneyPagePlaceholder variant="move" />
-          )}
+            <QuestionCard
+              step={activePage.step}
+              journey={activePage.journey}
+              value={draftAnswer}
+              storedResponse={storedResponse}
+              isLocked={isQuestionReadOnly}
+              onAnswerChange={handleAnswerChange}
+              onTextBlur={handleTextBlur}
+            />
+          )
+        )}
+        <div className="journeys-controls" aria-hidden="true">
+          <button type="button" className="journeys-controls__button" onClick={goPrev} disabled={prevDisabled}>
+            ← 戻る
+          </button>
+          <button
+            type="button"
+            className="journeys-controls__button journeys-controls__button--primary"
+            onClick={goNext}
+          >
+            {isLastPage ? 'Messagesへ' : '次へ'}
+          </button>
         </div>
-        <div
-          className={[
-            'journey-page',
-            'journey-page--right',
-            rightStep
-              ? isRightActive
-                ? 'is-active'
-                : 'is-dimmed'
-              : 'is-empty',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-        >
-          {rightStep && rightJourney ? (
-            isEpisodeStep(rightStep) ? (
-              <JourneyEpisodePage step={rightStep} journey={rightJourney} />
-            ) : isQuestionStep(rightStep) ? (
-              <JourneyQuestionPage
-                step={rightStep}
-                journey={rightJourney}
-                value={rightValue}
-                storedResponse={rightStoredResponse}
-                isActive={isRightActive}
-                isLocked={rightLocked}
-                onAnswerChange={isRightActive ? handleAnswerChange : undefined}
-                onTextBlur={isRightActive ? handleTextBlur : undefined}
-              />
-            ) : null
-          ) : (
-            <JourneyPagePlaceholder variant="story" />
-          )}
+        <div className="journeys-tap-hint" aria-hidden="true">
+          <span className="journeys-tap-hint__dot" />
+          タップ / Enter / Space で次へ
         </div>
       </div>
-
-      <nav className="journeys-nav" aria-label="Journeys navigation">
-        <button
-          type="button"
-          className="journeys-nav__button"
-          onClick={handlePrevStep}
-          disabled={prevDisabled}
-        >
-          前のページ
-        </button>
-        <button
-          type="button"
-          className="journeys-nav__button journeys-nav__button--primary"
-          onClick={handleNextStep}
-        >
-          {nextButtonLabel}
-        </button>
-      </nav>
     </SceneLayout>
   )
 }
