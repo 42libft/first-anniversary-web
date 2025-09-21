@@ -113,7 +113,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     if (!ctx) return
 
     let last = performance.now()
-    const loop = (t: number) => {
+  const loop = (t: number) => {
       const dt = Math.min(32, t - last)
       last = t
       const w = c.width
@@ -121,7 +121,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
       // 残像を程よく残しつつ、詰まりを防ぐクリア
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(5,8,22,0.12)'
+      ctx.fillStyle = 'rgba(5,8,22,0.14)'
       ctx.fillRect(0, 0, w, h)
 
       ctx.globalCompositeOperation = 'lighter'
@@ -163,26 +163,40 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           const margin = 24 * dprRef.current
           if ((x < margin || x > w - margin || y < margin || y > h - margin) && L.bounces <= 12) {
             L.dir *= -1
-            L.speed *= 0.9
+            // 減速しすぎないよう弱めのダンピング＋下限速度を保証
+            L.speed = Math.max(0.0012, L.speed * 0.96)
             L.bounces += 1
             L.edgeBounces += 1
           }
 
-          // 寿命に近いほどわずかにフェード
+          // 寿命に近いほどわずかにフェード（基礎係数）
           const lifeFade = Math.max(0.4, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
-          const alpha = lifeFade * Math.min(1, Math.max(0.15, 1 - Math.abs(L.t - 0.5) * 1.2))
-          ctx.save()
-          ctx.translate(x, y)
-          ctx.rotate(ang)
-          ctx.font = `${L.size}px 'Inter', 'Noto Sans JP', sans-serif`
-          const grad = ctx.createLinearGradient(-L.size, 0, L.size, 0)
-          grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.35 * alpha})`)
-          grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.55 * alpha})`)
-          ctx.fillStyle = grad
-          ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.65 * alpha})`
-          ctx.shadowBlur = 14
-          ctx.fillText(L.ch, 0, 0)
-          ctx.restore()
+
+          // 尾を描く：現在位置から進行方向の“後ろ”へ一定長さのトレイルを分割描画
+          const TAIL_SPAN = 0.18
+          const TAIL_STEPS = 12
+          for (let s = 0; s <= TAIL_STEPS; s += 1) {
+            const f = s / TAIL_STEPS
+            // 進行方向の後方へオフセット（dirが+1ならtを減らす／-1なら増やす）
+            const tt = Math.max(0, Math.min(1, t1 - L.dir * f * TAIL_SPAN))
+            const xx = cubic(tt, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+            const yy = cubic(tt, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
+            // フェード（後方ほど薄く、小さく）
+            const segAlpha = lifeFade * (1 - f) * (1 - f)
+            const sizeScale = 0.8 + 0.2 * (1 - f)
+            ctx.save()
+            ctx.translate(xx, yy)
+            ctx.rotate(ang)
+            ctx.font = `${L.size * sizeScale}px 'Inter', 'Noto Sans JP', sans-serif`
+            const grad = ctx.createLinearGradient(-L.size, 0, L.size, 0)
+            grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.28 * segAlpha})`)
+            grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.48 * segAlpha})`)
+            ctx.fillStyle = grad
+            ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.55 * segAlpha})`
+            ctx.shadowBlur = 12
+            ctx.fillText(L.ch, 0, 0)
+            ctx.restore()
+          }
         }
         if (aliveLetters === 0) {
           trails.splice(ti, 1)
@@ -216,8 +230,17 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       const idx = Math.floor(Math.random() * pool.length)
       spawnTrail(e.clientX, e.clientY, pool[idx])
     }
+    // タッチ/ポインタにも対応して密度を上げる
+    const onPointerDown = (e: PointerEvent) => {
+      const idx = Math.floor(Math.random() * pool.length)
+      spawnTrail(e.clientX, e.clientY, pool[idx])
+    }
     node.addEventListener('click', onClick)
-    return () => node.removeEventListener('click', onClick)
+    node.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      node.removeEventListener('click', onClick)
+      node.removeEventListener('pointerdown', onPointerDown)
+    }
   }, [pool])
 
   return (
