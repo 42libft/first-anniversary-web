@@ -57,6 +57,8 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     c.height = Math.max(1, Math.floor(r.height * d))
   }
 
+  const MAX_TRAILS = 24
+
   const spawnTrail = (x: number, y: number, msg: string) => {
     const c = canvasRef.current
     if (!c) return
@@ -83,7 +85,8 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     const letters: Letter[] = []
     const baseHue = 200 + Math.random() * 90
     const baseSize = 12 + Math.random() * 12
-    const chars = [...msg]
+    // 軽量化：テキスト全体を1要素として扱い、スタンプ回数を抑制
+    const chars = [msg]
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
@@ -101,7 +104,9 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     }
 
     idRef.current += 1
-    trailsRef.current.push({ id: idRef.current, p0, p1, p2, p3, letters })
+    const arr = trailsRef.current
+    if (arr.length >= MAX_TRAILS) arr.splice(0, arr.length - MAX_TRAILS + 1)
+    arr.push({ id: idRef.current, p0, p1, p2, p3, letters })
     onReveal?.(msg)
   }
 
@@ -168,11 +173,11 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           // 寿命フェード係数
           const lifeFade = Math.max(0.45, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
 
-          // 尾（分割数を抑えて軽量化）
+          // 尾（分割数を抑えて軽量化）フレーム時間に応じて自動降格
           const TAIL_SPAN = 0.16
-          const TAIL_STEPS = 8
-          for (let s = 0; s <= TAIL_STEPS; s += 1) {
-            const f = s / TAIL_STEPS
+          const steps = (dt > 26 ? 4 : 8)
+          for (let s = 0; s <= steps; s += 1) {
+            const f = s / steps
             const tt = Math.max(0, Math.min(1, t1 - L.dir * f * TAIL_SPAN))
             const xx = cubic(tt, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
             const yy = cubic(tt, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
@@ -183,11 +188,11 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
             ctx.rotate(ang)
             ctx.font = `${L.size * sizeScale}px 'Inter', 'Noto Sans JP', sans-serif`
             const grad = ctx.createLinearGradient(-L.size, 0, L.size, 0)
-            grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.24 * segAlpha})`)
-            grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.44 * segAlpha})`)
+            grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.22 * segAlpha})`)
+            grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.38 * segAlpha})`)
             ctx.fillStyle = grad
-            ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.55 * segAlpha})`
-            ctx.shadowBlur = 10
+            ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.45 * segAlpha})`
+            ctx.shadowBlur = 8
             ctx.fillText(L.ch, 0, 0)
             ctx.restore()
           }
@@ -237,4 +242,3 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     />
   )
 }
-
