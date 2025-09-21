@@ -14,6 +14,7 @@ jobs:
     if: >
       (github.event.action == 'labeled' && github.event.label.name == 'ai-resolve') ||
       contains(github.event.pull_request.labels.*.name, 'ai-resolve')
+    if: contains(github.event.pull_request.labels.*.name, 'ai-resolve')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
