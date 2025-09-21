@@ -11,11 +11,11 @@
 ## シーン構成
 | Scene | 役割・演出の概要 |
 | --- | --- |
-| Intro | 夜空のASCIIアートとプログラム起動風演出。「Tap to start」でプロローグへ。 |
-| Prologue | ノベルゲーム風の通話シーン。日付が一年前に戻ったという伏線を提示。 |
-| Journeys | 東京⇄福岡の移動をSVGアニメで演出。写真・キャプション・質問入力・距離HUDをまとめるハブ。 |
-| Messages | チャットバブルが増えていき合計メッセージ数を表示。距離データを活かしたクイズを挿入。 |
-| Likes | ハートのパーティクル演出で「好き」の回数をカウントアップ。選択式クイズを予定。 |
+| Intro | ターミナル風ブート → START 画面へ。シンプルな開始導線に整理（星空は未適用）。 |
+| Prologue | ノベルゲーム風の通話導入。背景演出は独立管理（星空は未適用）。 |
+| Journeys | 紙芝居（単一ビュー順送り）。移動/思い出/自由記述/クイズをページ化。距離HUDはここだけ表示。 |
+| Messages | キャンバス上で「文字のメモリーストリーム」を全画面に描画（フルブリード）。タップ位置から文字が曲線を流れ、端で反射・滞留。 |
+| Likes | ハートの演出＋クイズ。Messagesとトーンを変えて味変（今後強化）。 |
 | Meetups | 月ごとの思い出アルバム。各ページ固有のメディアアート背景に写真＋テキストをレイアウト。 |
 | Letter | デジタル封筒から実物の手紙へ誘導。音・演出は最終仕上げで調整。 |
 | Result | Apexリザルト画面をオマージュ。合計距離／メッセージ数／好き回数／会った日数／バッジを表示し、Introとループ。 |
@@ -57,16 +57,15 @@
     distanceKm: number
     steps: JourneyStep[]
   }
-  ```
-- move ステップ完了時に距離HUDへ累計を反映。Reduced Motion 環境ではアニメをスキップしつつ距離だけ即時更新します。
-- question ステップの回答は `useStoredJourneyResponses` が localStorage を正とし、既存回答は閲覧モードから編集モードに切り替えて更新します。
+- move ステップ完了時に距離HUDへ累計を反映（HUDは Journeys のみ表示）。Reduced Motion 環境ではアニメをスキップしつつ距離だけ即時更新します。
+- question ステップの回答は `useStoredJourneyResponses` が localStorage を正とします（保存後はロック可）。
 - Meetups セクションのデータは `src/data/meetups.ts` に集約。各ページ固有のメディアアート背景（グラデーション）とノートを記述します。
 - シーンの進行順は `src/types/scenes.ts` の `sceneOrder` で一元管理。`App` が現在シーンとナビゲーションロジックを保持します。
 
 ## 技術スタック
 - [Vite](https://vitejs.dev/) + [React 19](https://react.dev/) + TypeScript
 - スタイルはグローバルCSS（`src/App.css`, `src/index.css`）でモバイルファーストに設計。
-- 将来的な演出強化のため、SVGアニメーションやローカルストレージ連携の土台を準備済み。
+- SVG（Journeys）、Canvas（Messages）のハイブリッド構成。localStorage を横断利用。
 
 ## 開発ワークフロー
 1. 依存関係をインストール
@@ -105,6 +104,7 @@ Vercel / 任意ホストに出す場合は、`npm run build`（`base=/`）を使
 - `src/data/journeys.ts` の各ステップ（move / episode / question）を実データに差し替えてください。`distanceKm` は move ステップごとに設定し、合計が旅の距離になります。
 - `src/data/meetups.ts` で月ごとのアルバムページを編集できます。`background` はCSSグラデーション文字列、`memoryPoints` は箇条書きメモです。
 - 画像は `public/` 直下か外部URLのどちらでもOKです。
+- Messages のテキストコーパスは `public/data/messages-corpus.json`（1行1メッセージ推奨）に配置可能。未設定時はダミー文／ハイライト文を使用。
 
 ## ディレクトリ構成
 ```
@@ -120,7 +120,7 @@ src/
 
 補足ドキュメント
 - 要件メモ: `docs/requirements.md`
-- 対話の記録（最新）: `docs/discussions/2025-09-18-alignment.md`
+- 進行メモ（最新）: `docs/discussions/2025-09-18-alignment.md`
 
 ## 主要変更ファイル（ダイジェスト）
 - `src/data/journeys.ts`: Journeys データを move / episode / question ステップ構造に刷新。
@@ -133,16 +133,17 @@ src/
 - Journeys の move ステップIDは `distanceTraveled` 計算のキーになるため削除せず、編集時はIDを据え置いてください。
 - question ステップの `prompt` を変更する際は同じIDを使いつつ文言だけ差し替えると、保存済み回答が維持されます。
 - Meetups の `background` には文字列のCSSグラデーションを渡す前提です。変数化する場合も `--meetups-accent`/`--meetups-ambient` を残してください。
-- `DistanceHUD` は全シーン共通で表示されるため、レイアウト変更時は `app-shell` や `scene-container` の余白調整をセットで確認してください。
+- `DistanceHUD` は Journeys のみ表示。レイアウト変更時も他シーンには出ません。
 
 ## 簡易E2Eチェック手順
 1. `npm run build` で型チェック付きビルドが通ることを確認。
 2. `npm run dev` を起動し、以下の流れを手動で辿る。
-   - Intro: BOOT → START をタップで進行。
-   - Prologue: ノベルUIを最後まで進めて Journeys へ。
-   - Journeys: 各旅の move ステップをタップして距離HUDが増えること、question ステップで回答を保存→閲覧モード切替できることを確認。
-   - Meetups: タイムラインボタンで月を切替、最後のページで「Letterへ」ボタンが SceneLayout の次シーンへ遷移すること。
-   - Result: 累計距離と記録件数が反映され、`もう一度再生` でIntroへループすること。
+   - Intro: BOOT → START をタップで進行（星空なし）。
+   - Prologue: ノベルを最後まで進めて Journeys へ（星空なし）。
+   - Journeys: 紙芝居で各ページをタップ進行。moveでHUD加算、questionで保存/ロック。
+   - Messages: 画面タップで文字ストリームが出現し、端で反射・滞留すること。ログとカウントが増えること。
+   - Likes: 「好き」の演出とクイズを確認。
+   - Result: サマリーに遷移し、`もう一度再生` でIntroへループ。
 3. ブラウザの DevTools で `prefers-reduced-motion` を有効にし、Journeys の move ステップが瞬時に完了して距離が加算されることを確認。
 
 ## マイルストーン（改訂版）
