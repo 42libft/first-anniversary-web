@@ -9,6 +9,8 @@ type Letter = {
   edgeBounces: number
   size: number
   hue: number
+  ageMs: number
+  maxAgeMs: number
 }
 
 type Trail = {
@@ -65,9 +67,19 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
     // randomized flowing bezier upwards with curve
     const p0: [number, number] = [cx, cy]
-    const p3: [number, number] = [cx + (Math.random() - 0.5) * 150 * d, cy - (100 + Math.random() * 220) * d]
-    const p1: [number, number] = [p0[0] + (Math.random() - 0.5) * 200 * d, p0[1] - (40 + Math.random() * 80) * d]
-    const p2: [number, number] = [p3[0] + (Math.random() - 0.5) * 200 * d, p3[1] + (40 + Math.random() * 120) * d]
+    // 進行距離を伸ばし、画面縁に到達しやすいカーブに拡張
+    const p3: [number, number] = [
+      cx + (Math.random() - 0.5) * 320 * d,
+      cy - (220 + Math.random() * 260) * d,
+    ]
+    const p1: [number, number] = [
+      p0[0] + (Math.random() - 0.5) * 280 * d,
+      p0[1] - (60 + Math.random() * 160) * d,
+    ]
+    const p2: [number, number] = [
+      p3[0] + (Math.random() - 0.5) * 260 * d,
+      p3[1] + (60 + Math.random() * 200) * d,
+    ]
 
     const letters: Letter[] = []
     const baseHue = 200 + Math.random() * 90
@@ -77,13 +89,15 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       letters.push({
         ch: chars[i],
         t: Math.max(0, -i * 0.06),
-        // ゆっくり進行して残像感を高める
-        speed: 0.0008 + Math.random() * 0.0008,
+        // 少し速度アップ（常に進んでいく印象を強化）
+        speed: 0.0016 + Math.random() * 0.0012,
         dir: 1,
         bounces: 0,
         edgeBounces: 0,
         size: baseSize * (0.85 + Math.random() * 0.3),
         hue: baseHue + (Math.random() - 0.5) * 30,
+        ageMs: 0,
+        maxAgeMs: 12000 + Math.random() * 5000, // 12〜17秒で自然消滅
       })
     }
 
@@ -105,9 +119,9 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       const w = c.width
       const h = c.height
 
-      // 残像を伸ばすため、薄いフェードでクリア
+      // 残像を程よく残しつつ、詰まりを防ぐクリア
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(5,8,22,0.08)'
+      ctx.fillStyle = 'rgba(5,8,22,0.12)'
       ctx.fillRect(0, 0, w, h)
 
       ctx.globalCompositeOperation = 'lighter'
@@ -120,21 +134,23 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
         let aliveLetters = 0
         for (let li = 0; li < tr.letters.length; li += 1) {
           const L = tr.letters[li]
-          // advance with direction and handle reflections at 0/1
+          // advance with direction
           L.t += L.dir * L.speed * dt
+          // パラメータ境界では減速させず反転（停滞回避）
           if (L.t > 1) {
             L.t = 2 - L.t
             L.dir *= -1
-            L.speed *= 0.92
             L.bounces += 1
           } else if (L.t < 0) {
             L.t = -L.t
             L.dir *= -1
-            L.speed *= 0.92
             L.bounces += 1
           }
-          // エッジでの反射回数が3回を超えたら消滅
-          if (L.edgeBounces > 3) continue
+          // エッジでの反射回数が3回に達したら消滅対象
+          if (L.edgeBounces >= 3) continue
+          // 寿命で消滅
+          L.ageMs += dt
+          if (L.ageMs > L.maxAgeMs) continue
           aliveLetters += 1
           const t1 = Math.max(0, Math.min(1, L.t))
           let x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
@@ -152,7 +168,9 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
             L.edgeBounces += 1
           }
 
-          const alpha = Math.min(1, Math.max(0.15, 1 - Math.abs(L.t - 0.5) * 1.2))
+          // 寿命に近いほどわずかにフェード
+          const lifeFade = Math.max(0.4, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
+          const alpha = lifeFade * Math.min(1, Math.max(0.15, 1 - Math.abs(L.t - 0.5) * 1.2))
           ctx.save()
           ctx.translate(x, y)
           ctx.rotate(ang)
