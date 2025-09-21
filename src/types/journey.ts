@@ -9,6 +9,11 @@ export interface JourneyMoveMeta {
   note?: string
 }
 
+export interface JourneyMoveIllustration {
+  src: string
+  alt: string
+}
+
 export interface JourneyMoveStep {
   id: string
   type: 'move'
@@ -25,6 +30,8 @@ export interface JourneyMoveStep {
   toCoord?: JourneyCoordinate
   /** 抽象マップ上のルート。 */
   route?: JourneyCoordinate[]
+  /** 実際の地図イメージなど、移動ページで利用する視覚素材。 */
+  mapImage?: JourneyMoveIllustration
   /** フライト番号や発着時間などの補足情報。 */
   meta?: JourneyMoveMeta
   /** ステップ固有のラベルや補足文。 */
