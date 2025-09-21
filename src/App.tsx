@@ -101,7 +101,9 @@ function App() {
 
   return (
     <div className={`app-shell scene-${currentSceneId}`}>
-      {currentSceneId !== 'intro' && <GlobalStarfield />}
+      {(['intro', 'prologue'] as SceneId[]).includes(currentSceneId) && (
+        <GlobalStarfield />
+      )}
       <DistanceHUD distanceKm={distanceTraveled} />
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}

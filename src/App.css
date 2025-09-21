@@ -1888,25 +1888,23 @@
 }
 
 .chat-preview {
-  padding: 1rem;
-  border-radius: 1.25rem;
-  background: rgba(14, 19, 52, 0.65);
-  border: 1px solid rgba(124, 147, 255, 0.35);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  box-shadow: 0 16px 40px rgba(4, 6, 28, 0.35);
+  box-shadow: none;
 }
 
 /* Tap anywhere bubble field */
 .pop-field {
   position: relative;
-  border-radius: 1rem;
-  height: min(46vh, 380px);
-  background: radial-gradient(circle at 20% 30%, rgba(255, 102, 196, 0.15), transparent 55%),
-    radial-gradient(circle at 78% 70%, rgba(77, 123, 255, 0.2), transparent 52%),
-    rgba(8, 12, 34, 0.55);
-  border: 1px dashed rgba(163, 174, 255, 0.28);
+  border-radius: 0;
+  height: min(62vh, 520px);
+  background: transparent;
+  border: none;
   overflow: hidden;
   cursor: pointer;
 }
@@ -1921,9 +1919,8 @@
 
 .pop-field__hint {
   position: absolute;
-  bottom: 0.5rem;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 0.75rem;
+  right: 1rem;
   font-size: 0.78rem;
   letter-spacing: 0.12em;
   color: rgba(245, 244, 255, 0.7);

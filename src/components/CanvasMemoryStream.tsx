@@ -4,6 +4,8 @@ type Letter = {
   ch: string
   t: number
   speed: number
+  dir: number
+  bounces: number
   size: number
   hue: number
 }
@@ -68,13 +70,15 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
     const letters: Letter[] = []
     const baseHue = 200 + Math.random() * 90
-    const baseSize = 10 + Math.random() * 10
+    const baseSize = 12 + Math.random() * 12
     const chars = [...msg]
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
-        t: Math.max(0, -i * 0.04),
-        speed: 0.006 + Math.random() * 0.004,
+        t: Math.max(0, -i * 0.06),
+        speed: 0.003 + Math.random() * 0.0025,
+        dir: 1,
+        bounces: 0,
         size: baseSize * (0.85 + Math.random() * 0.3),
         hue: baseHue + (Math.random() - 0.5) * 30,
       })
@@ -100,7 +104,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
       // clear with slight fade for trails
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(5,8,22,0.35)'
+      ctx.fillStyle = 'rgba(5,8,22,0.18)'
       ctx.fillRect(0, 0, w, h)
 
       ctx.globalCompositeOperation = 'lighter'
@@ -113,8 +117,20 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
         let aliveLetters = 0
         for (let li = 0; li < tr.letters.length; li += 1) {
           const L = tr.letters[li]
-          L.t += L.speed * dt
-          if (L.t > 1.15) continue
+          // advance with direction and handle reflections at 0/1
+          L.t += L.dir * L.speed * dt
+          if (L.t > 1) {
+            L.t = 2 - L.t
+            L.dir *= -1
+            L.speed *= 0.92
+            L.bounces += 1
+          } else if (L.t < 0) {
+            L.t = -L.t
+            L.dir *= -1
+            L.speed *= 0.92
+            L.bounces += 1
+          }
+          if (L.bounces > 4) continue
           aliveLetters += 1
           const t1 = Math.max(0, Math.min(1, L.t))
           const x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
@@ -123,7 +139,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
           const ang = Math.atan2(dy, dx)
 
-          const alpha = Math.min(1, Math.max(0, 1 - Math.abs(L.t - 0.5) * 1.7))
+          const alpha = Math.min(1, Math.max(0.15, 1 - Math.abs(L.t - 0.5) * 1.2))
           ctx.save()
           ctx.translate(x, y)
           ctx.rotate(ang)
@@ -182,4 +198,3 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     />
   )
 }
-
