@@ -399,16 +399,62 @@ export const JourneysScene = ({
       }
 
       setDraftAnswer(value)
-      saveResponse({
-        journeyId: activeJourney.id,
-        stepId: activeStep.id,
-        storageKey: activeStep.storageKey,
-        prompt: activeStep.prompt,
-        answer: value,
-      })
+
+      if (
+        activeStep.style === 'choice' ||
+        activeStep.readonlyAfterSave === false
+      ) {
+        if (storedResponse?.answer === value) {
+          return
+        }
+
+        saveResponse({
+          journeyId: activeJourney.id,
+          stepId: activeStep.id,
+          storageKey: activeStep.storageKey,
+          prompt: activeStep.prompt,
+          answer: value,
+        })
+      }
     },
     [activeJourney, activeStep, saveResponse, storedResponse]
   )
+
+  const handleTextBlur = useCallback(() => {
+    if (!isQuestionStep(activeStep) || !activeJourney) {
+      return
+    }
+
+    if (activeStep.style !== 'text') {
+      return
+    }
+
+    if (activeStep.readonlyAfterSave === false) {
+      return
+    }
+
+    if (storedResponse !== undefined) {
+      return
+    }
+
+    if (draftAnswer.trim().length === 0) {
+      return
+    }
+
+    saveResponse({
+      journeyId: activeJourney.id,
+      stepId: activeStep.id,
+      storageKey: activeStep.storageKey,
+      prompt: activeStep.prompt,
+      answer: draftAnswer,
+    })
+  }, [
+    activeJourney,
+    activeStep,
+    draftAnswer,
+    saveResponse,
+    storedResponse,
+  ])
 
   if (!activeJourney || !activeStep) {
     return (
@@ -853,6 +899,7 @@ export const JourneysScene = ({
                         onChange={(event) =>
                           handleAnswerChange(event.currentTarget.value)
                         }
+                        onBlur={handleTextBlur}
                         disabled={isQuestionReadOnly}
                         rows={3}
                       />
