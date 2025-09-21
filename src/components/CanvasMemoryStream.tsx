@@ -39,6 +39,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   const dprRef = useRef(1)
   const trailsRef = useRef<Trail[]>([])
   const idRef = useRef(0)
+  const vtextCache = useRef<Map<string, HTMLCanvasElement>>(new Map())
 
   const pool = useMemo(() => (messages && messages.length ? messages : [
     '今日はありがとう',
@@ -58,6 +59,39 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   }
 
   const MAX_TRAILS = 24
+
+  const makeVerticalBitmap = (text: string, sizePx: number, hue: number) => {
+    const key = `${text}|${sizePx}|${hue}|${dprRef.current}`
+    const cached = vtextCache.current.get(key)
+    if (cached) return cached
+    const dpi = dprRef.current || 1
+    const canv = document.createElement('canvas')
+    const ctx = canv.getContext('2d')!
+    const chars = [...text]
+    const lineH = sizePx * 1.1
+    const width = Math.ceil(sizePx * 1.4 * dpi)
+    const height = Math.ceil((lineH * chars.length + sizePx * 0.6) * dpi)
+    canv.width = width
+    canv.height = height
+    ctx.scale(dpi, dpi)
+    ctx.textBaseline = 'middle'
+    ctx.textAlign = 'center'
+    ctx.font = `${sizePx}px 'Inter', 'Noto Sans JP', sans-serif`
+    const grad = ctx.createLinearGradient(0, 0, sizePx, 0)
+    grad.addColorStop(0, `hsl(${hue},95%,82%)`)
+    grad.addColorStop(1, `hsl(${hue + 40},95%,62%)`)
+    ctx.fillStyle = grad
+    ctx.shadowColor = `hsla(${hue},95%,70%,0.45)`
+    ctx.shadowBlur = 8
+    const cx = width / (2 * dpi)
+    let y = sizePx * 0.6
+    for (const ch of chars) {
+      ctx.fillText(ch, cx, y)
+      y += lineH
+    }
+    vtextCache.current.set(key, canv)
+    return canv
+  }
 
   const spawnTrail = (x: number, y: number, msg: string) => {
     const c = canvasRef.current
@@ -171,31 +205,41 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           }
 
           // 寿命フェード係数
-          const lifeFade = Math.max(0.45, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
+          const lifeFade = Math.max(0.5, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
 
-          // 尾（分割数を抑えて軽量化）フレーム時間に応じて自動降格
-          const TAIL_SPAN = 0.16
-          const steps = (dt > 26 ? 4 : 8)
+          // カーブを“線”で強調（軽量化＋曲線を残す）
+          const span = 0.22
+          const steps = dt > 26 ? 12 : 20
+          ctx.save()
+          ctx.lineCap = 'round'
+          ctx.lineJoin = 'round'
+          ctx.beginPath()
           for (let s = 0; s <= steps; s += 1) {
             const f = s / steps
-            const tt = Math.max(0, Math.min(1, t1 - L.dir * f * TAIL_SPAN))
+            const tt = Math.max(0, Math.min(1, t1 - L.dir * f * span))
             const xx = cubic(tt, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
             const yy = cubic(tt, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
-            const segAlpha = lifeFade * (1 - f) * (1 - f)
-            const sizeScale = 0.85 + 0.15 * (1 - f)
-            ctx.save()
-            ctx.translate(xx, yy)
-            ctx.rotate(ang)
-            ctx.font = `${L.size * sizeScale}px 'Inter', 'Noto Sans JP', sans-serif`
-            const grad = ctx.createLinearGradient(-L.size, 0, L.size, 0)
-            grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.22 * segAlpha})`)
-            grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.38 * segAlpha})`)
-            ctx.fillStyle = grad
-            ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.45 * segAlpha})`
-            ctx.shadowBlur = 8
-            ctx.fillText(L.ch, 0, 0)
-            ctx.restore()
+            if (s === 0) ctx.moveTo(xx, yy)
+            else ctx.lineTo(xx, yy)
           }
+          const baseAlpha = 0.28 * lifeFade
+          ctx.strokeStyle = `hsla(${L.hue + 28}, 95%, 66%, ${baseAlpha})`
+          ctx.lineWidth = Math.max(1.2, L.size * 0.16)
+          ctx.shadowColor = `hsla(${L.hue},95%,70%,${baseAlpha * 0.8})`
+          ctx.shadowBlur = 8
+          ctx.stroke()
+          ctx.restore()
+
+          // 先頭に縦書きビットマップを1回描画
+          const bmp = makeVerticalBitmap(L.ch, L.size, L.hue)
+          ctx.save()
+          ctx.translate(x, y)
+          ctx.rotate(ang)
+          const scale = 1 / (dprRef.current || 1)
+          ctx.scale(scale, scale)
+          ctx.globalAlpha = 0.96
+          ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2)
+          ctx.restore()
         }
         if (aliveLetters === 0) {
           trails.splice(ti, 1)
