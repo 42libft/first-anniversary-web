@@ -1,0 +1,53 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bus-bg" x1="0" y1="0" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f1f3f" />
+      <stop offset="1" stop-color="#071427" />
+    </linearGradient>
+    <linearGradient id="bus-route" x1="96" y1="80" x2="520" y2="292" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffc866" />
+      <stop offset="1" stop-color="#ff66c4" />
+    </linearGradient>
+    <filter id="bus-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#bus-bg)" />
+  <g opacity="0.25">
+    <rect x="60" y="52" width="520" height="256" rx="22" fill="rgba(20,36,68,0.6)" stroke="rgba(255,198,102,0.18)" stroke-width="2" />
+    <g stroke="#23385d" stroke-width="6" stroke-linecap="round">
+      <path d="M120 88L512 88" />
+      <path d="M120 140L512 140" />
+      <path d="M120 192L512 192" />
+      <path d="M120 244L512 244" />
+      <path d="M120 296L512 296" />
+      <path d="M160 72L160 312" />
+      <path d="M240 72L240 312" />
+      <path d="M320 72L320 312" />
+      <path d="M400 72L400 312" />
+      <path d="M480 72L480 312" />
+    </g>
+  </g>
+  <g stroke="#2c425f" stroke-width="12" stroke-linecap="round" opacity="0.4">
+    <path d="M140 98C170 140 216 178 266 212C316 246 362 276 420 298C478 320 508 332 508 332" />
+  </g>
+  <path d="M132 104C162 146 210 184 262 218C314 252 362 282 420 304C478 326 512 338 512 338" stroke="url(#bus-route)" stroke-width="8" stroke-linecap="round" filter="url(#bus-glow)" />
+  <g fill="#ffdca3">
+    <circle cx="132" cy="104" r="10" stroke="#fff1cd" stroke-width="3" />
+    <circle cx="512" cy="338" r="10" stroke="#ffe1f5" stroke-width="3" />
+  </g>
+  <g fill="#ffe5b5" font-family="'Noto Sans JP', 'Inter', sans-serif" font-size="18">
+    <text x="120" y="78" opacity="0.85">福岡空港</text>
+    <text x="420" y="350" opacity="0.85">夏祭り会場</text>
+  </g>
+  <g fill="#ffb076" font-family="'Noto Sans JP', 'Inter', sans-serif" font-size="13" opacity="0.75">
+    <text x="212" y="132">東平尾公園</text>
+    <text x="292" y="184">御笠川</text>
+    <text x="356" y="230">臨時駐車場</text>
+    <text x="436" y="274">屋台通り</text>
+  </g>
+</svg>
