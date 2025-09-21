@@ -1,28 +1,37 @@
 import { useEffect, useMemo, useRef } from 'react'
 
-type Trail = {
-  id: number
-  text: string
-  x: number
-  y: number
-  dir: number
+type Letter = {
+  ch: string
+  t: number
   speed: number
+  dir: number
+  bounces: number
   edgeBounces: number
+  size: number
+  hue: number
   ageMs: number
   maxAgeMs: number
-  hue: number
-  size: number
-  history: Array<[number, number]>
-  phase: number
-  img: HTMLCanvasElement
-  imgW: number
-  imgH: number
+}
+
+type Trail = {
+  id: number
+  p0: [number, number]
+  p1: [number, number]
+  p2: [number, number]
+  p3: [number, number]
+  letters: Letter[]
 }
 
 export type MemoryStreamProps = {
   messages: string[]
   onReveal?: (text: string) => void
 }
+
+const cubic = (t: number, a: number, b: number, c: number, d: number) =>
+  ((1 - t) ** 3) * a + 3 * ((1 - t) ** 2) * t * b + 3 * (1 - t) * (t ** 2) * c + (t ** 3) * d
+
+const dcubic = (t: number, a: number, b: number, c: number, d: number) =>
+  3 * ((1 - t) ** 2) * (b - a) + 6 * (1 - t) * t * (c - b) + 3 * (t ** 2) * (d - c)
 
 export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -31,47 +40,21 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   const trailsRef = useRef<Trail[]>([])
   const idRef = useRef(0)
 
-  const pool = useMemo(
-    () => (messages && messages.length ? messages : ['今日はありがとう', '次は海に行こう', '3240kmの言葉', '同じ夜をもう一度']),
-    [messages]
-  )
+  const pool = useMemo(() => (messages && messages.length ? messages : [
+    '今日はありがとう',
+    '次は海に行こう',
+    '3240kmの言葉',
+    '同じ夜をもう一度',
+  ]), [messages])
 
   const resize = () => {
     const c = canvasRef.current
     if (!c) return
     const r = c.getBoundingClientRect()
-    const d = Math.min(window.devicePixelRatio || 1, 1.5)
+    const d = Math.min(window.devicePixelRatio || 1, 1.6)
     dprRef.current = d
     c.width = Math.max(1, Math.floor(r.width * d))
     c.height = Math.max(1, Math.floor(r.height * d))
-  }
-
-  const MAX_TRAILS = 28
-  const HISTORY_LEN = 18
-
-  const makeTextBitmap = (text: string, size: number, hue: number) => {
-    const dpi = dprRef.current || 1
-    const canv = document.createElement('canvas')
-    const ctx = canv.getContext('2d')!
-    ctx.font = `${size}px 'Inter', 'Noto Sans JP', sans-serif`
-    const metrics = ctx.measureText(text)
-    const w = Math.ceil((metrics.width + 12) * dpi)
-    const h = Math.ceil((size + 12) * dpi)
-    canv.width = w
-    canv.height = h
-    ctx.scale(dpi, dpi)
-    ctx.font = `${size}px 'Inter', 'Noto Sans JP', sans-serif`
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'center'
-    const grad = ctx.createLinearGradient(-size, 0, size, 0)
-    grad.addColorStop(0, `hsl(${hue},95%,82%)`)
-    grad.addColorStop(1, `hsl(${hue + 40},95%,62%)`)
-    ctx.fillStyle = grad
-    ctx.shadowColor = `hsla(${hue},95%,70%,0.55)`
-    ctx.shadowBlur = 12
-    ctx.translate(w / (2 * dpi), h / (2 * dpi))
-    ctx.fillText(text, 0, 0)
-    return { canv, w, h }
   }
 
   const spawnTrail = (x: number, y: number, msg: string) => {
@@ -82,36 +65,43 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     const cx = (x - rect.left) * d
     const cy = (y - rect.top) * d
 
-    let ang = Math.random() * Math.PI * 2
-    const speed = 0.16 + Math.random() * 0.08 // px/ms（dpr適用後）
+    // flowing bezier upwards (広がりを持たせて縁まで届くレンジ)
+    const p0: [number, number] = [cx, cy]
+    const p3: [number, number] = [
+      cx + (Math.random() - 0.5) * 320 * d,
+      cy - (220 + Math.random() * 260) * d,
+    ]
+    const p1: [number, number] = [
+      p0[0] + (Math.random() - 0.5) * 280 * d,
+      p0[1] - (60 + Math.random() * 160) * d,
+    ]
+    const p2: [number, number] = [
+      p3[0] + (Math.random() - 0.5) * 260 * d,
+      p3[1] + (60 + Math.random() * 200) * d,
+    ]
 
-    const hue = 200 + Math.random() * 90
-    const size = 16 + Math.random() * 10
-    const { canv, w, h } = makeTextBitmap(msg, size, hue)
-
-    idRef.current += 1
-    const trail: Trail = {
-      id: idRef.current,
-      text: msg,
-      x: cx,
-      y: cy,
-      dir: ang,
-      speed,
-      edgeBounces: 0,
-      ageMs: 0,
-      maxAgeMs: 9000 + Math.random() * 4000, // 9〜13秒
-      hue,
-      size,
-      history: [],
-      phase: Math.random() * Math.PI * 2,
-      img: canv,
-      imgW: w,
-      imgH: h,
+    const letters: Letter[] = []
+    const baseHue = 200 + Math.random() * 90
+    const baseSize = 12 + Math.random() * 12
+    const chars = [...msg]
+    for (let i = 0; i < chars.length; i += 1) {
+      letters.push({
+        ch: chars[i],
+        t: Math.max(0, -i * 0.06),
+        // 止まらず進むレンジ（軽量寄り）
+        speed: 0.0014 + Math.random() * 0.0010,
+        dir: 1,
+        bounces: 0,
+        edgeBounces: 0,
+        size: baseSize * (0.85 + Math.random() * 0.3),
+        hue: baseHue + (Math.random() - 0.5) * 30,
+        ageMs: 0,
+        maxAgeMs: 12000 + Math.random() * 5000,
+      })
     }
 
-    const arr = trailsRef.current
-    if (arr.length >= MAX_TRAILS) arr.splice(0, arr.length - MAX_TRAILS + 1)
-    arr.push(trail)
+    idRef.current += 1
+    trailsRef.current.push({ id: idRef.current, p0, p1, p2, p3, letters })
     onReveal?.(msg)
   }
 
@@ -128,9 +118,9 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       const w = c.width
       const h = c.height
 
-      // 軽量クリア＋残像少し
+      // 残像を程よく残す
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(5,8,22,0.18)'
+      ctx.fillStyle = 'rgba(5,8,22,0.14)'
       ctx.fillRect(0, 0, w, h)
 
       ctx.globalCompositeOperation = 'lighter'
@@ -139,72 +129,72 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
       const margin = 20 * dprRef.current
       const trails = trailsRef.current
-      for (let i = trails.length - 1; i >= 0; i -= 1) {
-        const tr = trails[i]
-        tr.ageMs += dt
-        if (tr.ageMs > tr.maxAgeMs || tr.edgeBounces >= 3) {
-          trails.splice(i, 1)
-          continue
-        }
-
-        // 常に前進（曲率付加：法線方向に微小ステア）
-        tr.phase += dt * 0.004
-        const steer = Math.sin(tr.phase) * 0.0015 * dt
-        tr.dir += steer
-        // 位置更新
-        tr.x += Math.cos(tr.dir) * tr.speed * dt
-        tr.y += Math.sin(tr.dir) * tr.speed * dt
-
-        // 端で反射（3回で消滅）
-        if (tr.x < margin) {
-          tr.x = margin
-          tr.dir = Math.PI - tr.dir
-          tr.edgeBounces += 1
-        } else if (tr.x > w - margin) {
-          tr.x = w - margin
-          tr.dir = Math.PI - tr.dir
-          tr.edgeBounces += 1
-        }
-        if (tr.y < margin) {
-          tr.y = margin
-          tr.dir = -tr.dir
-          tr.edgeBounces += 1
-        } else if (tr.y > h - margin) {
-          tr.y = h - margin
-          tr.dir = -tr.dir
-          tr.edgeBounces += 1
-        }
-
-        // 履歴（尾）
-        tr.history.push([tr.x, tr.y])
-        if (tr.history.length > HISTORY_LEN) tr.history.shift()
-
-        const ang = tr.dir
-        // 尾（履歴）を1本のパスで軽量描画
-        if (tr.history.length > 1) {
-          ctx.save()
-          ctx.lineCap = 'round'
-          ctx.lineJoin = 'round'
-          const baseAlpha = Math.max(0.25, 1 - tr.ageMs / tr.maxAgeMs)
-          ctx.strokeStyle = `hsla(${tr.hue + 24}, 95%, 66%, ${0.32 * baseAlpha})`
-          ctx.lineWidth = Math.max(1.5, tr.size * 0.18)
-          ctx.beginPath()
-          for (let hsi = 0; hsi < tr.history.length; hsi += 1) {
-            const [hx, hy] = tr.history[hsi]
-            if (hsi === 0) ctx.moveTo(hx, hy)
-            else ctx.lineTo(hx, hy)
+      for (let ti = trails.length - 1; ti >= 0; ti -= 1) {
+        const tr = trails[ti]
+        let aliveLetters = 0
+        for (let li = 0; li < tr.letters.length; li += 1) {
+          const L = tr.letters[li]
+          // advance
+          L.t += L.dir * L.speed * dt
+          if (L.t > 1) {
+            L.t = 2 - L.t
+            L.dir *= -1
+            L.bounces += 1
+          } else if (L.t < 0) {
+            L.t = -L.t
+            L.dir *= -1
+            L.bounces += 1
           }
-          ctx.stroke()
-          ctx.restore()
-        }
+          if (L.edgeBounces >= 3) continue
+          L.ageMs += dt
+          if (L.ageMs > L.maxAgeMs) continue
+          aliveLetters += 1
 
-        // 先頭の文字はビットマップで1回だけ描画
-        ctx.save()
-        ctx.translate(tr.x, tr.y)
-        ctx.rotate(ang)
-        ctx.globalAlpha = 0.95
-        ctx.drawImage(tr.img, -tr.imgW / (2 * (dprRef.current || 1)), -tr.imgH / (2 * (dprRef.current || 1)))
-        ctx.restore()
+          const t1 = Math.max(0, Math.min(1, L.t))
+          let x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+          let y = cubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
+          const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+          const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
+          const ang = Math.atan2(dy, dx)
+
+          // 画面端で反射（3回で消滅）
+          if ((x < margin || x > w - margin || y < margin || y > h - margin) && L.bounces <= 12) {
+            L.dir *= -1
+            L.speed = Math.max(0.0013, L.speed * 0.95)
+            L.bounces += 1
+            L.edgeBounces += 1
+          }
+
+          // 寿命フェード係数
+          const lifeFade = Math.max(0.45, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
+
+          // 尾（分割数を抑えて軽量化）
+          const TAIL_SPAN = 0.16
+          const TAIL_STEPS = 8
+          for (let s = 0; s <= TAIL_STEPS; s += 1) {
+            const f = s / TAIL_STEPS
+            const tt = Math.max(0, Math.min(1, t1 - L.dir * f * TAIL_SPAN))
+            const xx = cubic(tt, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+            const yy = cubic(tt, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
+            const segAlpha = lifeFade * (1 - f) * (1 - f)
+            const sizeScale = 0.85 + 0.15 * (1 - f)
+            ctx.save()
+            ctx.translate(xx, yy)
+            ctx.rotate(ang)
+            ctx.font = `${L.size * sizeScale}px 'Inter', 'Noto Sans JP', sans-serif`
+            const grad = ctx.createLinearGradient(-L.size, 0, L.size, 0)
+            grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.24 * segAlpha})`)
+            grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.44 * segAlpha})`)
+            ctx.fillStyle = grad
+            ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.55 * segAlpha})`
+            ctx.shadowBlur = 10
+            ctx.fillText(L.ch, 0, 0)
+            ctx.restore()
+          }
+        }
+        if (aliveLetters === 0) {
+          trails.splice(ti, 1)
+        }
       }
 
       rafRef.current = requestAnimationFrame(loop)
@@ -247,3 +237,4 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     />
   )
 }
+
