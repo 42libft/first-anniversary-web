@@ -137,14 +137,13 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       for (let ti = trails.length - 1; ti >= 0; ti -= 1) {
         const tr = trails[ti]
         let aliveLetters = 0
+        let collided = false
         for (let li = 0; li < tr.letters.length; li += 1) {
           const L = tr.letters[li]
           // advance upward (no reflection)
           L.t += L.speed * dt
           if (L.t < 0) continue
-          if (L.t > 1.05) continue
           L.ageMs += dt
-          if (L.ageMs > L.maxAgeMs) continue
           aliveLetters += 1
 
           const t1 = Math.max(0, Math.min(1, L.t))
@@ -153,6 +152,13 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
           const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
           const ang = Math.atan2(dy, dx)
+
+          // 天井や左右端に到達したら衝突消失（スネーク全体を除去）
+          const margin = 8 * dprRef.current
+          if (li === 0 && (y < margin || x < margin || x > w - margin)) {
+            collided = true
+            break
+          }
 
           // 寿命フェード係数
           const lifeFade = Math.max(0.5, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
@@ -195,6 +201,10 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           ctx.shadowBlur = 8
           ctx.fillText(L.ch, 0, 0)
           ctx.restore()
+        }
+        if (collided) {
+          trails.splice(ti, 1)
+          continue
         }
         if (aliveLetters === 0) {
           trails.splice(ti, 1)
