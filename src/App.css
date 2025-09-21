@@ -1327,6 +1327,7 @@
 
 .journeys-stage {
   width: min(100%, 760px);
+  margin: 0 auto;
   border-radius: 1.75rem;
   border: 1px solid rgba(163, 174, 255, 0.25);
   background: rgba(12, 18, 52, 0.72);
@@ -1757,6 +1758,24 @@
     padding: 1.8rem 1.1rem;
   }
 }
+
+/* Storybook slide fade transitions */
+.journeys-slide {
+  will-change: opacity, transform;
+}
+
+@keyframes journeys-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes journeys-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.journeys-slide[data-state='entering'] { animation: journeys-fade-in 220ms ease both; }
+.journeys-slide[data-state='leaving'] { animation: journeys-fade-out 200ms ease both; }
 
 @media (max-width: 520px) {
   .journeys-stage {

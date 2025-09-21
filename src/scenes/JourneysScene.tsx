@@ -349,6 +349,7 @@ export const JourneysScene = ({
   }, [journeys])
 
   const [pageIndex, setPageIndex] = useState(0)
+  const [slideState, setSlideState] = useState<'idle' | 'leaving' | 'entering'>('idle')
   const [draftAnswer, setDraftAnswer] = useState('')
   const stageRef = useRef<HTMLDivElement | null>(null)
   // Focus container for a11y on page change
@@ -407,6 +408,21 @@ export const JourneysScene = ({
           prompt: activeQuestion.prompt,
           answer: value,
         })
+        // 選択/自由書き込み（リアルタイム保存時）は即次へ
+        scheduleNext()
+        return
+      }
+
+      // readonlyAfterSave !== false のテキストでも、入力が入ったら保存→次へ
+      if (activeQuestion.style === 'text' && value.trim().length > 0 && !storedResponse) {
+        saveResponse({
+          journeyId: activeJourney.id,
+          stepId: activeQuestion.id,
+          storageKey: activeQuestion.storageKey,
+          prompt: activeQuestion.prompt,
+          answer: value,
+        })
+        scheduleNext()
       }
     },
     [activeJourney, activeQuestion, saveResponse, storedResponse]
@@ -465,37 +481,31 @@ export const JourneysScene = ({
   })()
 
   const isLastPage = pageIndex >= pageCount - 1
-  const prevDisabled = pageIndex === 0
-  const goPrev = () => setPageIndex((i) => Math.max(i - 1, 0))
-  const goNext = () => {
-    if (isLastPage) onAdvance()
-    else setPageIndex((i) => Math.min(i + 1, pageCount - 1))
+  const scheduleNext = () => {
+    if (slideState === 'leaving') return
+    setSlideState('leaving')
+    setTimeout(() => {
+      if (isLastPage) {
+        onAdvance()
+      } else {
+        setPageIndex((i) => Math.min(i + 1, pageCount - 1))
+      }
+    }, 200)
   }
 
   const handleStageClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
     const target = event.target as HTMLElement
     const tag = target.tagName.toLowerCase()
     if (['button', 'a', 'input', 'textarea', 'select', 'label'].includes(tag)) return
-    goNext()
+    scheduleNext()
   }
 
+  // Entering animation on page change
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement
-      const tag = target?.tagName?.toLowerCase()
-      const inForm = tag === 'textarea' || tag === 'input' || tag === 'select'
-      if (inForm) return
-      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        goNext()
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        e.preventDefault()
-        goPrev()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [goNext])
+    setSlideState('entering')
+    const t = setTimeout(() => setSlideState('idle'), 240)
+    return () => clearTimeout(t)
+  }, [pageIndex])
 
   useEffect(() => {
     const scroller = document.querySelector('.scene-journeys .scene-container') as HTMLElement | null
@@ -509,26 +519,26 @@ export const JourneysScene = ({
       <div
         ref={stageRef}
         className="journeys-stage"
-        data-can-advance={!prevDisabled}
+        data-can-advance="true"
         onClick={handleStageClick}
         role="region"
         aria-label="Journeys story"
         tabIndex={0}
       >
-        {activePage.kind === 'journeyTitle' ? (
-          <TitleCard eyebrow="JOURNEY" title={activePage.journey.title} />
-        ) : activePage.kind === 'moveTitle' ? (
-          <TitleCard eyebrow="MOVE" title={`${activePage.step.from} → ${activePage.step.to}`} />
-        ) : activePage.kind === 'move' ? (
-          <MoveCard step={activePage.step} journey={activePage.journey} />
-        ) : activePage.kind === 'memoryTitle' ? (
-          <TitleCard eyebrow="MEMORIES" title={activePage.step.title ?? activePage.journey.title} />
-        ) : activePage.kind === 'memory' ? (
-          <MemoryCard step={activePage.step} journey={activePage.journey} />
-        ) : activePage.kind === 'freeTitle' ? (
-          <TitleCard eyebrow="NOTE" title={activePage.step.prompt} />
-        ) : (
-          activePage.kind === 'free' ? (
+        <div className="journeys-slide" data-state={slideState}>
+          {activePage.kind === 'journeyTitle' ? (
+            <TitleCard eyebrow="JOURNEY" title={activePage.journey.title} />
+          ) : activePage.kind === 'moveTitle' ? (
+            <TitleCard eyebrow="MOVE" title={`${activePage.step.from} → ${activePage.step.to}`} />
+          ) : activePage.kind === 'move' ? (
+            <MoveCard step={activePage.step} journey={activePage.journey} />
+          ) : activePage.kind === 'memoryTitle' ? (
+            <TitleCard eyebrow="MEMORIES" title={activePage.step.title ?? activePage.journey.title} />
+          ) : activePage.kind === 'memory' ? (
+            <MemoryCard step={activePage.step} journey={activePage.journey} />
+          ) : activePage.kind === 'freeTitle' ? (
+            <TitleCard eyebrow="NOTE" title={activePage.step.prompt} />
+          ) : activePage.kind === 'free' ? (
             <QuestionCard
               step={activePage.step}
               journey={activePage.journey}
@@ -550,23 +560,11 @@ export const JourneysScene = ({
               onAnswerChange={handleAnswerChange}
               onTextBlur={handleTextBlur}
             />
-          )
-        )}
-        <div className="journeys-controls" aria-hidden="true">
-          <button type="button" className="journeys-controls__button" onClick={goPrev} disabled={prevDisabled}>
-            ← 戻る
-          </button>
-          <button
-            type="button"
-            className="journeys-controls__button journeys-controls__button--primary"
-            onClick={goNext}
-          >
-            {isLastPage ? 'Messagesへ' : '次へ'}
-          </button>
+          )}
         </div>
         <div className="journeys-tap-hint" aria-hidden="true">
           <span className="journeys-tap-hint__dot" />
-          タップ / Enter / Space で次へ
+          画面タップで次へ
         </div>
       </div>
     </SceneLayout>
