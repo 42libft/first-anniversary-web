@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
 import {
@@ -11,56 +11,96 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
-export const MessagesScene = ({
-  onAdvance,
-  totalJourneyDistance,
-}: SceneComponentProps) => {
-  const [visibleSteps, setVisibleSteps] = useState(() =>
-    Math.min(2, messageMilestones.length)
-  )
+export const MessagesScene = ({ onAdvance, totalJourneyDistance }: SceneComponentProps) => {
+  // Bubble-driven counter and log
+  const targetTotal = totalMessages
+  const [count, setCount] = useState(0)
   const [counterPop, setCounterPop] = useState(false)
   const [, setSelectedMonth] = useState<string | null>(null)
 
-  const safeVisibleSteps = Math.max(
-    1,
-    Math.min(visibleSteps, messageMilestones.length)
-  )
-  const visibleMilestones = messageMilestones.slice(0, safeVisibleSteps)
+  const bubbleFieldRef = useRef<HTMLDivElement | null>(null)
+  const [bubbles, setBubbles] = useState<
+    Array<{ id: number; x: number; y: number; delay: number; duration: number }>
+  >([])
+  const bubbleIdRef = useRef(0)
 
-  const currentTotal =
-    visibleMilestones[visibleMilestones.length - 1]?.cumulativeTotal ?? 0
+  type BubbleLogEntry = {
+    id: string
+    speaker: 'me' | 'you'
+    text: string
+    timestamp: string
+    label?: string
+  }
+  const [bubbleLog, setBubbleLog] = useState<BubbleLogEntry[]>([])
 
+  // Build a simple pool from existing previews
+  const messagePool = useMemo((): Array<{ speaker: 'me' | 'you'; text: string }> => {
+    const pool: Array<{ speaker: 'me' | 'you'; text: string }> = []
+    messageMilestones.forEach((m) => {
+      m.preview.forEach((p) => pool.push({ speaker: p.speaker, text: p.text }))
+      // also split highlight as extra flavor
+      m.highlight.split('。').forEach((s) => {
+        const t = s.trim()
+        if (t) pool.push({ speaker: 'me', text: t })
+      })
+    })
+    return pool.length ? pool : [{ speaker: 'me', text: 'だいすき' }]
+  }, [])
+
+  const nextMessageFromPool = (): { speaker: 'me' | 'you'; text: string } => {
+    const i = Math.floor(Math.random() * messagePool.length)
+    return messagePool[i]
+  }
+
+  // Counter pop animation toggle
   useEffect(() => {
-    if (!visibleMilestones.length) {
-      return
-    }
-
     setCounterPop(true)
-    const timer = setTimeout(() => setCounterPop(false), 520)
+    const timer = setTimeout(() => setCounterPop(false), 420)
     return () => clearTimeout(timer)
-  }, [currentTotal, visibleMilestones.length])
+  }, [count])
 
-  const chatBubbles = useMemo(
-    () =>
-      visibleMilestones.flatMap((milestone) =>
-        milestone.preview.map((bubble, index) => ({
-          id: `${milestone.month}-${index}`,
-          ...bubble,
-          label: milestone.label,
-        }))
-      ),
-    [visibleMilestones]
-  )
-
-  const canRevealMore = safeVisibleSteps < messageMilestones.length
-
-  const handleRevealNext = () => {
-    if (canRevealMore) {
-      setVisibleSteps((step) => Math.min(step + 1, messageMilestones.length))
-    } else {
-      setCounterPop(true)
-      setTimeout(() => setCounterPop(false), 400)
+  // Auto-advance when filled
+  useEffect(() => {
+    if (count >= targetTotal) {
+      const t = setTimeout(() => onAdvance(), 900)
+      return () => clearTimeout(t)
     }
+  }, [count, targetTotal, onAdvance])
+
+  const spawnBubble = (x: number, y: number, multiplier = 3) => {
+    const rect = bubbleFieldRef.current?.getBoundingClientRect()
+    const baseX = rect ? x - rect.left : x
+    const baseY = rect ? y - rect.top : y
+    const n = Math.max(2, Math.min(6, multiplier))
+    const batch: Array<{ id: number; x: number; y: number; delay: number; duration: number }> = []
+    for (let i = 0; i < n; i += 1) {
+      bubbleIdRef.current += 1
+      batch.push({
+        id: bubbleIdRef.current,
+        x: baseX + (Math.random() - 0.5) * 80,
+        y: baseY + (Math.random() - 0.5) * 40,
+        delay: Math.random() * 120,
+        duration: 900 + Math.random() * 600,
+      })
+    }
+    setBubbles((prev) => [...prev, ...batch])
+
+    // schedule pops -> increment count and append message
+    batch.forEach((b) => {
+      setTimeout(() => {
+        setBubbles((prev) => prev.filter((it) => it.id !== b.id))
+        setCount((c) => (c < targetTotal ? c + 1 : c))
+        const msg = nextMessageFromPool()
+        const id = `log-${b.id}`
+        const entry: BubbleLogEntry = {
+          id,
+          speaker: msg.speaker,
+          text: msg.text,
+          timestamp: new Date().toTimeString().slice(0, 5),
+        }
+        setBubbleLog((log) => [...log, entry])
+      }, b.delay + b.duration)
+    })
   }
 
   const quizOptions = useMemo(() => {
@@ -93,6 +133,12 @@ export const MessagesScene = ({
   }, [])
 
   // correctness is handled by QuizCard now
+  const safeVisibleSteps = useMemo(() => {
+    if (targetTotal <= 0) return messageMilestones.length
+    const ratio = Math.min(1, count / targetTotal)
+    const steps = Math.max(1, Math.round(ratio * messageMilestones.length))
+    return steps
+  }, [count, targetTotal])
 
   return (
     <SceneLayout
@@ -105,35 +151,47 @@ export const MessagesScene = ({
       <div className="messages-module">
         <section className={`messages-counter${counterPop ? ' is-pop' : ''}`}>
           <p className="messages-counter__label">累計メッセージ</p>
-          <p className="messages-counter__value">{formatNumber(currentTotal)}</p>
+          <p className="messages-counter__value">{formatNumber(count)}</p>
           <p className="messages-counter__note">
-            全{formatNumber(totalMessages)}通のうち、
-            {safeVisibleSteps}/{messageMilestones.length} ヶ月分を再生中。
+            全{formatNumber(targetTotal)}通のうち、タップでバブルを弾けさせてカウントアップ。
           </p>
           <p className="messages-counter__sub">最も賑やかだったのは {busiestMessageMilestone.label}</p>
         </section>
 
         <section className="chat-preview">
+          <div
+            ref={bubbleFieldRef}
+            className="pop-field"
+            onClick={(e) => spawnBubble(e.clientX, e.clientY, 4)}
+            role="button"
+            aria-label="画面タップでバブルを弾けさせる"
+            tabIndex={0}
+          >
+            {bubbles.map((b) => (
+              <span
+                key={b.id}
+                className="pop-bubble"
+                style={{
+                  left: `${b.x}px`,
+                  top: `${b.y}px`,
+                  animationDelay: `${b.delay}ms`,
+                  animationDuration: `${b.duration}ms`,
+                }}
+              />)
+            )}
+            <div className="pop-field__hint">画面のどこでもタップ</div>
+          </div>
           <div className="chat-preview__log">
-            {chatBubbles.map((bubble) => (
+            {bubbleLog.map((bubble) => (
               <div
                 key={bubble.id}
                 className={`chat-bubble chat-bubble--${bubble.speaker}`}
               >
                 <p className="chat-bubble__text">{bubble.text}</p>
-                <span className="chat-bubble__meta">
-                  {bubble.timestamp} · {bubble.label}
-                </span>
+                <span className="chat-bubble__meta">{bubble.timestamp}</span>
               </div>
             ))}
           </div>
-          <button
-            type="button"
-            className="chat-preview__button"
-            onClick={handleRevealNext}
-          >
-            {canRevealMore ? 'バブルを追加' : 'もう一度はじけさせる'}
-          </button>
         </section>
 
         <section className="messages-timeline">
