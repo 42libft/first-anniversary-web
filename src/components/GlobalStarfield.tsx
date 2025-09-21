@@ -1,4 +1,8 @@
-export const GlobalStarfield = () => {
+type GlobalStarfieldProps = {
+  showShooting?: boolean
+}
+
+export const GlobalStarfield = ({ showShooting = false }: GlobalStarfieldProps) => {
   const makeStars = (seed: number) => {
     const rows = 80
     const cols = 300
@@ -32,10 +36,14 @@ export const GlobalStarfield = () => {
       </svg>
       <pre className="global-stars twinkle-a">{skyA}</pre>
       <pre className="global-stars twinkle-b">{skyB}</pre>
-      {/* occasional shooting stars */}
-      <div className="shooting-star shooting-a" />
-      <div className="shooting-star shooting-b" />
-      <div className="shooting-star shooting-c" />
+      {/* optional shooting stars (disabled by default) */}
+      {showShooting ? (
+        <>
+          <div className="shooting-star shooting-a" />
+          <div className="shooting-star shooting-b" />
+          <div className="shooting-star shooting-c" />
+        </>
+      ) : null}
     </div>
   )
 }

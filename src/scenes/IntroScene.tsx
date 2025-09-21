@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AsciiStartScene } from '../components/AsciiStartScene'
+import { GlobalStarfield } from '../components/GlobalStarfield'
 import type { SceneComponentProps } from '../types/scenes'
 
 const BOOT_LINES = [
@@ -57,6 +58,8 @@ export const IntroScene = ({ onAdvance }: SceneComponentProps) => {
         </div>
       ) : (
         <>
+          {/* Night sky + moon only on start screen */}
+          <GlobalStarfield />
           <AsciiStartScene />
           <div className="start-ui">
             <h1 className="start-title">TITLE PLACEHOLDER</h1>
