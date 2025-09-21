@@ -6,6 +6,7 @@ type Letter = {
   speed: number
   dir: number
   bounces: number
+  edgeBounces: number
   size: number
   hue: number
 }
@@ -76,9 +77,11 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       letters.push({
         ch: chars[i],
         t: Math.max(0, -i * 0.06),
-        speed: 0.003 + Math.random() * 0.0025,
+        // ゆっくり進行して残像感を高める
+        speed: 0.0008 + Math.random() * 0.0008,
         dir: 1,
         bounces: 0,
+        edgeBounces: 0,
         size: baseSize * (0.85 + Math.random() * 0.3),
         hue: baseHue + (Math.random() - 0.5) * 30,
       })
@@ -102,9 +105,9 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       const w = c.width
       const h = c.height
 
-      // clear with slight fade for trails
+      // 残像を伸ばすため、薄いフェードでクリア
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(5,8,22,0.18)'
+      ctx.fillStyle = 'rgba(5,8,22,0.08)'
       ctx.fillRect(0, 0, w, h)
 
       ctx.globalCompositeOperation = 'lighter'
@@ -130,7 +133,8 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
             L.speed *= 0.92
             L.bounces += 1
           }
-          if (L.bounces > 4) continue
+          // エッジでの反射回数が3回を超えたら消滅
+          if (L.edgeBounces > 3) continue
           aliveLetters += 1
           const t1 = Math.max(0, Math.min(1, L.t))
           let x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
@@ -141,10 +145,11 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
           // Edge bounce: if close to edges, reverse direction with damping
           const margin = 24 * dprRef.current
-          if ((x < margin || x > w - margin || y < margin || y > h - margin) && L.bounces <= 8) {
+          if ((x < margin || x > w - margin || y < margin || y > h - margin) && L.bounces <= 12) {
             L.dir *= -1
             L.speed *= 0.9
             L.bounces += 1
+            L.edgeBounces += 1
           }
 
           const alpha = Math.min(1, Math.max(0.15, 1 - Math.abs(L.t - 0.5) * 1.2))
@@ -156,8 +161,8 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.35 * alpha})`)
           grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.55 * alpha})`)
           ctx.fillStyle = grad
-          ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.55 * alpha})`
-          ctx.shadowBlur = 12
+          ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.65 * alpha})`
+          ctx.shadowBlur = 14
           ctx.fillText(L.ch, 0, 0)
           ctx.restore()
         }

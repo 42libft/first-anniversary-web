@@ -525,6 +525,25 @@
   color: transparent;
   text-shadow: 0 0 24px rgba(120, 150, 255, 0.35);
 }
+.messages-count-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-size: clamp(2.8rem, 14vw, 6rem);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  background: linear-gradient(90deg, rgba(255, 126, 213, 0.95), rgba(97, 140, 255, 0.95));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow:
+    0 0 30px rgba(120, 150, 255, 0.35),
+    0 0 80px rgba(255, 126, 213, 0.25);
+  pointer-events: none;
+}
 .messages-hint {
   position: absolute;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);

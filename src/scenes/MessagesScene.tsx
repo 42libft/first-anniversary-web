@@ -47,10 +47,12 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
           <p className="messages-eyebrow">MESSAGES</p>
           <p className="messages-sub">夜空に言葉を流す</p>
         </div>
-        <div className="messages-hud__right">
-          <p className="messages-count">{formatNumber(count)}</p>
-        </div>
       </header>
+
+      {/* 画面中央の大きなカウント */}
+      <div className="messages-count-center" aria-hidden>
+        {formatNumber(count)}
+      </div>
 
       <div className="messages-hint">タップで流す</div>
     </section>
