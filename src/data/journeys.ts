@@ -55,6 +55,10 @@ const journeyDefinitions: JourneyInput[] = [
           [68, 58],
           [78, 52],
         ],
+        mapImage: {
+          src: '/images/maps/travel-001-walk.svg',
+          alt: '福岡空港から博多駅前ホテルへの徒歩ルート',
+        },
         description: '空港の通路を抜け、夕方の風を浴びながらホテルへ向かった。',
       },
       {
@@ -147,6 +151,10 @@ const journeyDefinitions: JourneyInput[] = [
           [55, 38],
           [72, 28],
         ],
+        mapImage: {
+          src: '/images/maps/travel-002-train.svg',
+          alt: '羽田空港から渋谷駅までの鉄道ルート',
+        },
         meta: {
           note: '空港線から渋谷まで乗り換え1回。',
         },
@@ -214,6 +222,10 @@ const journeyDefinitions: JourneyInput[] = [
           [74, 34],
           [82, 26],
         ],
+        mapImage: {
+          src: '/images/maps/travel-003-bus.svg',
+          alt: '福岡空港から夏祭り会場へのバスルート',
+        },
         meta: {
           note: '臨時バスで30分ほどの移動。',
         },
