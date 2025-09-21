@@ -1,37 +1,24 @@
 import { useEffect, useMemo, useRef } from 'react'
 
-type Letter = {
-  ch: string
-  t: number
-  speed: number
-  dir: number
-  bounces: number
-  edgeBounces: number
-  size: number
-  hue: number
-  ageMs: number
-  maxAgeMs: number
-}
-
 type Trail = {
   id: number
-  p0: [number, number]
-  p1: [number, number]
-  p2: [number, number]
-  p3: [number, number]
-  letters: Letter[]
+  text: string
+  x: number
+  y: number
+  vx: number
+  vy: number
+  edgeBounces: number
+  ageMs: number
+  maxAgeMs: number
+  hue: number
+  size: number
+  history: Array<[number, number]>
 }
 
 export type MemoryStreamProps = {
   messages: string[]
   onReveal?: (text: string) => void
 }
-
-const cubic = (t: number, a: number, b: number, c: number, d: number) =>
-  ((1 - t) ** 3) * a + 3 * ((1 - t) ** 2) * t * b + 3 * (1 - t) * (t ** 2) * c + (t ** 3) * d
-
-const dcubic = (t: number, a: number, b: number, c: number, d: number) =>
-  3 * ((1 - t) ** 2) * (b - a) + 6 * (1 - t) * t * (c - b) + 3 * (t ** 2) * (d - c)
 
 export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -40,22 +27,23 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   const trailsRef = useRef<Trail[]>([])
   const idRef = useRef(0)
 
-  const pool = useMemo(() => (messages && messages.length ? messages : [
-    '今日はありがとう',
-    '次は海に行こう',
-    '3240kmの言葉',
-    '同じ夜をもう一度',
-  ]), [messages])
+  const pool = useMemo(
+    () => (messages && messages.length ? messages : ['今日はありがとう', '次は海に行こう', '3240kmの言葉', '同じ夜をもう一度']),
+    [messages]
+  )
 
   const resize = () => {
     const c = canvasRef.current
     if (!c) return
     const r = c.getBoundingClientRect()
-    const d = Math.min(window.devicePixelRatio || 1, 2)
+    const d = Math.min(window.devicePixelRatio || 1, 1.5)
     dprRef.current = d
     c.width = Math.max(1, Math.floor(r.width * d))
     c.height = Math.max(1, Math.floor(r.height * d))
   }
+
+  const MAX_TRAILS = 28
+  const HISTORY_LEN = 14
 
   const spawnTrail = (x: number, y: number, msg: string) => {
     const c = canvasRef.current
@@ -65,44 +53,33 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     const cx = (x - rect.left) * d
     const cy = (y - rect.top) * d
 
-    // randomized flowing bezier upwards with curve
-    const p0: [number, number] = [cx, cy]
-    // 進行距離を伸ばし、画面縁に到達しやすいカーブに拡張
-    const p3: [number, number] = [
-      cx + (Math.random() - 0.5) * 320 * d,
-      cy - (220 + Math.random() * 260) * d,
-    ]
-    const p1: [number, number] = [
-      p0[0] + (Math.random() - 0.5) * 280 * d,
-      p0[1] - (60 + Math.random() * 160) * d,
-    ]
-    const p2: [number, number] = [
-      p3[0] + (Math.random() - 0.5) * 260 * d,
-      p3[1] + (60 + Math.random() * 200) * d,
-    ]
+    let ang = Math.random() * Math.PI * 2
+    const speed = 0.14 + Math.random() * 0.08 // px/ms（dpr適用後）
+    const vx = Math.cos(ang) * speed
+    const vy = -Math.abs(Math.sin(ang)) * speed // 上方向ベース
 
-    const letters: Letter[] = []
-    const baseHue = 200 + Math.random() * 90
-    const baseSize = 12 + Math.random() * 12
-    const chars = [...msg]
-    for (let i = 0; i < chars.length; i += 1) {
-      letters.push({
-        ch: chars[i],
-        t: Math.max(0, -i * 0.06),
-        // 少し速度アップ（常に進んでいく印象を強化）
-        speed: 0.0016 + Math.random() * 0.0012,
-        dir: 1,
-        bounces: 0,
-        edgeBounces: 0,
-        size: baseSize * (0.85 + Math.random() * 0.3),
-        hue: baseHue + (Math.random() - 0.5) * 30,
-        ageMs: 0,
-        maxAgeMs: 12000 + Math.random() * 5000, // 12〜17秒で自然消滅
-      })
-    }
+    const hue = 200 + Math.random() * 90
+    const size = 14 + Math.random() * 10
 
     idRef.current += 1
-    trailsRef.current.push({ id: idRef.current, p0, p1, p2, p3, letters })
+    const trail: Trail = {
+      id: idRef.current,
+      text: msg,
+      x: cx,
+      y: cy,
+      vx,
+      vy,
+      edgeBounces: 0,
+      ageMs: 0,
+      maxAgeMs: 9000 + Math.random() * 4000, // 9〜13秒
+      hue,
+      size,
+      history: [],
+    }
+
+    const arr = trailsRef.current
+    if (arr.length >= MAX_TRAILS) arr.splice(0, arr.length - MAX_TRAILS + 1)
+    arr.push(trail)
     onReveal?.(msg)
   }
 
@@ -113,93 +90,78 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     if (!ctx) return
 
     let last = performance.now()
-  const loop = (t: number) => {
+    const loop = (t: number) => {
       const dt = Math.min(32, t - last)
       last = t
       const w = c.width
       const h = c.height
 
-      // 残像を程よく残しつつ、詰まりを防ぐクリア
+      // 軽量クリア＋残像少し
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(5,8,22,0.14)'
+      ctx.fillStyle = 'rgba(5,8,22,0.18)'
       ctx.fillRect(0, 0, w, h)
 
       ctx.globalCompositeOperation = 'lighter'
       ctx.textBaseline = 'middle'
       ctx.textAlign = 'center'
 
+      const margin = 18 * dprRef.current
       const trails = trailsRef.current
-      for (let ti = trails.length - 1; ti >= 0; ti -= 1) {
-        const tr = trails[ti]
-        let aliveLetters = 0
-        for (let li = 0; li < tr.letters.length; li += 1) {
-          const L = tr.letters[li]
-          // advance with direction
-          L.t += L.dir * L.speed * dt
-          // パラメータ境界では減速させず反転（停滞回避）
-          if (L.t > 1) {
-            L.t = 2 - L.t
-            L.dir *= -1
-            L.bounces += 1
-          } else if (L.t < 0) {
-            L.t = -L.t
-            L.dir *= -1
-            L.bounces += 1
-          }
-          // エッジでの反射回数が3回に達したら消滅対象
-          if (L.edgeBounces >= 3) continue
-          // 寿命で消滅
-          L.ageMs += dt
-          if (L.ageMs > L.maxAgeMs) continue
-          aliveLetters += 1
-          const t1 = Math.max(0, Math.min(1, L.t))
-          let x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
-          let y = cubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
-          const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
-          const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
-          const ang = Math.atan2(dy, dx)
-
-          // Edge bounce: if close to edges, reverse direction with damping
-          const margin = 24 * dprRef.current
-          if ((x < margin || x > w - margin || y < margin || y > h - margin) && L.bounces <= 12) {
-            L.dir *= -1
-            // 減速しすぎないよう弱めのダンピング＋下限速度を保証
-            L.speed = Math.max(0.0012, L.speed * 0.96)
-            L.bounces += 1
-            L.edgeBounces += 1
-          }
-
-          // 寿命に近いほどわずかにフェード（基礎係数）
-          const lifeFade = Math.max(0.4, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
-
-          // 尾を描く：現在位置から進行方向の“後ろ”へ一定長さのトレイルを分割描画
-          const TAIL_SPAN = 0.18
-          const TAIL_STEPS = 12
-          for (let s = 0; s <= TAIL_STEPS; s += 1) {
-            const f = s / TAIL_STEPS
-            // 進行方向の後方へオフセット（dirが+1ならtを減らす／-1なら増やす）
-            const tt = Math.max(0, Math.min(1, t1 - L.dir * f * TAIL_SPAN))
-            const xx = cubic(tt, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
-            const yy = cubic(tt, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
-            // フェード（後方ほど薄く、小さく）
-            const segAlpha = lifeFade * (1 - f) * (1 - f)
-            const sizeScale = 0.8 + 0.2 * (1 - f)
-            ctx.save()
-            ctx.translate(xx, yy)
-            ctx.rotate(ang)
-            ctx.font = `${L.size * sizeScale}px 'Inter', 'Noto Sans JP', sans-serif`
-            const grad = ctx.createLinearGradient(-L.size, 0, L.size, 0)
-            grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.28 * segAlpha})`)
-            grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.48 * segAlpha})`)
-            ctx.fillStyle = grad
-            ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.55 * segAlpha})`
-            ctx.shadowBlur = 12
-            ctx.fillText(L.ch, 0, 0)
-            ctx.restore()
-          }
+      for (let i = trails.length - 1; i >= 0; i -= 1) {
+        const tr = trails[i]
+        tr.ageMs += dt
+        if (tr.ageMs > tr.maxAgeMs || tr.edgeBounces >= 3) {
+          trails.splice(i, 1)
+          continue
         }
-        if (aliveLetters === 0) {
-          trails.splice(ti, 1)
+
+        // 常に前進
+        tr.x += tr.vx * dt
+        tr.y += tr.vy * dt
+
+        // 端で反射（3回で消滅）
+        if (tr.x < margin) {
+          tr.x = margin
+          tr.vx = Math.abs(tr.vx)
+          tr.edgeBounces += 1
+        } else if (tr.x > w - margin) {
+          tr.x = w - margin
+          tr.vx = -Math.abs(tr.vx)
+          tr.edgeBounces += 1
+        }
+        if (tr.y < margin) {
+          tr.y = margin
+          tr.vy = Math.abs(tr.vy)
+          tr.edgeBounces += 1
+        } else if (tr.y > h - margin) {
+          tr.y = h - margin
+          tr.vy = -Math.abs(tr.vy)
+          tr.edgeBounces += 1
+        }
+
+        // 履歴（尾）
+        tr.history.push([tr.x, tr.y])
+        if (tr.history.length > HISTORY_LEN) tr.history.shift()
+
+        const ang = Math.atan2(tr.vy, tr.vx)
+        // 尾を描画（履歴に沿って、後方ほど薄く小さく）
+        for (let hsi = 0; hsi < tr.history.length; hsi += 1) {
+          const [hx, hy] = tr.history[hsi]
+          const f = hsi / tr.history.length
+          const alpha = Math.max(0, 1 - f * 1.2) * Math.max(0.35, 1 - tr.ageMs / tr.maxAgeMs)
+          const sizeScale = 0.85 + 0.15 * (1 - f)
+          ctx.save()
+          ctx.translate(hx, hy)
+          ctx.rotate(ang)
+          ctx.font = `${tr.size * sizeScale}px 'Inter', 'Noto Sans JP', sans-serif`
+          const grad = ctx.createLinearGradient(-tr.size, 0, tr.size, 0)
+          grad.addColorStop(0, `hsla(${tr.hue}, 95%, 80%, ${0.22 * alpha})`)
+          grad.addColorStop(1, `hsla(${tr.hue + 40}, 95%, 60%, ${0.38 * alpha})`)
+          ctx.fillStyle = grad
+          ctx.shadowColor = `hsla(${tr.hue}, 95%, 70%, ${0.45 * alpha})`
+          ctx.shadowBlur = 10
+          ctx.fillText(tr.text, 0, 0)
+          ctx.restore()
         }
       }
 
@@ -226,21 +188,12 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   useEffect(() => {
     const node = canvasRef.current
     if (!node) return
-    const onClick = (e: MouseEvent) => {
-      const idx = Math.floor(Math.random() * pool.length)
-      spawnTrail(e.clientX, e.clientY, pool[idx])
-    }
-    // タッチ/ポインタにも対応して密度を上げる
     const onPointerDown = (e: PointerEvent) => {
       const idx = Math.floor(Math.random() * pool.length)
       spawnTrail(e.clientX, e.clientY, pool[idx])
     }
-    node.addEventListener('click', onClick)
     node.addEventListener('pointerdown', onPointerDown)
-    return () => {
-      node.removeEventListener('click', onClick)
-      node.removeEventListener('pointerdown', onPointerDown)
-    }
+    return () => node.removeEventListener('pointerdown', onPointerDown)
   }, [pool])
 
   return (
