@@ -1,158 +1,112 @@
-# First Anniversary Web Experience
+# Nyaimlab Bot 管理フロントエンド
 
-スマホ向けに設計した「ポップ × ロマンチック」な一周年記念インタラクティブ体験のフロントエンドです。ターミナル風の起動演出からはじまり、各セクションをメディアアート作品のように巡り、最後はApexリザルト画面のオマージュで締めくくります。
+Discord サーバー「Nyaimlab」で運用するカスタム Bot（Nyaimcat）の設定を GitHub Pages から編集・プレビューするためのフロントエンドです。Welcome Embed や Verify パネル、ロール配布UI、自己紹介モーダルなどの設定を一元管理し、生成された `config.yaml` を Pull Request として送信する運用を想定しています。
 
-## 体験コンセプト
-- **目的**: 1年間の思い出をゲーム的に追体験し、最後にふたりを讃える。
-- **世界観**: 夜空・流星・空フェス夜市をモチーフにしたビジュアルと、ノベルゲームの文脈を融合。
-- **トーン**: 「ポップ（ゲーム周年）」と「ロマンチック（記念日）」を 1:1 でミックス。
-- **操作性**: スマホ縦画面／タップ進行。ノッチや safe area への対応を前提としたレイアウト。
+## 主な機能
+- **ダッシュボード**: ギルドID、チャンネル割り当て、NGワード数など主要メトリクスを一覧表示。
+- **オンボーディング設定**: Welcome Embed、ガイドラインDMテンプレート、Botを含む人数カウント切替、タイムゾーン調整をリアルタイムにプレビュー。
+- **Verify 管理**: `/verify post` のモード切替（ボタン／リアクション）、ボタンスタイルや成功メッセージの編集、リアクション絵文字の確認。
+- **ロール配布UI**: 選択／任意ロールの並び替え・追加・削除に対応。ボタン／セレクト形式双方に対応できるよう並び順を保つ設計。
+- **自己紹介モーダル**: 項目の有効化／必須指定、プレースホルダー編集、セレクト項目の選択肢、文字数上限、NGワード、画像添付制限を管理。
+- **スクリム補助（設計段階）**: 週次の参加確認フローや通知先チャンネルを先行定義し、将来の実装に備えます。
+- **YAML 生成＆差分表示**: 現在の設定から `config.yaml` を生成し、baseline との diff を可視化。PR タイトル／本文のテンプレートも同画面で確認できます。
 
-## シーン構成
-| Scene | 役割・演出の概要 |
-| --- | --- |
-| Intro | 夜空のASCIIアートとプログラム起動風演出。「Tap to start」でプロローグへ。 |
-| Prologue | ノベルゲーム風の通話シーン。日付が一年前に戻ったという伏線を提示。 |
-| Journeys | 東京⇄福岡の移動をSVGアニメで演出。写真・キャプション・質問入力・距離HUDをまとめるハブ。 |
-| Messages | チャットバブルが増えていき合計メッセージ数を表示。距離データを活かしたクイズを挿入。 |
-| Likes | ハートのパーティクル演出で「好き」の回数をカウントアップ。選択式クイズを予定。 |
-| Meetups | 月ごとの思い出アルバム。各ページ固有のメディアアート背景に写真＋テキストをレイアウト。 |
-| Letter | デジタル封筒から実物の手紙へ誘導。音・演出は最終仕上げで調整。 |
-| Result | Apexリザルト画面をオマージュ。合計距離／メッセージ数／好き回数／会った日数／バッジを表示し、Introとループ。 |
+## 想定する運用フロー
+1. GitHub Pages（またはローカル環境）で本フロントエンドを開く。
+2. 既存の `config.yaml` を読み込み（現状は `defaultConfig` を baseline として内蔵）。
+3. フォームで設定を調整し、カードで Discord 風プレビューを確認。
+4. 「YAML差分 & PR」セクションで生成内容と差分をチェックし、必要なら `config.yaml` をコピー。
+5. GitHub REST API を使って Draft PR を作成（将来的に PAT 入力モーダルを追加予定）。
+6. PR マージ後、Bot 側のポーリングまたは Webhook で設定を再読込し、Discord に反映させる。
 
-## データとステート設計
-- `journeys[]` は以下のステップ指向モデルに統一しました。`distanceKm` は move ステップの合計値です。
-  ```ts
-  type JourneyStep =
-    | {
-        id: string
-        type: 'move'
-        from: string
-        to: string
-        transport: 'plane' | 'bus' | 'train'
-        distanceKm: number
-        artKey: string
-        description?: string
-      }
-    | {
-        id: string
-        type: 'episode'
-        title: string
-        caption: string
-        artKey: string
-        media: { src: string; alt: string; objectPosition?: string }
-      }
-    | {
-        id: string
-        type: 'question'
-        prompt: string
-        placeholder?: string
-        helper?: string
-      }
+## セクション構成
+| セクション | 目的 | 主な設定項目 |
+| --- | --- | --- |
+| ダッシュボード | 設定概要を俯瞰し、漏れをチェック | Guild ID、Verifyモード、ロール数、NGワード数、各チャンネル |
+| オンボーディング | 入室時の Welcome Embed と DM | チャンネルID、Notion URL、人数カウント設定、DMテンプレート、プレビュー |
+| Verify 設定 | 認証パネルの動作 | モード、ボタンラベル／スタイル、リアクション絵文字、成功メッセージ |
+| ロール配布 | `/roles post` のUI構成 | selectable / optional ロールの追加・並び替え・削除、説明、絵文字 |
+| 自己紹介モーダル | `/introduce` 入力項目 | 項目ON/OFF、必須指定、セレクト選択肢、文字数上限、画像添付制限、NGワード |
+| スクリム補助 | 週次フローの下準備 | 参加確認日、通知先チャンネル、リマインド時刻、運用メモ |
+| YAML差分 & PR | 出力・差分確認・PR下書き | 生成YAML、diff、PRタイトル／本文、手順ガイド |
 
-  type Journey = {
-    id: string
-    title: string
-    date: string
-    distanceKm: number
-    steps: JourneyStep[]
-  }
-  ```
-- move ステップ完了時に距離HUDへ累計を反映。Reduced Motion 環境ではアニメをスキップしつつ距離だけ即時更新します。
-- question ステップの回答は `useStoredJourneyResponses` が localStorage を正とし、既存回答は閲覧モードから編集モードに切り替えて更新します。
-- Meetups セクションのデータは `src/data/meetups.ts` に集約。各ページ固有のメディアアート背景（グラデーション）とノートを記述します。
-- シーンの進行順は `src/types/scenes.ts` の `sceneOrder` で一元管理。`App` が現在シーンとナビゲーションロジックを保持します。
-
-## 技術スタック
-- [Vite](https://vitejs.dev/) + [React 19](https://react.dev/) + TypeScript
-- スタイルはグローバルCSS（`src/App.css`, `src/index.css`）でモバイルファーストに設計。
-- 将来的な演出強化のため、SVGアニメーションやローカルストレージ連携の土台を準備済み。
-
-## 開発ワークフロー
-1. 依存関係をインストール
-   ```bash
-   npm install
-   ```
-2. 開発サーバーを起動
-   ```bash
-   npm run dev
-   ```
-3. 型チェック付きビルド
-   ```bash
-   npm run build
-   ```
-4. ESLint による検証
-   ```bash
-   npm run lint
-   ```
-
-推奨: 変更前後で `npm run lint` を実行し、Safe Area 対応やモバイル表示をブラウザで確認してください。
-
-## デプロイ（GitHub Pages）
-- このリポジトリには GitHub Actions の Pages デプロイが含まれています。
-- `main` ブランチに push すると自動でビルド・デプロイされます。
-- Vite の `base` は Pages のプロジェクトURL `/first-anniversary-web/` に合わせて `build:pages` スクリプト内で指定しています。
-
-手元でデプロイ挙動を確認（本番と同条件のビルド）
+## 開発環境の準備
 ```bash
-npm run build:pages
-npx vite preview
+npm install
+npm run dev
+```
+開発サーバーは `http://localhost:5173` で起動します。Vite のホットリロードによりフォーム調整時も即座に反映されます。
+
+型チェック付きビルドと Lint:
+```bash
+npm run build
+npm run lint
 ```
 
-Vercel / 任意ホストに出す場合は、`npm run build`（`base=/`）を使ってください。
+GitHub Pages にデプロイする場合は `npm run build:pages` を利用し、`vite.config.ts` の `base` 設定が `/first-anniversary-web/` になる点に注意してください。
 
-## 実データの追加
-- `src/data/journeys.ts` の各ステップ（move / episode / question）を実データに差し替えてください。`distanceKm` は move ステップごとに設定し、合計が旅の距離になります。
-- `src/data/meetups.ts` で月ごとのアルバムページを編集できます。`background` はCSSグラデーション文字列、`memoryPoints` は箇条書きメモです。
-- 画像は `public/` 直下か外部URLのどちらでもOKです。
+## `config.yaml` の構造
+生成される YAML は以下の構造を前提としています（抜粋）。
+```yaml
+guild:
+  id: "123456789012345678"
+channels:
+  welcome: "#welcome"
+  verify_panel: "#verify-panel"
+  roles_panel: "#roles"
+  introductions: "#自己紹介"
+  audit_log: "#audit-log"
+  fallback_notice: "#welcome"
+features:
+  count_bots_in_member_count: false
+  verify_mode: "button"
+messaging:
+  welcomeDmTemplate: "ようこそ Nyaimlab へ！\n1. ガイド：{notionUrl}..."
+  fallbackThreadMessage: "DMが送れませんでした..."
+roles:
+  verified: "@Verified"
+  selectable:
+    - id: "apex"
+      label: "Apex"
+      role: "@Apex"
+introductions:
+  fields:
+    - id: "name"
+      label: "名前"
+      type: "short"
+      required: true
+      enabled: true
+  maxCharacters:
+    name: 32
+verify:
+  button:
+    label: "Verify"
+    style: "success"
+  reactionEmoji: "✅"
+locales:
+  timezone: "Asia/Tokyo"
+scrim:
+  enabled: false
+  pollDay: "sunday"
+```
+`defaultConfig` が baseline として `src/data/defaultConfig.ts` に定義されており、今後は GitHub API から最新の `config.yaml` を取得する処理を追加予定です。
+
+## 今後の拡張予定
+- GitHub PAT を入力してリポジトリの `config.yaml` を直接取得／更新する連携モジュール。
+- Audit Log の可視化タブ（Discord JSON ログ or GitHub Issues から取得）。
+- スクリム補助フローの実装（Firestore / Google Sheets 連携を想定）。
+- i18n 対応（日本語／英語切替）とアクセシビリティ改善。
 
 ## ディレクトリ構成
-```
+```text
 src/
-├── App.tsx              # シーン遷移とHUDを司るルートコンポーネント
-├── components/          # HUDやシーン用レイアウトなど共通UI
-├── data/journeys.ts     # Journeysセクションのベースデータ
-├── data/meetups.ts      # Meetupsセクションの月別メディアアート設定
-├── hooks/               # ローカルストレージなど状態管理系フック
-├── scenes/              # 各シーンの骨組みコンポーネント
-└── types/               # Journey/シーン/回答データの型定義
+├── App.tsx                 # ルートコンポーネントとセクション構成
+├── App.css                 # 全体レイアウト・フォームスタイル
+├── components/             # セクションごとのUIコンポーネント
+├── data/defaultConfig.ts   # baselineとなる設定オブジェクト
+├── types/config.ts         # Config型定義
+└── utils/                  # YAMLシリアライズと差分生成
 ```
 
-補足ドキュメント
-- 要件メモ: `docs/requirements.md`
-- 対話の記録（最新）: `docs/discussions/2025-09-18-alignment.md`
-
-## 主要変更ファイル（ダイジェスト）
-- `src/data/journeys.ts`: Journeys データを move / episode / question ステップ構造に刷新。
-- `src/scenes/JourneysScene.tsx`: ステップ進行・距離HUD連動・回答の閲覧/編集トグルを統合。
-- `src/data/meetups.ts`: Meetups の月別メディアアート設定とノートを定義。
-- `src/scenes/MeetupsScene.tsx`: インタラクティブなアルバムUIとタイムラインナビゲーションを実装。
-- `src/App.css`: Journeys/Meetups 向けのスタイル拡張とHUD調整。
-
-## 衝突回避ガイド
-- Journeys の move ステップIDは `distanceTraveled` 計算のキーになるため削除せず、編集時はIDを据え置いてください。
-- question ステップの `prompt` を変更する際は同じIDを使いつつ文言だけ差し替えると、保存済み回答が維持されます。
-- Meetups の `background` には文字列のCSSグラデーションを渡す前提です。変数化する場合も `--meetups-accent`/`--meetups-ambient` を残してください。
-- `DistanceHUD` は全シーン共通で表示されるため、レイアウト変更時は `app-shell` や `scene-container` の余白調整をセットで確認してください。
-
-## 簡易E2Eチェック手順
-1. `npm run build` で型チェック付きビルドが通ることを確認。
-2. `npm run dev` を起動し、以下の流れを手動で辿る。
-   - Intro: BOOT → START をタップで進行。
-   - Prologue: ノベルUIを最後まで進めて Journeys へ。
-   - Journeys: 各旅の move ステップをタップして距離HUDが増えること、question ステップで回答を保存→閲覧モード切替できることを確認。
-   - Meetups: タイムラインボタンで月を切替、最後のページで「Letterへ」ボタンが SceneLayout の次シーンへ遷移すること。
-   - Result: 累計距離と記録件数が反映され、`もう一度再生` でIntroへループすること。
-3. ブラウザの DevTools で `prefers-reduced-motion` を有効にし、Journeys の move ステップが瞬時に完了して距離が加算されることを確認。
-
-## マイルストーン（改訂版）
-1. **M1**: 環境構築＋骨組み（本コミット）
-2. **M2**: Intro（夜空 × ターミナルASCII）
-3. **M3**: Prologue（ノベル導入）
-4. **M4**: Journeys（移動アニメ＋思い出表示＋距離カウント）
-5. **M5**: Messages／Likes
-6. **M6**: Meetups
-7. **M7**: Letter／Result（Apex風）
-8. **M8**: 演出仕上げ（サウンド含む最終調整）
-
-このREADMEを最新の仕様メモとして随時アップデートし、進行管理に活用してください。
+## ライセンス
+社内利用向けプロジェクトのためライセンスは未指定です。必要に応じて組織のルールに従ってください。
