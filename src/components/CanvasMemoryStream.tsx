@@ -37,6 +37,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rafRef = useRef<number | null>(null)
   const dprRef = useRef(1)
+  const strokeTickRef = useRef(0)
   const trailsRef = useRef<Trail[]>([])
   const idRef = useRef(0)
   // leftover cache removed (not used)
@@ -52,13 +53,13 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     const c = canvasRef.current
     if (!c) return
     const r = c.getBoundingClientRect()
-    const d = Math.min(window.devicePixelRatio || 1, 1.6)
+    const d = Math.min(window.devicePixelRatio || 1, 1.4)
     dprRef.current = d
     c.width = Math.max(1, Math.floor(r.width * d))
     c.height = Math.max(1, Math.floor(r.height * d))
   }
 
-  const MAX_TRAILS = 24
+  const MAX_TRAILS = 18
 
   const spawnTrail = (x: number, y: number, msg: string) => {
     const c = canvasRef.current
@@ -72,7 +73,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     const p0: [number, number] = [cx, cy]
     // ensure the head always reaches above the top edge to collide and vanish
     const p3: [number, number] = [
-      cx + (Math.random() - 0.5) * 280 * d,
+      cx + (Math.random() - 0.5) * 260 * d,
       -80 * d,
     ]
     const p1: [number, number] = [
@@ -86,16 +87,16 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
     const letters: Letter[] = []
     const baseHue = 200 + Math.random() * 90
-    const baseSize = 13 + Math.random() * 12
+    const baseSize = 14 + Math.random() * 10
     // 文字の蛇：各文字を分解しスネーク状に並べる（上限12）
     const chars = [...msg.slice(0, 12)]
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
         // widen spacing so glyphs are more legible along the curve
-        t: Math.max(0, -i * 0.09),
-        // 止まらず進むレンジ（軽量寄り）
-        speed: 0.0014 + Math.random() * 0.0010,
+        t: Math.max(0, -i * 0.11),
+        // やや低速レンジにして可読性優先（滞留は上限本数で制御）
+        speed: 0.0009 + Math.random() * 0.0006,
         dir: 1,
         bounces: 0,
         edgeBounces: 0,
@@ -123,6 +124,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     const loop = (t: number) => {
       const dt = Math.min(32, t - last)
       last = t
+      strokeTickRef.current += 1
       const w = c.width
       const h = c.height
 
@@ -166,9 +168,10 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           const lifeFade = Math.max(0.5, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
 
           // ヘッドだけ曲線ストローク（曲線の存在感を1回で強調）
-          if (li === 0) {
+          const doStroke = (strokeTickRef.current % 2) === 0
+          if (li === 0 && doStroke) {
             const span = 0.24
-            const steps = dt > 26 ? 12 : 20
+            const steps = dt > 26 ? 10 : 16
             ctx.save()
             ctx.lineCap = 'round'
             ctx.lineJoin = 'round'
