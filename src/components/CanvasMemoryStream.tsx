@@ -92,9 +92,11 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     const baseSize = 15 + Math.random() * 9
     const chars = [...msg].slice(0, MAX_CHARS)
     // 文字が素早く連なるように、間隔はやや狭め（見た目は維持される範囲）
-    const gapT = 0.12
+    // 文字間隔をやや狭めて列の密度を上げる
+    const gapT = 0.10
     // 前の見た目を保ちつつ、複数文字が自然に出る速度帯
-    const streamSpeed = 0.00030 + Math.random() * 0.00012
+    // 全体の速度をもう少し落とす（前よりゆっくり）
+    const streamSpeed = 0.00024 + Math.random() * 0.00010
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
