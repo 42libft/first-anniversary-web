@@ -548,54 +548,123 @@
 .messages-announce {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  gap: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 7vh, 5.5rem) clamp(1.2rem, 6vw, 4.2rem);
   animation: fadeIn 1400ms ease both;
   z-index: 3;
   pointer-events: none; /* クリックはCTAに通す */
 }
+.messages-announce__layout {
+  width: min(100%, 1100px);
+  min-height: min(78vh, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(200px, 30vw, 440px) minmax(0, 1fr);
+  grid-template-rows: auto minmax(220px, 32vh) auto;
+  row-gap: clamp(1rem, 4vh, 2.8rem);
+  column-gap: clamp(1.2rem, 5vw, 4.4rem);
+  align-content: space-between;
+}
 .messages-announce__line {
   margin: 0;
-  font-size: clamp(1rem, 3.6vw, 1.35rem);
-  opacity: 0.9;
+  font-size: clamp(1rem, 2.8vw, 1.4rem);
   letter-spacing: 0.14em;
   font-weight: 600;
-  color: rgba(200, 212, 255, 0.9);
+  color: rgba(200, 212, 255, 0.92);
   text-shadow: 0 1px 6px rgba(90,120,255,0.22);
-  position: absolute;
-  left: 8%;
-  transform: none;
-  text-align: left;
-  max-width: min(78vw, 640px);
+  max-width: min(32ch, 100%);
+  opacity: 0;
+  text-wrap: balance;
 }
-.messages-announce__line--top { top: 34%; animation: fadeIn 2600ms ease 400ms both; }
-/* 右下配置に切り替え（中央カウントを主役に） */
+.messages-announce__line--top {
+  grid-column: 1 / 3;
+  grid-row: 1;
+  justify-self: flex-start;
+  text-align: left;
+  animation: fadeIn 2600ms ease 400ms both;
+}
 .messages-announce__line--bottom {
-  left: auto;
-  right: 8%;
+  grid-column: 2 / 4;
+  grid-row: 3;
+  justify-self: flex-end;
   text-align: right;
-  top: auto;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 24vh);
   animation: fadeIn 3000ms ease 2000ms both;
 }
 
-.messages-cta {
+.messages-cta-wrap {
   position: absolute;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 24vh);
-  transform: translateX(-50%);
-  padding: 0.65rem 1.25rem;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: clamp(1.8rem, 8vh, 5.8rem) clamp(1.4rem, 6vw, 4.2rem)
+    calc(env(safe-area-inset-bottom, 0px) + clamp(1.4rem, 7vh, 3.6rem));
+  pointer-events: none;
+  z-index: 4;
+}
+.messages-cta {
+  pointer-events: auto;
+  padding: 0.7rem 1.4rem;
   border-radius: 999px;
   border: 1px solid rgba(163, 174, 255, 0.45);
   background: rgba(12, 20, 46, 0.78);
   color: rgba(215, 228, 255, 0.95);
   font-weight: 800;
-  letter-spacing: 0.16em;
+  font-size: clamp(0.72rem, 1.4vw, 0.82rem);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   animation: fadeIn 2200ms ease 1600ms both;
-  z-index: 4;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 22px rgba(10, 16, 42, 0.35);
+}
+
+@media (max-width: 900px) {
+  .messages-announce {
+    padding: clamp(1.2rem, 7vh, 4.6rem) clamp(1.1rem, 6vw, 3rem);
+  }
+  .messages-announce__layout {
+    min-height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    row-gap: clamp(0.8rem, 4vh, 1.8rem);
+    align-content: center;
+  }
+  .messages-announce__line {
+    justify-self: center;
+    text-align: center;
+    max-width: min(32ch, 88vw);
+  }
+  .messages-cta-wrap {
+    align-items: center;
+    justify-content: center;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(1.6rem, 10vh, 4rem));
+  }
+  .messages-cta {
+    width: min(100%, 320px);
+    text-align: center;
+    letter-spacing: 0.22em;
+  }
+}
+
+@media (max-width: 520px) {
+  .messages-announce__line {
+    font-size: clamp(0.92rem, 4.8vw, 1.12rem);
+    letter-spacing: 0.12em;
+  }
+  .messages-cta {
+    font-size: clamp(0.68rem, 4.4vw, 0.78rem);
+    letter-spacing: 0.24em;
+  }
+}
+
+@media (min-width: 1200px) {
+  .messages-announce__layout {
+    grid-template-columns: minmax(0, 1.1fr) clamp(220px, 28vw, 460px) minmax(0, 0.9fr);
+  }
+  .messages-cta-wrap {
+    justify-content: flex-end;
+  }
 }
 
 /* MessagesシーンではフッターSCENEを隠す */

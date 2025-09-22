@@ -81,24 +81,28 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
 
       {phase !== 'play' && (
         <div className="messages-announce" role="status">
-          {showTopLine && (
-            <p className="messages-announce__line messages-announce__line--top">１年間で二人が送った</p>
-          )}
-          {/* 中央のカウント（messages-count-center）を再利用するため、ここでは数字を描画しない */}
-          {showBottomLine && (
-            <p className="messages-announce__line messages-announce__line--bottom">総メッセージ数でした！</p>
-          )}
+          <div className="messages-announce__layout">
+            {showTopLine && (
+              <p className="messages-announce__line messages-announce__line--top">１年間で二人が送った</p>
+            )}
+            {/* 中央のカウント（messages-count-center）を再利用するため、ここでは数字を描画しない */}
+            {showBottomLine && (
+              <p className="messages-announce__line messages-announce__line--bottom">総メッセージ数でした！</p>
+            )}
+          </div>
         </div>
       )}
 
       {phase === 'cta' && ctaVisible && (
-        <button
-          type="button"
-          className="messages-cta"
-          onClick={onAdvance}
-        >
-          タップで次へ
-        </button>
+        <div className="messages-cta-wrap">
+          <button
+            type="button"
+            className="messages-cta"
+            onClick={onAdvance}
+          >
+            タップで次へ
+          </button>
+        </div>
       )}
     </section>
   )
