@@ -9,6 +9,8 @@ const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 // フルブリードのメディアアートに刷新したMessagesシーン
 export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
   const FINAL_TARGET = 41086
+  const TAPS_TO_COMPLETE = 120
+  const TAP_INCREMENT = Math.ceil(FINAL_TARGET / TAPS_TO_COMPLETE)
   const [count, setCount] = useState(0)
   const [phase, setPhase] = useState<'play' | 'announce' | 'cta'>('play')
   const [ctaVisible, setCtaVisible] = useState(false)
@@ -40,7 +42,7 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
   }, [count, phase])
 
   const handleReveal = () => {
-    setCount((c) => (c < FINAL_TARGET ? c + 1 : c))
+    setCount((c) => (c < FINAL_TARGET ? Math.min(FINAL_TARGET, c + TAP_INCREMENT) : c))
   }
 
   return (
