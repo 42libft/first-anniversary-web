@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { curatedShortMessages } from '../data/messages-curated'
 
 type Letter = {
   ch: string
@@ -41,14 +42,12 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   const strokeTickRef = useRef(0)
   const trailsRef = useRef<Trail[]>([])
   const idRef = useRef(0)
+  const glyphCache = useRef<Map<string, HTMLCanvasElement>>(new Map())
   // leftover cache removed (not used)
 
-  const pool = useMemo(() => (messages && messages.length ? messages : [
-    '今日はありがとう',
-    '次は海に行こう',
-    '3240kmの言葉',
-    '同じ夜をもう一度',
-  ]), [messages])
+  const pool = useMemo(() => (
+    messages && messages.length ? messages : curatedShortMessages
+  ), [messages])
 
   const resize = () => {
     const c = canvasRef.current
@@ -197,26 +196,21 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
             ctx.restore()
           }
 
-          // 文字を直立で描画（美しさ優先のカラーグラデ＋細い縁）
+          // 文字ビットマップをキャッシュして軽量描画
           ctx.save()
           ctx.translate(x, y)
-          ctx.font = `${L.size}px 'Inter', 'Noto Sans JP', sans-serif`
-          // 薄いダーク縁取り（黒ではなく色味を残したダーク）
           ctx.globalCompositeOperation = 'source-over'
-          ctx.lineWidth = 1.2
-          ctx.strokeStyle = `hsla(${L.hue}, 30%, 12%, ${0.55 * lifeFade})`
-          ctx.strokeText(L.ch, 0, 0)
-          // カラーグラデで本体
-          const grad2 = ctx.createLinearGradient(-L.size, 0, L.size, 0)
-          grad2.addColorStop(0, `hsla(${L.hue}, 95%, 85%, ${0.92})`)
-          grad2.addColorStop(1, `hsla(${L.hue + 38}, 95%, 68%, ${0.92})`)
-          ctx.fillStyle = grad2
-          ctx.fillText(L.ch, 0, 0)
-          // 控えめなグロー
-          ctx.globalCompositeOperation = 'lighter'
-          ctx.shadowColor = `hsla(${L.hue + 20}, 95%, 70%, ${0.28 * lifeFade})`
-          ctx.shadowBlur = 6
-          ctx.fillText(L.ch, 0, 0)
+          const bmp = getGlyphBitmap(L.ch, L.size, L.hue, dprRef.current)
+          const scale = 1 / (dprRef.current || 1)
+          ctx.scale(scale, scale)
+          ctx.globalAlpha = lifeFade
+          ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2)
+          // ヘッドのみ淡いグローを重ねる
+          if (li === 0) {
+            ctx.globalCompositeOperation = 'lighter'
+            ctx.globalAlpha = 0.15 * lifeFade
+            ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2)
+          }
           ctx.restore()
         }
         if (collided) {
@@ -235,6 +229,47 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
   }, [])
+
+  const getGlyphBitmap = (
+    ch: string,
+    size: number,
+    hue: number,
+    dpr: number
+  ) => {
+    const hueKey = Math.round(hue / 12) * 12 // ヒューを丸めてキャッシュ効率化
+    const key = `${ch}|${Math.round(size)}|${hueKey}|${Math.round((dpr || 1) * 10)}`
+    const cached = glyphCache.current.get(key)
+    if (cached) return cached
+
+    const dpi = Math.max(1, Math.min(2, dpr || 1))
+    const canvas = document.createElement('canvas')
+    const gctx = canvas.getContext('2d')!
+    gctx.font = `${size}px 'Inter', 'Noto Sans JP', sans-serif`
+    const m = gctx.measureText(ch)
+    const pad = Math.ceil(size * 0.6)
+    const w = Math.ceil((m.width + pad) * dpi)
+    const h = Math.ceil((size + pad) * dpi)
+    canvas.width = w
+    canvas.height = h
+    gctx.scale(dpi, dpi)
+    gctx.textBaseline = 'middle'
+    gctx.textAlign = 'center'
+    gctx.font = `${size}px 'Inter', 'Noto Sans JP', sans-serif`
+
+    // 薄いダーク縁取り
+    gctx.lineWidth = 1.2
+    gctx.strokeStyle = `hsla(${hueKey}, 30%, 12%, 0.65)`
+    gctx.strokeText(ch, w / (2 * dpi), h / (2 * dpi))
+    // カラーグラデ本体
+    const grad = gctx.createLinearGradient(-size, 0, size, 0)
+    grad.addColorStop(0, `hsla(${hueKey}, 95%, 85%, 0.98)`)
+    grad.addColorStop(1, `hsla(${hueKey + 36}, 95%, 70%, 0.98)`)
+    gctx.fillStyle = grad
+    gctx.fillText(ch, w / (2 * dpi), h / (2 * dpi))
+
+    glyphCache.current.set(key, canvas)
+    return canvas
+  }
 
   useEffect(() => {
     resize()
