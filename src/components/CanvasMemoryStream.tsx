@@ -70,28 +70,30 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
     // flowing bezier upwards (広がりを持たせて縁まで届くレンジ)
     const p0: [number, number] = [cx, cy]
+    // ensure the head always reaches above the top edge to collide and vanish
     const p3: [number, number] = [
-      cx + (Math.random() - 0.5) * 320 * d,
-      cy - (220 + Math.random() * 260) * d,
+      cx + (Math.random() - 0.5) * 280 * d,
+      -80 * d,
     ]
     const p1: [number, number] = [
-      p0[0] + (Math.random() - 0.5) * 280 * d,
-      p0[1] - (60 + Math.random() * 160) * d,
+      p0[0] + (Math.random() - 0.5) * 260 * d,
+      p0[1] - (60 + Math.random() * 140) * d,
     ]
     const p2: [number, number] = [
-      p3[0] + (Math.random() - 0.5) * 260 * d,
-      p3[1] + (60 + Math.random() * 200) * d,
+      p3[0] + (Math.random() - 0.5) * 220 * d,
+      p3[1] + (80 + Math.random() * 160) * d,
     ]
 
     const letters: Letter[] = []
     const baseHue = 200 + Math.random() * 90
-    const baseSize = 12 + Math.random() * 12
+    const baseSize = 13 + Math.random() * 12
     // 文字の蛇：各文字を分解しスネーク状に並べる（上限12）
     const chars = [...msg.slice(0, 12)]
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
-        t: Math.max(0, -i * 0.06),
+        // widen spacing so glyphs are more legible along the curve
+        t: Math.max(0, -i * 0.09),
         // 止まらず進むレンジ（軽量寄り）
         speed: 0.0014 + Math.random() * 0.0010,
         dir: 1,
@@ -199,6 +201,10 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           ctx.fillStyle = grad
           ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.45 * lifeFade})`
           ctx.shadowBlur = 8
+          // subtle outline for readability on bright backgrounds
+          ctx.lineWidth = 1
+          ctx.strokeStyle = `rgba(5,8,22,${0.25 * lifeFade})`
+          ctx.strokeText(L.ch, 0, 0)
           ctx.fillText(L.ch, 0, 0)
           ctx.restore()
         }
