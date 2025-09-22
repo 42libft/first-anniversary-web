@@ -95,8 +95,8 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
         ch: chars[i],
         // widen spacing so glyphs are more legible along the curve
         t: Math.max(0, -i * 0.11),
-        // やや低速レンジにして可読性優先（滞留は上限本数で制御）
-        speed: 0.0009 + Math.random() * 0.0006,
+        // さらに約50%減速（可読性優先・負荷は上限本数で制御）
+        speed: 0.00045 + Math.random() * 0.0003,
         dir: 1,
         bounces: 0,
         edgeBounces: 0,
