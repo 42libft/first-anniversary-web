@@ -89,7 +89,8 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
 
     const letters: Letter[] = []
     const baseHue = 200 + Math.random() * 90
-    const baseSize = 15 + Math.random() * 9
+    // 文字と光を少し大きく（見た目の存在感をアップ）
+    const baseSize = 18 + Math.random() * 12
     const chars = [...msg].slice(0, MAX_CHARS)
     // 文字が素早く連なるように、間隔はやや狭め（見た目は維持される範囲）
     // 文字間隔をさらに狭めて列の密度を上げる
@@ -208,10 +209,10 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
           ctx.scale(scale, scale)
           ctx.globalAlpha = lifeFade
           ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2)
-          // ヘッドのみ淡いグローを重ねる
+          // ヘッドのみ淡いグローを重ねる（わずかに強め）
           if (li === 0) {
             ctx.globalCompositeOperation = 'lighter'
-            ctx.globalAlpha = 0.15 * lifeFade
+            ctx.globalAlpha = 0.22 * lifeFade
             ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2)
           }
           ctx.restore()
