@@ -43,3 +43,14 @@ export const sceneOrder: SceneId[] = [
   'letter',
   'result',
 ]
+
+export const sceneTitleMap: Record<SceneId, string> = {
+  intro: 'Intro',
+  prologue: 'Prologue',
+  journeys: 'Journeys',
+  messages: 'Messages',
+  likes: 'Likes',
+  meetups: 'Meetups',
+  letter: 'Letter',
+  result: 'Result',
+}

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import './App.css'
+import { SceneQuickPanel } from './components/SceneQuickPanel'
 import { DistanceHUD } from './components/DistanceHUD'
 import { BuildStamp } from './components/BuildStamp'
 import { journeys } from './data/journeys'
@@ -13,19 +14,8 @@ import { MeetupsScene } from './scenes/MeetupsScene'
 import { MessagesScene } from './scenes/MessagesScene'
 import { PrologueScene } from './scenes/PrologueScene'
 import { ResultScene } from './scenes/ResultScene'
-import type { SceneId, SceneComponentProps } from './types/scenes'
-import { sceneOrder } from './types/scenes'
-
-const sceneTitleMap: Record<SceneId, string> = {
-  intro: 'Intro',
-  prologue: 'Prologue',
-  journeys: 'Journeys',
-  messages: 'Messages',
-  likes: 'Likes',
-  meetups: 'Meetups',
-  letter: 'Letter',
-  result: 'Result',
-}
+import type { SceneComponentProps, SceneId } from './types/scenes'
+import { sceneOrder, sceneTitleMap } from './types/scenes'
 
 const renderScene = (
   sceneId: SceneId,
@@ -81,6 +71,10 @@ function App() {
     )
   }
 
+  const goToPreviousScene = () => {
+    setSceneIndex((index) => Math.max(index - 1, 0))
+  }
+
   const restartExperience = () => {
     setSceneIndex(0)
     setDistanceTraveled(0)
@@ -104,6 +98,13 @@ function App() {
       {currentSceneId === 'journeys' && (
         <DistanceHUD distanceKm={distanceTraveled} />
       )}
+      <SceneQuickPanel
+        currentSceneId={currentSceneId}
+        goToScene={goToScene}
+        goToNext={goToNextScene}
+        goToPrevious={goToPreviousScene}
+        onRestart={restartExperience}
+      />
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}
       </main>
