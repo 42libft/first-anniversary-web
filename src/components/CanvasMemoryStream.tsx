@@ -30,8 +30,9 @@ export type MemoryStreamProps = {
 const cubic = (t: number, a: number, b: number, c: number, d: number) =>
   ((1 - t) ** 3) * a + 3 * ((1 - t) ** 2) * t * b + 3 * (1 - t) * (t ** 2) * c + (t ** 3) * d
 
-const dcubic = (t: number, a: number, b: number, c: number, d: number) =>
-  3 * ((1 - t) ** 2) * (b - a) + 6 * (1 - t) * t * (c - b) + 3 * (t ** 2) * (d - c)
+// derivative unused in the current upright-rendering mode
+// const dcubic = (t: number, a: number, b: number, c: number, d: number) =>
+//   3 * ((1 - t) ** 2) * (b - a) + 6 * (1 - t) * t * (c - b) + 3 * (t ** 2) * (d - c)
 
 export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -153,9 +154,8 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           const t1 = Math.max(0, Math.min(1, L.t))
           let x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
           let y = cubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
-          const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
-          const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
-          const ang = Math.atan2(dy, dx)
+          // const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+          // const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
 
           // 天井や左右端に到達したら衝突消失（スネーク全体を除去）
           const margin = 8 * dprRef.current
@@ -193,22 +193,24 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
             ctx.restore()
           }
 
-          // 文字をほぼ直立で配置（ドラゴンフライを回避）
+          // 文字を直立で描画し、くっきり読めるようにする
           ctx.save()
           ctx.translate(x, y)
-          ctx.rotate(ang * 0.12)
+          // 読みやすさ優先：回転しない（直立）
+          // ctx.rotate(ang * 0.12)
           ctx.font = `${L.size}px 'Inter', 'Noto Sans JP', sans-serif`
-          const grad = ctx.createLinearGradient(-L.size, 0, L.size, 0)
-          grad.addColorStop(0, `hsla(${L.hue}, 95%, 80%, ${0.22 * lifeFade})`)
-          grad.addColorStop(1, `hsla(${L.hue + 40}, 95%, 60%, ${0.38 * lifeFade})`)
-          ctx.fillStyle = grad
-          ctx.shadowColor = `hsla(${L.hue}, 95%, 70%, ${0.45 * lifeFade})`
-          ctx.shadowBlur = 8
-          // subtle outline for readability on bright backgrounds
-          ctx.lineWidth = 1
-          ctx.strokeStyle = `rgba(5,8,22,${0.25 * lifeFade})`
+          // まずくっきりした白文字＋濃い目の縁取りで判読性を確保
+          ctx.globalCompositeOperation = 'source-over'
+          ctx.fillStyle = `rgba(255,255,255,${0.96})`
+          ctx.lineWidth = 2.2
+          ctx.strokeStyle = `rgba(5,8,22,${0.75 * lifeFade})`
           ctx.strokeText(L.ch, 0, 0)
           ctx.fillText(L.ch, 0, 0)
+          // ごく薄いハイライトを背面に追加（にじみすぎない程度）
+          ctx.globalCompositeOperation = 'lighter'
+          ctx.lineWidth = 1
+          ctx.strokeStyle = `hsla(${L.hue},95%,70%,${0.18 * lifeFade})`
+          ctx.strokeText(L.ch, 0, 0)
           ctx.restore()
         }
         if (collided) {
