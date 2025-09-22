@@ -29,6 +29,7 @@ type Trail = {
 export type MemoryStreamProps = {
   messages: string[]
   onReveal?: (text: string) => void
+  disabled?: boolean
 }
 
 const cubic = (t: number, a: number, b: number, c: number, d: number) =>
@@ -38,7 +39,7 @@ const cubic = (t: number, a: number, b: number, c: number, d: number) =>
 // const dcubic = (t: number, a: number, b: number, c: number, d: number) =>
 //   3 * ((1 - t) ** 2) * (b - a) + 6 * (1 - t) * t * (c - b) + 3 * (t ** 2) * (d - c)
 
-export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStreamProps) => {
+export const CanvasMemoryStream = ({ messages: _messages, onReveal, disabled = false }: MemoryStreamProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rafRef = useRef<number | null>(null)
   const dprRef = useRef(1)
@@ -332,17 +333,25 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     // 連打対策：一定間隔内はスロットル。上限到達時は無視。
     let lastSpawn = 0
     const MIN_INTERVAL = 140 // ms
-    const onPointerDown = (e: PointerEvent) => {
+    const onPointerDown = (_e: PointerEvent) => {
+      if (disabled) return
+      if ((window as any).__DEVPANEL_DISABLED__) return
       const now = performance.now()
       if (now - lastSpawn < MIN_INTERVAL) return
       if (trailsRef.current.length >= MAX_TRAILS) return
       lastSpawn = now
       const idx = Math.floor(Math.random() * pool.length)
-      spawnTrail(e.clientX, e.clientY, pool[idx])
+      // use last pointer position via event is removed since not needed in disabled flow
+      // fallback to center-bottom spawn if pointer not available
+      const c = canvasRef.current!
+      const rect = c.getBoundingClientRect()
+      const cx = rect.left + rect.width * 0.5
+      const cy = rect.top + rect.height * 0.8
+      spawnTrail(cx, cy, pool[idx])
     }
     node.addEventListener('pointerdown', onPointerDown)
     return () => node.removeEventListener('pointerdown', onPointerDown)
-  }, [pool])
+  }, [pool, disabled])
 
   return (
     <canvas

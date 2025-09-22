@@ -544,6 +544,36 @@
     0 0 80px rgba(255, 126, 213, 0.25);
   pointer-events: none;
 }
+
+.messages-announce {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 0.4rem;
+  animation: fadeIn 800ms ease both;
+}
+.messages-announce__line { margin: 0; font-size: clamp(1rem, 4vw, 1.4rem); opacity: 0.95; }
+.messages-announce__count { margin: 0.2rem 0; font-size: clamp(2rem, 10vw, 4rem); font-weight: 900; }
+
+.messages-cta {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.4rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(163, 174, 255, 0.45);
+  background: rgba(12, 20, 46, 0.75);
+  color: rgba(245, 244, 255, 0.95);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  animation: fadeIn 800ms ease 300ms both;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .messages-hint {
   position: absolute;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
