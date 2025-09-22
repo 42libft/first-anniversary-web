@@ -61,7 +61,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   }
 
   const MAX_TRAILS = 12
-  const MAX_CHARS = 48
+  const MAX_CHARS = 12
 
   const spawnTrail = (x: number, y: number, msg: string) => {
     const c = canvasRef.current
@@ -96,9 +96,9 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       letters.push({
         ch: chars[i],
         // widen spacing so glyphs are more legible along the curve
-        t: Math.max(0, -i * 0.12),
-        // さらに約50%減速（可読性優先・負荷は上限本数で制御）
-        speed: 0.00045 + Math.random() * 0.0003,
+        t: Math.max(0, -i * 0.18),
+        // さらに50%減速（可読性優先）。体感速度を明確に落とす。
+        speed: 0.00022 + Math.random() * 0.00016,
         dir: 1,
         bounces: 0,
         edgeBounces: 0,
