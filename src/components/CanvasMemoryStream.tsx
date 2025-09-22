@@ -21,14 +21,7 @@ type Trail = {
   p2: [number, number]
   p3: [number, number]
   letters: Letter[]
-  // arc-length sampling for pixel-accurate placement
-  samplesT: number[]
-  samplesX: number[]
-  samplesY: number[]
-  samplesS: number[]
-  totalLen: number
-  baseS: number
-  speedPx: number
+  streamSpeed: number
 }
 
 export type MemoryStreamProps = {
@@ -78,10 +71,10 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
 
     // flowing bezier upwards (広がりを持たせて縁まで届くレンジ)
     const p0: [number, number] = [cx, cy]
-    // ensure the head always reaches above the top edge to collide and vanish
+    // ensure the head reaches well above the top edge to collide and vanish
     const p3: [number, number] = [
       cx + (Math.random() - 0.5) * 260 * d,
-      -220 * d, // ヘッドが天井に達するまでの距離を延ばして可視文字数を確保
+      -260 * d,
     ]
     const p1: [number, number] = [
       p0[0] + (Math.random() - 0.5) * 260 * d,
@@ -96,12 +89,13 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     const baseHue = 200 + Math.random() * 90
     const baseSize = 15 + Math.random() * 9
     const chars = [...msg].slice(0, MAX_CHARS)
-    // ストリーム内は統一感を持たせる（同一サイズ・色相）
+    const gapT = 0.24 // time-param interval per char
+    const streamSpeed = 0.00045 + Math.random() * 0.0003 // earlier snappy-but-readable speed
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
-        t: 0,
-        speed: 0,
+        t: Math.max(0, -i * gapT),
+        speed: streamSpeed,
         dir: 1,
         bounces: 0,
         edgeBounces: 0,
@@ -112,44 +106,14 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
       })
     }
 
-    // arc-length sampling
-    const samples = 64
-    const samplesT: number[] = []
-    const samplesX: number[] = []
-    const samplesY: number[] = []
-    const samplesS: number[] = []
-    let totalLen = 0
-    let prevX = cubic(0, p0[0], p1[0], p2[0], p3[0])
-    let prevY = cubic(0, p0[1], p1[1], p2[1], p3[1])
-    for (let k = 0; k <= samples; k += 1) {
-      const t = k / samples
-      const x = cubic(t, p0[0], p1[0], p2[0], p3[0])
-      const y = cubic(t, p0[1], p1[1], p2[1], p3[1])
-      if (k > 0) {
-        const dx = x - prevX
-        const dy = y - prevY
-        totalLen += Math.hypot(dx, dy)
-      }
-      samplesT.push(t)
-      samplesX.push(x)
-      samplesY.push(y)
-      samplesS.push(totalLen)
-      prevX = x
-      prevY = y
-    }
-
     idRef.current += 1
     const arr = trailsRef.current
     if (arr.length >= MAX_TRAILS) arr.splice(0, arr.length - MAX_TRAILS + 1)
-    const speedPx = 24 + Math.random() * 10 // px/sec? our dt is ms, so px/ms ~ 0.024–0.034
     arr.push({
       id: idRef.current,
       p0, p1, p2, p3,
       letters,
-      samplesT, samplesX, samplesY, samplesS,
-      totalLen,
-      baseS: 0,
-      speedPx: speedPx / 1000, // convert to px/ms
+      streamSpeed,
     })
     onReveal?.(msg)
   }
@@ -182,31 +146,17 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
         const tr = trails[ti]
         let aliveLetters = 0
         let collidedHead = false
-        // ヘッド進行（画素距離で進む）
-        tr.baseS += tr.speedPx * dt
-        const GAP_PX = 28 // 文字間隔(px)
-        const mapStoIdx = (s: number) => {
-          if (s <= 0) return 0
-          if (s >= tr.totalLen) return tr.samplesS.length - 1
-          // 二分探索
-          let lo = 0, hi = tr.samplesS.length - 1
-          while (lo < hi) {
-            const mid = (lo + hi) >> 1
-            if (tr.samplesS[mid] < s) lo = mid + 1
-            else hi = mid
-          }
-          return lo
-        }
         for (let li = 0; li < tr.letters.length; li += 1) {
           const L = tr.letters[li]
-          const sTarget = tr.baseS - li * GAP_PX
-          if (sTarget < 0) continue
+          // advance upward (no reflection)
+          L.t += tr.streamSpeed * dt
+          if (L.t < 0) continue
           L.ageMs += dt
           aliveLetters += 1
 
-          const idx = mapStoIdx(sTarget)
-          const x = tr.samplesX[idx]
-          const y = tr.samplesY[idx]
+          const t1 = Math.max(0, Math.min(1, L.t))
+          const x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+          const y = cubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
           // const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
           // const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
 
@@ -217,7 +167,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
           }
 
           // 寿命フェード係数
-          const lifeFade = Math.max(0.5, 1 - (tr.baseS / (tr.totalLen * 1.1)))
+          const lifeFade = Math.max(0.5, 1 - (L.t / 1.15))
 
           // ヘッドだけ曲線ストローク（曲線の存在感を1回で強調）
           // 高負荷時はストロークを抑制（本数>8 もしくはフレーム遅延が大）
@@ -231,10 +181,9 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
             ctx.beginPath()
             for (let s = 0; s <= steps; s += 1) {
               const f = s / steps
-              const sStroke = Math.max(0, tr.baseS - f * (GAP_PX * 1.2))
-              const idx2 = mapStoIdx(sStroke)
-              const xx = tr.samplesX[idx2]
-              const yy = tr.samplesY[idx2]
+              const tStroke = Math.max(0, Math.min(1, L.t - f * 0.24))
+              const xx = cubic(tStroke, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+              const yy = cubic(tStroke, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
               if (s === 0) ctx.moveTo(xx, yy)
               else ctx.lineTo(xx, yy)
             }
