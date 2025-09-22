@@ -96,7 +96,8 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
       letters.push({
         ch: chars[i],
         // widen spacing so glyphs are more legible along the curve
-        t: Math.max(0, -i * 0.18),
+        // 文字間隔をさらに拡大（重なり抑制）
+        t: Math.max(0, -i * 0.24),
         // さらに50%減速（可読性優先）。体感速度を明確に落とす。
         speed: 0.00022 + Math.random() * 0.00016,
         dir: 1,
@@ -169,7 +170,9 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
           const lifeFade = Math.max(0.5, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
 
           // ヘッドだけ曲線ストローク（曲線の存在感を1回で強調）
-          const doStroke = (strokeTickRef.current % 2) === 0
+          // 高負荷時はストロークを抑制（本数>8 もしくはフレーム遅延が大）
+          const heavy = trails.length > 8 || dt > 26
+          const doStroke = !heavy && (strokeTickRef.current % 2 === 0)
           if (li === 0 && doStroke) {
             const span = 0.24
             const steps = dt > 26 ? 10 : 16
@@ -248,7 +251,14 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   useEffect(() => {
     const node = canvasRef.current
     if (!node) return
+    // 連打対策：一定間隔内はスロットル。上限到達時は無視。
+    let lastSpawn = 0
+    const MIN_INTERVAL = 140 // ms
     const onPointerDown = (e: PointerEvent) => {
+      const now = performance.now()
+      if (now - lastSpawn < MIN_INTERVAL) return
+      if (trailsRef.current.length >= MAX_TRAILS) return
+      lastSpawn = now
       const idx = Math.floor(Math.random() * pool.length)
       spawnTrail(e.clientX, e.clientY, pool[idx])
     }
