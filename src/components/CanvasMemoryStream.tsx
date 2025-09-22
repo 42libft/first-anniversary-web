@@ -74,7 +74,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     // ensure the head reaches well above the top edge to collide and vanish
     const p3: [number, number] = [
       cx + (Math.random() - 0.5) * 260 * d,
-      -260 * d,
+      -420 * d,
     ]
     const p1: [number, number] = [
       p0[0] + (Math.random() - 0.5) * 260 * d,
@@ -90,8 +90,8 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     const baseSize = 15 + Math.random() * 9
     const chars = [...msg].slice(0, MAX_CHARS)
     const gapT = 0.24 // time-param interval per char
-    // 大幅減速（かなり遅く）：前回より約60〜70%低速
-    const streamSpeed = 0.00016 + Math.random() * 0.00010
+    // 読みやすさを保ちつつ“複数文字が出る”速度へ調整（以前より遅いが見た目は維持）
+    const streamSpeed = 0.00030 + Math.random() * 0.00012
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
