@@ -90,7 +90,8 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     const baseSize = 15 + Math.random() * 9
     const chars = [...msg].slice(0, MAX_CHARS)
     const gapT = 0.24 // time-param interval per char
-    const streamSpeed = 0.00045 + Math.random() * 0.0003 // earlier snappy-but-readable speed
+    // 大幅減速（かなり遅く）：前回より約60〜70%低速
+    const streamSpeed = 0.00016 + Math.random() * 0.00010
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
