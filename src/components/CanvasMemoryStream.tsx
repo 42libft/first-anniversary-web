@@ -47,11 +47,10 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal, disabled = f
   const trailsRef = useRef<Trail[]>([])
   const idRef = useRef(0)
   const glyphCache = useRef<Map<string, HTMLCanvasElement>>(new Map())
-  // Dev overrides (temporary panel)
-  // defaults tuned from on-device test
-  const speedMinRef = useRef(0.00018)
-  const speedMaxRef = useRef(0.00034)
-  const gapTRef = useRef(0.05)
+  // 固定値（最適値）で運用
+  const SPEED_MIN = 0.00018
+  const SPEED_MAX = 0.00034
+  const GAP_T = 0.05
   // leftover cache removed (not used)
 
   const pool = useMemo(() => curatedShortMessages, [])
@@ -98,14 +97,9 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal, disabled = f
     // 文字と光を少し大きく（見た目の存在感をアップ）
     const baseSize = 18 + Math.random() * 12
     const chars = [...msg].slice(0, MAX_CHARS)
-    // 文字が素早く連なるように、間隔はやや狭め（見た目は維持される範囲）
-    // 文字間隔（DevPanelから上書き可能）
-    const gapT = gapTRef.current
-    // 前の見た目を保ちつつ、複数文字が自然に出る速度帯
-    // 速度レンジ（DevPanelから上書き可能）
-    const sMin = speedMinRef.current
-    const sMax = speedMaxRef.current
-    const streamSpeed = sMin + Math.random() * Math.max(0, sMax - sMin)
+    // 固定パラメータ
+    const gapT = GAP_T
+    const streamSpeed = SPEED_MIN + Math.random() * (SPEED_MAX - SPEED_MIN)
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
@@ -245,35 +239,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal, disabled = f
     }
   }, [])
 
-  // DevPanel連携（temporary）
-  useEffect(() => {
-    const onPrefs = (e: Event) => {
-      try {
-        const detail = (e as CustomEvent).detail || {}
-        if (typeof detail.streamSpeedMin === 'number') speedMinRef.current = detail.streamSpeedMin
-        if (typeof detail.streamSpeedMax === 'number') speedMaxRef.current = detail.streamSpeedMax
-        if (typeof detail.gapT === 'number') gapTRef.current = detail.gapT
-      } catch {}
-    }
-    const onSpawn = () => {
-      const c = canvasRef.current
-      if (!c) return
-      const rect = c.getBoundingClientRect()
-      const cx = rect.left + rect.width * 0.5
-      const cy = rect.top + rect.height * 0.8
-      const poolIdx = Math.floor(Math.random() * curatedShortMessages.length)
-      spawnTrail(cx, cy, curatedShortMessages[poolIdx])
-    }
-    const onClear = () => { trailsRef.current = [] }
-    window.addEventListener('devpanel:prefs' as any, onPrefs as any)
-    window.addEventListener('devpanel:spawn' as any, onSpawn as any)
-    window.addEventListener('devpanel:clear' as any, onClear as any)
-    return () => {
-      window.removeEventListener('devpanel:prefs' as any, onPrefs as any)
-      window.removeEventListener('devpanel:spawn' as any, onSpawn as any)
-      window.removeEventListener('devpanel:clear' as any, onClear as any)
-    }
-  }, [])
+  // DevPanel連携は削除（固定値運用）
 
   const getGlyphBitmap = (
     ch: string,

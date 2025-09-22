@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react'
 import './App.css'
 import { DistanceHUD } from './components/DistanceHUD'
 import { BuildStamp } from './components/BuildStamp'
-import { DevPanel } from './components/DevPanel'
 import { journeys } from './data/journeys'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
 import { IntroScene } from './scenes/IntroScene'
@@ -113,8 +112,6 @@ function App() {
         <span className="scene-footer__label">SCENE</span>
         <span className="scene-footer__value">{sceneTitleMap[currentSceneId]}</span>
       </footer>
-      {/* temporary dev panel for quick on-device verification */}
-      <DevPanel />
     </div>
   )
 }
