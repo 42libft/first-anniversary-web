@@ -30,20 +30,25 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
     return out.length ? out : ['だいすき']
   }, [])
 
-  // カウントが満了したらアナウンス→CTA
+  // カウント満了でannounceへ一度だけ遷移
   useEffect(() => {
     if (phase !== 'play') return
     if (count >= FINAL_TARGET) {
       setPhase('announce')
-      setShowTopLine(false)
-      setShowBottomLine(false)
-      setCtaVisible(false)
-      const t1 = setTimeout(() => setShowTopLine(true), 1200)
-      const t2 = setTimeout(() => setShowBottomLine(true), 2600)
-      const t3 = setTimeout(() => { setCtaVisible(true); setPhase('cta') }, 4600)
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
     }
   }, [count, phase])
+
+  // announceに入ったら行ごとのフェード→CTAの順で表示
+  useEffect(() => {
+    if (phase !== 'announce') return
+    setShowTopLine(false)
+    setShowBottomLine(false)
+    setCtaVisible(false)
+    const t1 = setTimeout(() => setShowTopLine(true), 1200)
+    const t2 = setTimeout(() => setShowBottomLine(true), 2600)
+    const t3 = setTimeout(() => { setCtaVisible(true); setPhase('cta') }, 4600)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+  }, [phase])
 
   const handleReveal = () => {
     if (phase !== 'play') return
