@@ -577,14 +577,14 @@
   right: 8%;
   text-align: right;
   top: auto;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 18vh);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24vh);
   animation: fadeIn 3000ms ease 2000ms both;
 }
 
 .messages-cta {
   position: absolute;
   left: 50%;
-  bottom: clamp(2rem, 12vh, 18vh);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24vh);
   transform: translateX(-50%);
   padding: 0.65rem 1.25rem;
   border-radius: 999px;
@@ -597,6 +597,9 @@
   animation: fadeIn 2200ms ease 1600ms both;
   z-index: 4;
 }
+
+/* MessagesシーンではフッターSCENEを隠す */
+.scene-messages .scene-footer { display: none; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .messages-hint {

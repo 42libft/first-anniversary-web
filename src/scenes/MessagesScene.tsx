@@ -72,18 +72,12 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
       {/* フルブリードCanvas（背景メディアアート） */}
       <CanvasMemoryStream messages={messageStrings} onReveal={handleReveal} disabled={phase !== 'play'} />
 
-      {/* 極小HUD（枠なし・重ね文字） */}
-      <header className="messages-hud" aria-hidden>
-        <div className="messages-hud__left">
-          <p className="messages-eyebrow">MESSAGES</p>
-          <p className="messages-sub">夜空に言葉を流す</p>
-        </div>
-      </header>
+      {/* HUDテキストは非表示（固定デザインのため削除） */}
 
       {/* 画面中央の大きなカウント */}
       <div className="messages-count-center" aria-hidden>{formatNumber(count)}</div>
 
-      {phase === 'play' && <div className="messages-hint">タップで流す</div>}
+      {/* タップ誘導のテキストは非表示 */}
 
       {phase !== 'play' && (
         <div className="messages-announce" role="status">
