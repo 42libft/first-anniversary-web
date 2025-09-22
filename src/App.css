@@ -571,13 +571,21 @@
   max-width: min(78vw, 640px);
 }
 .messages-announce__line--top { top: 34%; animation: fadeIn 2600ms ease 400ms both; }
-.messages-announce__line--bottom { top: 60%; animation: fadeIn 3000ms ease 2000ms both; }
+/* 右下配置に切り替え（中央カウントを主役に） */
+.messages-announce__line--bottom {
+  left: auto;
+  right: 8%;
+  text-align: right;
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18vh);
+  animation: fadeIn 3000ms ease 2000ms both;
+}
 
 .messages-cta {
   position: absolute;
-  left: 8%;
+  left: 50%;
   bottom: clamp(2rem, 12vh, 18vh);
-  transform: none;
+  transform: translateX(-50%);
   padding: 0.65rem 1.25rem;
   border-radius: 999px;
   border: 1px solid rgba(163, 174, 255, 0.45);
