@@ -21,6 +21,8 @@ type Trail = {
   p2: [number, number]
   p3: [number, number]
   letters: Letter[]
+  baseT: number
+  speed: number
 }
 
 export type MemoryStreamProps = {
@@ -93,8 +95,8 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
-        t: Math.max(0, -i * 0.24),
-        speed: streamSpeed,
+        t: 0,
+        speed: 0,
         dir: 1,
         bounces: 0,
         edgeBounces: 0,
@@ -108,7 +110,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     idRef.current += 1
     const arr = trailsRef.current
     if (arr.length >= MAX_TRAILS) arr.splice(0, arr.length - MAX_TRAILS + 1)
-    arr.push({ id: idRef.current, p0, p1, p2, p3, letters })
+    arr.push({ id: idRef.current, p0, p1, p2, p3, letters, baseT: 0, speed: streamSpeed })
     onReveal?.(msg)
   }
 
@@ -140,15 +142,17 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
         const tr = trails[ti]
         let aliveLetters = 0
         let collidedHead = false
+        // ヘッド進行（ベースパラメータ）
+        tr.baseT += tr.speed * dt
+        const GAP = 0.24
         for (let li = 0; li < tr.letters.length; li += 1) {
           const L = tr.letters[li]
-          // advance upward (no reflection)
-          L.t += L.speed * dt
-          if (L.t < 0) continue
+          const tt = tr.baseT - li * GAP
+          if (tt < 0) continue
           L.ageMs += dt
           aliveLetters += 1
 
-          const t1 = Math.max(0, Math.min(1, L.t))
+          const t1 = Math.max(0, Math.min(1, tt))
           let x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
           let y = cubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
           // const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
@@ -161,7 +165,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
           }
 
           // 寿命フェード係数
-          const lifeFade = Math.max(0.5, 1 - (L.ageMs / L.maxAgeMs) * 0.6)
+          const lifeFade = Math.max(0.5, 1 - (tr.baseT / 1.2))
 
           // ヘッドだけ曲線ストローク（曲線の存在感を1回で強調）
           // 高負荷時はストロークを抑制（本数>8 もしくはフレーム遅延が大）
@@ -176,9 +180,9 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
             ctx.beginPath()
             for (let s = 0; s <= steps; s += 1) {
               const f = s / steps
-              const tt = Math.max(0, Math.min(1, t1 - f * span))
-              const xx = cubic(tt, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
-              const yy = cubic(tt, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
+              const tStroke = Math.max(0, Math.min(1, tr.baseT - f * span))
+              const xx = cubic(tStroke, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
+              const yy = cubic(tStroke, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
               if (s === 0) ctx.moveTo(xx, yy)
               else ctx.lineTo(xx, yy)
             }
