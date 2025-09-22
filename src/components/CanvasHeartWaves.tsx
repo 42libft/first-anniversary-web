@@ -61,7 +61,7 @@ const drawHeartShape = (
   ctx.restore()
 }
 
-const drawRippleRings = (
+const drawRippleHeart = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
@@ -69,23 +69,30 @@ const drawRippleRings = (
   hue: number,
   alpha: number
 ) => {
-  ctx.save()
-  ctx.lineCap = 'round'
-  const baseHue = hue
-  const rings = 3
-  for (let i = 0; i < rings; i += 1) {
-    const ringRadius = radius * (0.55 + i * 0.18)
-    if (ringRadius <= 0) continue
+  if (radius <= 1 || alpha <= 0) return
+  const baseScale = Math.max(0.4, radius / 140)
+  const layers = 2
+  for (let layer = 0; layer < layers; layer += 1) {
+    const layerScale = baseScale * (1 + layer * 0.2)
+    const layerAlpha = alpha * (layer === 0 ? 1 : 0.6)
+    const layerHue = hue + layer * 6
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.scale(layerScale, layerScale)
     ctx.beginPath()
-    ctx.arc(x, y, ringRadius, 0, Math.PI * 2)
-    const ringAlpha = alpha * (1 - i * 0.28)
-    ctx.strokeStyle = `hsla(${baseHue + i * 6}, 78%, ${70 - i * 6}%, ${ringAlpha})`
-    ctx.lineWidth = Math.max(1.2, ringRadius * 0.018)
-    ctx.shadowColor = `hsla(${baseHue}, 80%, 60%, ${ringAlpha * 0.45})`
-    ctx.shadowBlur = Math.max(4, ringRadius * 0.08)
+    ctx.moveTo(0, -0.6)
+    ctx.bezierCurveTo(-0.8, -1.2, -1.5, -0.1, 0, 1)
+    ctx.bezierCurveTo(1.5, -0.1, 0.8, -1.2, 0, -0.6)
+    ctx.closePath()
+    const strokeWidth = Math.max(0.12, 0.9 / layerScale)
+    ctx.lineWidth = strokeWidth
+    ctx.strokeStyle = `hsla(${layerHue}, 70%, ${68 - layer * 6}%, ${layerAlpha})`
+    ctx.setLineDash([0.85, 1.4])
+    ctx.shadowColor = `hsla(${hue}, 76%, 62%, ${layerAlpha * 0.35})`
+    ctx.shadowBlur = 8
     ctx.stroke()
+    ctx.restore()
   }
-  ctx.restore()
 }
 
 export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWavesProps) => {
@@ -176,7 +183,7 @@ export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWaves
         const radius = Math.min(w, h) * 0.45 * progress
         const alpha = Math.max(0, 0.4 - progress * 0.35)
         if (alpha <= 0 || radius <= 1) continue
-        drawRippleRings(ctx, ripple.x, ripple.y, radius, ripple.hue, alpha)
+        drawRippleHeart(ctx, ripple.x, ripple.y, radius, ripple.hue, alpha)
       }
 
       // Detect simple interactions (ripples crossing)
