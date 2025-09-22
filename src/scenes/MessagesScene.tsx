@@ -42,7 +42,20 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
   }, [count, phase])
 
   const handleReveal = () => {
-    setCount((c) => (c < FINAL_TARGET ? Math.min(FINAL_TARGET, c + TAP_INCREMENT) : c))
+    if (phase !== 'play') return
+    // 1タップで3段階に分けて加算（約1/3ずつ）
+    const step = Math.ceil(TAP_INCREMENT / 3)
+    let i = 0
+    const tick = () => {
+      setCount((c) => {
+        if (c >= FINAL_TARGET) return c
+        const next = Math.min(FINAL_TARGET, c + step)
+        return next
+      })
+      i += 1
+      if (i < 3) setTimeout(tick, 120)
+    }
+    tick()
   }
 
   return (
@@ -65,9 +78,9 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
 
       {phase !== 'play' && (
         <div className="messages-announce" role="status">
-          <p className="messages-announce__line">１年間で二人が送った</p>
-          <p className="messages-announce__count">{formatNumber(count)}</p>
-          <p className="messages-announce__line">総メッセージ数でした！</p>
+          <p className="messages-announce__line messages-announce__line--top">１年間で二人が送った</p>
+          {/* 中央のカウント（messages-count-center）を再利用するため、ここでは数字を描画しない */}
+          <p className="messages-announce__line messages-announce__line--bottom">総メッセージ数でした！</p>
         </div>
       )}
 

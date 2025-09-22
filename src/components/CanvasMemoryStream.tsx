@@ -48,9 +48,10 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal, disabled = f
   const idRef = useRef(0)
   const glyphCache = useRef<Map<string, HTMLCanvasElement>>(new Map())
   // Dev overrides (temporary panel)
-  const speedMinRef = useRef(0.00024)
+  // defaults tuned from on-device test
+  const speedMinRef = useRef(0.00018)
   const speedMaxRef = useRef(0.00034)
-  const gapTRef = useRef(0.06)
+  const gapTRef = useRef(0.05)
   // leftover cache removed (not used)
 
   const pool = useMemo(() => curatedShortMessages, [])
@@ -333,7 +334,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal, disabled = f
     // 連打対策：一定間隔内はスロットル。上限到達時は無視。
     let lastSpawn = 0
     const MIN_INTERVAL = 140 // ms
-    const onPointerDown = (_e: PointerEvent) => {
+    const onPointerDown = (e: PointerEvent) => {
       if (disabled) return
       if ((window as any).__DEVPANEL_DISABLED__) return
       const now = performance.now()
@@ -341,13 +342,8 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal, disabled = f
       if (trailsRef.current.length >= MAX_TRAILS) return
       lastSpawn = now
       const idx = Math.floor(Math.random() * pool.length)
-      // use last pointer position via event is removed since not needed in disabled flow
-      // fallback to center-bottom spawn if pointer not available
-      const c = canvasRef.current!
-      const rect = c.getBoundingClientRect()
-      const cx = rect.left + rect.width * 0.5
-      const cy = rect.top + rect.height * 0.8
-      spawnTrail(cx, cy, pool[idx])
+      // spawn at tapped position
+      spawnTrail(e.clientX, e.clientY, pool[idx])
     }
     node.addEventListener('pointerdown', onPointerDown)
     return () => node.removeEventListener('pointerdown', onPointerDown)
