@@ -92,8 +92,8 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     const baseSize = 15 + Math.random() * 9
     const chars = [...msg].slice(0, MAX_CHARS)
     // 文字が素早く連なるように、間隔はやや狭め（見た目は維持される範囲）
-    // 文字間隔をやや狭めて列の密度を上げる
-    const gapT = 0.10
+    // 文字間隔をさらに狭めて列の密度を上げる
+    const gapT = 0.08
     // 前の見た目を保ちつつ、複数文字が自然に出る速度帯
     // 全体の速度をもう少し落とす（前よりゆっくり）
     const streamSpeed = 0.00024 + Math.random() * 0.00010
@@ -174,14 +174,17 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
           const heavy = trails.length > 8 || dt > 26
           const doStroke = !heavy && (strokeTickRef.current % 2 === 0)
           if (li === 0 && doStroke) {
-            const steps = dt > 26 ? 10 : 16
+            const steps = dt > 26 ? 10 : 18
             ctx.save()
             ctx.lineCap = 'round'
             ctx.lineJoin = 'round'
             ctx.beginPath()
+            // ヘッドから"複数文字分"の尻尾を伸ばす（最大10文字分）
+            const tailGaps = Math.min(tr.letters.length - 1, 10)
+            const tailSpan = tr.gapT * tailGaps
             for (let s = 0; s <= steps; s += 1) {
               const f = s / steps
-              const tStroke = Math.max(0, Math.min(1, tt - f * tr.gapT))
+              const tStroke = Math.max(0, Math.min(1, tt - f * tailSpan))
               const xx = cubic(tStroke, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
               const yy = cubic(tStroke, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
               if (s === 0) ctx.moveTo(xx, yy)
