@@ -14,6 +14,8 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
   const [count, setCount] = useState(0)
   const [phase, setPhase] = useState<'play' | 'announce' | 'cta'>('play')
   const [ctaVisible, setCtaVisible] = useState(false)
+  const [showTopLine, setShowTopLine] = useState(false)
+  const [showBottomLine, setShowBottomLine] = useState(false)
 
   // 文字プール（既存のプレビューとハイライトを合成）
   const messageStrings = useMemo(() => {
@@ -33,11 +35,13 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
     if (phase !== 'play') return
     if (count >= FINAL_TARGET) {
       setPhase('announce')
-      const t = setTimeout(() => {
-        setCtaVisible(true)
-        setPhase('cta')
-      }, 2200)
-      return () => clearTimeout(t)
+      setShowTopLine(false)
+      setShowBottomLine(false)
+      setCtaVisible(false)
+      const t1 = setTimeout(() => setShowTopLine(true), 1200)
+      const t2 = setTimeout(() => setShowBottomLine(true), 2600)
+      const t3 = setTimeout(() => { setCtaVisible(true); setPhase('cta') }, 4600)
+      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
     }
   }, [count, phase])
 
@@ -78,9 +82,13 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
 
       {phase !== 'play' && (
         <div className="messages-announce" role="status">
-          <p className="messages-announce__line messages-announce__line--top">１年間で二人が送った</p>
+          {showTopLine && (
+            <p className="messages-announce__line messages-announce__line--top">１年間で二人が送った</p>
+          )}
           {/* 中央のカウント（messages-count-center）を再利用するため、ここでは数字を描画しない */}
-          <p className="messages-announce__line messages-announce__line--bottom">総メッセージ数でした！</p>
+          {showBottomLine && (
+            <p className="messages-announce__line messages-announce__line--bottom">総メッセージ数でした！</p>
+          )}
         </div>
       )}
 
