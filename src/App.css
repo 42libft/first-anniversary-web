@@ -805,6 +805,9 @@
   left: 50%;
   transform: translate(-50%, -50%);
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: clamp(2.6rem, 13vw, 5.6rem);
   font-weight: 900;
   letter-spacing: 0.03em;
@@ -818,6 +821,14 @@
     0 0 88px rgba(120, 160, 255, 0.35);
   pointer-events: none;
   z-index: 2;
+}
+.likes-count-center::before {
+  content: '';
+  position: absolute;
+  inset: clamp(-2.2rem, -6vw, -1.8rem);
+  background: radial-gradient(circle, rgba(6, 4, 18, 0.58) 0%, rgba(10, 6, 24, 0.34) 55%, rgba(10, 6, 24, 0) 100%);
+  border-radius: 50%;
+  z-index: -1;
 }
 .likes-announce {
   position: absolute;

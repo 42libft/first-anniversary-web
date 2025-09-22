@@ -23,13 +23,13 @@ type BloomHeart = {
   rotation: number
 }
 
-const MAX_RIPPLES = 16
-const MAX_HEARTS = 24
-const RIPPLE_LIFETIME = 2600 // ms
-const HEART_LIFETIME = 1600 // ms
+const MAX_RIPPLES = 14
+const MAX_HEARTS = 28
+const RIPPLE_LIFETIME = 2400 // ms
+const HEART_LIFETIME = 1500 // ms
 const MIN_TAP_INTERVAL = 120 // ms
 
-const HEART_COLORS = [320, 340, 0, 290, 210]
+const HEART_COLORS = [326, 336, 12, 304]
 
 const drawHeartShape = (
   ctx: CanvasRenderingContext2D,
@@ -50,15 +50,18 @@ const drawHeartShape = (
   ctx.bezierCurveTo(-0.8, -1.2, -1.5, -0.1, 0, 1)
   ctx.bezierCurveTo(1.5, -0.1, 0.8, -1.2, 0, -0.6)
   ctx.closePath()
-  const fill = `hsla(${hue}, 88%, 78%, ${alpha})`
+  const fill = `hsla(${hue}, 85%, 76%, ${alpha})`
   ctx.fillStyle = fill
-  ctx.shadowColor = `hsla(${hue}, 95%, 82%, ${alpha * 0.65})`
-  ctx.shadowBlur = 22
+  ctx.shadowColor = `hsla(${hue}, 90%, 82%, ${alpha * 0.55})`
+  ctx.shadowBlur = 18
   ctx.fill()
+  ctx.lineWidth = 0.1
+  ctx.strokeStyle = `hsla(${hue}, 70%, 42%, ${alpha * 0.45})`
+  ctx.stroke()
   ctx.restore()
 }
 
-const drawRipple = (
+const drawRippleRings = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
@@ -67,13 +70,21 @@ const drawRipple = (
   alpha: number
 ) => {
   ctx.save()
-  ctx.beginPath()
-  ctx.arc(x, y, Math.max(2, radius), 0, Math.PI * 2)
-  const gradient = ctx.createRadialGradient(x, y, Math.max(0, radius * 0.35), x, y, radius)
-  gradient.addColorStop(0, `hsla(${hue}, 90%, 84%, ${alpha})`)
-  gradient.addColorStop(1, `hsla(${hue}, 70%, 52%, 0)`)
-  ctx.fillStyle = gradient
-  ctx.fill()
+  ctx.lineCap = 'round'
+  const baseHue = hue
+  const rings = 3
+  for (let i = 0; i < rings; i += 1) {
+    const ringRadius = radius * (0.55 + i * 0.18)
+    if (ringRadius <= 0) continue
+    ctx.beginPath()
+    ctx.arc(x, y, ringRadius, 0, Math.PI * 2)
+    const ringAlpha = alpha * (1 - i * 0.28)
+    ctx.strokeStyle = `hsla(${baseHue + i * 6}, 78%, ${70 - i * 6}%, ${ringAlpha})`
+    ctx.lineWidth = Math.max(1.2, ringRadius * 0.018)
+    ctx.shadowColor = `hsla(${baseHue}, 80%, 60%, ${ringAlpha * 0.45})`
+    ctx.shadowBlur = Math.max(4, ringRadius * 0.08)
+    ctx.stroke()
+  }
   ctx.restore()
 }
 
@@ -125,10 +136,10 @@ export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWaves
       id: idRef.current,
       x,
       y,
-      scale: Math.max(0.5, Math.min(1.6, radius / 220)),
+      scale: Math.max(0.45, Math.min(1.3, radius / 260)),
       life: 0,
       hue,
-      rotation: (Math.random() - 0.5) * 0.6,
+      rotation: (Math.random() - 0.5) * 0.5,
     }
 
     heartsRef.current = [...heartsRef.current.slice(-MAX_HEARTS + 1), heart]
@@ -162,9 +173,10 @@ export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWaves
         }
 
         const progress = age / RIPPLE_LIFETIME
-        const radius = Math.min(w, h) * 0.6 * progress
-        const alpha = Math.max(0, 0.65 - progress * 0.8)
-        drawRipple(ctx, ripple.x, ripple.y, radius, ripple.hue, alpha)
+        const radius = Math.min(w, h) * 0.45 * progress
+        const alpha = Math.max(0, 0.4 - progress * 0.35)
+        if (alpha <= 0 || radius <= 1) continue
+        drawRippleRings(ctx, ripple.x, ripple.y, radius, ripple.hue, alpha)
       }
 
       // Detect simple interactions (ripples crossing)
@@ -176,8 +188,8 @@ export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWaves
           const age1 = now - r1.createdAt
           const age2 = now - r2.createdAt
           if (age1 > RIPPLE_LIFETIME || age2 > RIPPLE_LIFETIME) continue
-          const radius1 = Math.min(w, h) * 0.6 * (age1 / RIPPLE_LIFETIME)
-          const radius2 = Math.min(w, h) * 0.6 * (age2 / RIPPLE_LIFETIME)
+          const radius1 = Math.min(w, h) * 0.45 * (age1 / RIPPLE_LIFETIME)
+          const radius2 = Math.min(w, h) * 0.45 * (age2 / RIPPLE_LIFETIME)
           const dx = r1.x - r2.x
           const dy = r1.y - r2.y
           const distance = Math.sqrt(dx * dx + dy * dy)
