@@ -60,7 +60,8 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     c.height = Math.max(1, Math.floor(r.height * d))
   }
 
-  const MAX_TRAILS = 18
+  const MAX_TRAILS = 12
+  const MAX_CHARS = 48
 
   const spawnTrail = (x: number, y: number, msg: string) => {
     const c = canvasRef.current
@@ -88,14 +89,14 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
 
     const letters: Letter[] = []
     const baseHue = 200 + Math.random() * 90
-    const baseSize = 14 + Math.random() * 10
-    // 文字の蛇：各文字を分解しスネーク状に並べる（上限12）
-    const chars = [...msg.slice(0, 12)]
+    const baseSize = 15 + Math.random() * 9
+    // 文字の蛇：一つの光＝一つの文章（最大48文字）
+    const chars = [...msg].slice(0, MAX_CHARS)
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
         // widen spacing so glyphs are more legible along the curve
-        t: Math.max(0, -i * 0.11),
+        t: Math.max(0, -i * 0.12),
         // さらに約50%減速（可読性優先・負荷は上限本数で制御）
         speed: 0.00045 + Math.random() * 0.0003,
         dir: 1,
@@ -193,24 +194,26 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
             ctx.restore()
           }
 
-          // 文字を直立で描画し、くっきり読めるようにする
+          // 文字を直立で描画（美しさ優先のカラーグラデ＋細い縁）
           ctx.save()
           ctx.translate(x, y)
-          // 読みやすさ優先：回転しない（直立）
-          // ctx.rotate(ang * 0.12)
           ctx.font = `${L.size}px 'Inter', 'Noto Sans JP', sans-serif`
-          // まずくっきりした白文字＋濃い目の縁取りで判読性を確保
+          // 薄いダーク縁取り（黒ではなく色味を残したダーク）
           ctx.globalCompositeOperation = 'source-over'
-          ctx.fillStyle = `rgba(255,255,255,${0.96})`
-          ctx.lineWidth = 2.2
-          ctx.strokeStyle = `rgba(5,8,22,${0.75 * lifeFade})`
+          ctx.lineWidth = 1.2
+          ctx.strokeStyle = `hsla(${L.hue}, 30%, 12%, ${0.55 * lifeFade})`
           ctx.strokeText(L.ch, 0, 0)
+          // カラーグラデで本体
+          const grad2 = ctx.createLinearGradient(-L.size, 0, L.size, 0)
+          grad2.addColorStop(0, `hsla(${L.hue}, 95%, 85%, ${0.92})`)
+          grad2.addColorStop(1, `hsla(${L.hue + 38}, 95%, 68%, ${0.92})`)
+          ctx.fillStyle = grad2
           ctx.fillText(L.ch, 0, 0)
-          // ごく薄いハイライトを背面に追加（にじみすぎない程度）
+          // 控えめなグロー
           ctx.globalCompositeOperation = 'lighter'
-          ctx.lineWidth = 1
-          ctx.strokeStyle = `hsla(${L.hue},95%,70%,${0.18 * lifeFade})`
-          ctx.strokeText(L.ch, 0, 0)
+          ctx.shadowColor = `hsla(${L.hue + 20}, 95%, 70%, ${0.28 * lifeFade})`
+          ctx.shadowBlur = 6
+          ctx.fillText(L.ch, 0, 0)
           ctx.restore()
         }
         if (collided) {
