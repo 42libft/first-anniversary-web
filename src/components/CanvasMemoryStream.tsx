@@ -35,7 +35,7 @@ const cubic = (t: number, a: number, b: number, c: number, d: number) =>
 // const dcubic = (t: number, a: number, b: number, c: number, d: number) =>
 //   3 * ((1 - t) ** 2) * (b - a) + 6 * (1 - t) * t * (c - b) + 3 * (t ** 2) * (d - c)
 
-export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) => {
+export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStreamProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rafRef = useRef<number | null>(null)
   const dprRef = useRef(1)
@@ -45,9 +45,7 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
   const glyphCache = useRef<Map<string, HTMLCanvasElement>>(new Map())
   // leftover cache removed (not used)
 
-  const pool = useMemo(() => (
-    messages && messages.length ? messages : curatedShortMessages
-  ), [messages])
+  const pool = useMemo(() => curatedShortMessages, [])
 
   const resize = () => {
     const c = canvasRef.current
@@ -89,21 +87,19 @@ export const CanvasMemoryStream = ({ messages, onReveal }: MemoryStreamProps) =>
     const letters: Letter[] = []
     const baseHue = 200 + Math.random() * 90
     const baseSize = 15 + Math.random() * 9
-    // 文字の蛇：一つの光＝一つの文章（最大48文字）
     const chars = [...msg].slice(0, MAX_CHARS)
+    // ストリーム内は統一感を持たせる（同一速度・サイズ・色相）
+    const streamSpeed = 0.00022 + Math.random() * 0.00016
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
-        // widen spacing so glyphs are more legible along the curve
-        // 文字間隔をさらに拡大（重なり抑制）
         t: Math.max(0, -i * 0.24),
-        // さらに50%減速（可読性優先）。体感速度を明確に落とす。
-        speed: 0.00022 + Math.random() * 0.00016,
+        speed: streamSpeed,
         dir: 1,
         bounces: 0,
         edgeBounces: 0,
-        size: baseSize * (0.85 + Math.random() * 0.3),
-        hue: baseHue + (Math.random() - 0.5) * 30,
+        size: baseSize,
+        hue: baseHue,
         ageMs: 0,
         maxAgeMs: 12000 + Math.random() * 5000,
       })
