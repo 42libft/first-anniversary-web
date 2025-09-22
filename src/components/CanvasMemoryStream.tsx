@@ -22,6 +22,8 @@ type Trail = {
   p3: [number, number]
   letters: Letter[]
   streamSpeed: number
+  baseT: number
+  gapT: number
 }
 
 export type MemoryStreamProps = {
@@ -90,13 +92,13 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     const baseSize = 15 + Math.random() * 9
     const chars = [...msg].slice(0, MAX_CHARS)
     // 文字が素早く連なるように、間隔はやや狭め（見た目は維持される範囲）
-    const gapT = 0.10
+    const gapT = 0.12
     // 前の見た目を保ちつつ、複数文字が自然に出る速度帯
     const streamSpeed = 0.00030 + Math.random() * 0.00012
     for (let i = 0; i < chars.length; i += 1) {
       letters.push({
         ch: chars[i],
-        t: Math.max(0, -i * gapT),
+        t: 0,
         speed: streamSpeed,
         dir: 1,
         bounces: 0,
@@ -116,6 +118,8 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
       p0, p1, p2, p3,
       letters,
       streamSpeed,
+      baseT: 0,
+      gapT,
     })
     onReveal?.(msg)
   }
@@ -147,29 +151,21 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
       for (let ti = trails.length - 1; ti >= 0; ti -= 1) {
         const tr = trails[ti]
         let aliveLetters = 0
-        let collidedHead = false
+        // ベース進行（1フレームの進み）
+        tr.baseT += tr.streamSpeed * dt
         for (let li = 0; li < tr.letters.length; li += 1) {
           const L = tr.letters[li]
-          // advance upward (no reflection)
-          L.t += tr.streamSpeed * dt
-          if (L.t < 0) continue
+          const tt = tr.baseT - li * tr.gapT
+          if (tt < 0 || tt > 1.05) continue
           L.ageMs += dt
           aliveLetters += 1
 
-          const t1 = Math.max(0, Math.min(1, L.t))
+          const t1 = Math.max(0, Math.min(1, tt))
           const x = cubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
           const y = cubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
-          // const dx = dcubic(t1, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
-          // const dy = dcubic(t1, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
 
-          // 天井や左右端に到達したら衝突消失（スネーク全体を除去）
-          const margin = 8 * dprRef.current
-          if (li === 0 && (y < margin || x < margin || x > w - margin)) {
-            collidedHead = true
-          }
-
-          // 寿命フェード係数
-          const lifeFade = Math.max(0.5, 1 - (L.t / 1.15))
+          // 寿命フェード係数（前の見た目に合わせて弱め）
+          const lifeFade = Math.max(0.5, 1 - (tt / 1.15))
 
           // ヘッドだけ曲線ストローク（曲線の存在感を1回で強調）
           // 高負荷時はストロークを抑制（本数>8 もしくはフレーム遅延が大）
@@ -183,7 +179,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
             ctx.beginPath()
             for (let s = 0; s <= steps; s += 1) {
               const f = s / steps
-              const tStroke = Math.max(0, Math.min(1, L.t - f * 0.24))
+              const tStroke = Math.max(0, Math.min(1, tt - f * tr.gapT))
               const xx = cubic(tStroke, tr.p0[0], tr.p1[0], tr.p2[0], tr.p3[0])
               const yy = cubic(tStroke, tr.p0[1], tr.p1[1], tr.p2[1], tr.p3[1])
               if (s === 0) ctx.moveTo(xx, yy)
@@ -215,13 +211,12 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
           }
           ctx.restore()
         }
-        // ヘッドが天井到達かつ末尾も可視域に入ってから全体を消滅
-        if (collidedHead) {
-          const last = tr.letters[tr.letters.length - 1]
-          if (last.t >= 0) {
-            trails.splice(ti, 1)
-            continue
-          }
+        // 全文が出て、先頭が画面外へ抜けたら消滅
+        const fullyShown = tr.baseT >= (tr.letters.length - 1) * tr.gapT
+        const headGone = tr.baseT > 1.05
+        if (fullyShown && headGone) {
+          trails.splice(ti, 1)
+          continue
         }
         if (aliveLetters === 0) {
           trails.splice(ti, 1)
