@@ -73,7 +73,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
     // ensure the head always reaches above the top edge to collide and vanish
     const p3: [number, number] = [
       cx + (Math.random() - 0.5) * 260 * d,
-      -80 * d,
+      -220 * d, // ヘッドが天井に達するまでの距離を延ばして可視文字数を確保
     ]
     const p1: [number, number] = [
       p0[0] + (Math.random() - 0.5) * 260 * d,
@@ -139,7 +139,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
       for (let ti = trails.length - 1; ti >= 0; ti -= 1) {
         const tr = trails[ti]
         let aliveLetters = 0
-        let collided = false
+        let collidedHead = false
         for (let li = 0; li < tr.letters.length; li += 1) {
           const L = tr.letters[li]
           // advance upward (no reflection)
@@ -157,8 +157,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
           // 天井や左右端に到達したら衝突消失（スネーク全体を除去）
           const margin = 8 * dprRef.current
           if (li === 0 && (y < margin || x < margin || x > w - margin)) {
-            collided = true
-            break
+            collidedHead = true
           }
 
           // 寿命フェード係数
@@ -209,9 +208,13 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal }: MemoryStre
           }
           ctx.restore()
         }
-        if (collided) {
-          trails.splice(ti, 1)
-          continue
+        // ヘッドが天井到達かつ末尾も可視域に入ってから全体を消滅
+        if (collidedHead) {
+          const last = tr.letters[tr.letters.length - 1]
+          if (last.t >= 0) {
+            trails.splice(ti, 1)
+            continue
+          }
         }
         if (aliveLetters === 0) {
           trails.splice(ti, 1)
