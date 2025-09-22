@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { CanvasLoveBurst } from '../components/CanvasLoveBurst'
+import { CanvasHeartWaves } from '../components/CanvasHeartWaves'
 import { totalLikes } from '../data/likes'
 import type { SceneComponentProps } from '../types/scenes'
 
@@ -68,7 +68,7 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
       role="presentation"
       aria-label="好きのカウントをハートのメディアアートで楽しむ"
     >
-      <CanvasLoveBurst
+      <CanvasHeartWaves
         disabled={phase !== 'play'}
         onPulse={handlePulse}
       />
