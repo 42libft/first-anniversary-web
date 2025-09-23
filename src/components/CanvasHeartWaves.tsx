@@ -1,8 +1,22 @@
 import { useEffect, useRef } from 'react'
 
+export type HeartWaveSettings = {
+  rippleLifetime: number
+  rippleRadiusFactor: number
+  baseScaleMinPx: number
+  ringThicknessRatio: number
+  minRingThicknessPx: number
+  glowThicknessRatio: number
+  minGlowThicknessPx: number
+  highlightRatio: number
+  alphaStart: number
+  alphaFalloff: number
+}
+
 export type CanvasHeartWavesProps = {
   disabled?: boolean
   onPulse?: () => void
+  settings?: HeartWaveSettings
 }
 
 type Ripple = {
@@ -25,11 +39,43 @@ type BloomHeart = {
 
 const MAX_RIPPLES = 14
 const MAX_HEARTS = 28
-const RIPPLE_LIFETIME = 2400 // ms
 const HEART_LIFETIME = 1500 // ms
 const MIN_TAP_INTERVAL = 120 // ms
-
 const HEART_COLORS = [326, 336, 12, 304]
+
+const easeOutCubic = (t: number) => 1 - (1 - t) * (1 - t) * (1 - t)
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
+
+export const DEFAULT_HEART_WAVE_SETTINGS: HeartWaveSettings = {
+  rippleLifetime: 3400,
+  rippleRadiusFactor: 1.9,
+  baseScaleMinPx: 42,
+  ringThicknessRatio: 0.12,
+  minRingThicknessPx: 22,
+  glowThicknessRatio: 0.2,
+  minGlowThicknessPx: 42,
+  highlightRatio: 0.55,
+  alphaStart: 0.82,
+  alphaFalloff: 0.6,
+}
+
+const getRippleProgress = (age: number, settings: HeartWaveSettings) =>
+  easeOutCubic(clamp01(age / settings.rippleLifetime))
+
+const getRippleRadius = (
+  age: number,
+  width: number,
+  height: number,
+  settings: HeartWaveSettings
+) => Math.min(width, height) * settings.rippleRadiusFactor * getRippleProgress(age, settings)
+
+const drawNormalizedHeartPath = (ctx: CanvasRenderingContext2D) => {
+  ctx.beginPath()
+  ctx.moveTo(0, -0.62)
+  ctx.bezierCurveTo(-0.82, -1.2, -1.52, -0.08, 0, 1.02)
+  ctx.bezierCurveTo(1.52, -0.08, 0.82, -1.2, 0, -0.62)
+  ctx.closePath()
+}
 
 const drawHeartShape = (
   ctx: CanvasRenderingContext2D,
@@ -45,11 +91,7 @@ const drawHeartShape = (
   ctx.rotate(rotation)
   const s = Math.max(0.4, scale)
   ctx.scale(s, s)
-  ctx.beginPath()
-  ctx.moveTo(0, -0.6)
-  ctx.bezierCurveTo(-0.8, -1.2, -1.5, -0.1, 0, 1)
-  ctx.bezierCurveTo(1.5, -0.1, 0.8, -1.2, 0, -0.6)
-  ctx.closePath()
+  drawNormalizedHeartPath(ctx)
   const fill = `hsla(${hue}, 85%, 76%, ${alpha})`
   ctx.fillStyle = fill
   ctx.shadowColor = `hsla(${hue}, 90%, 82%, ${alpha * 0.55})`
@@ -67,40 +109,66 @@ const drawRippleHeart = (
   y: number,
   radius: number,
   hue: number,
-  alpha: number
+  progress: number,
+  dpr: number,
+  settings: HeartWaveSettings
 ) => {
-  if (radius < 12 || alpha <= 0) return
-  const baseScale = radius / 120
-  const layers = 3
-  for (let layer = 0; layer < layers; layer += 1) {
-    const scale = baseScale * (1 + layer * 0.22)
-    const layerAlpha = alpha * (layer === 0 ? 0.88 : 0.35)
-    const layerHue = hue + layer * 6
-    ctx.save()
-    ctx.translate(x, y)
-    ctx.scale(scale, scale)
-    ctx.beginPath()
-    ctx.moveTo(0, -0.62)
-    ctx.bezierCurveTo(-0.82, -1.2, -1.52, -0.08, 0, 1.02)
-    ctx.bezierCurveTo(1.52, -0.08, 0.82, -1.2, 0, -0.62)
-    ctx.closePath()
-    ctx.lineWidth = Math.max(0.16, 0.58 / scale)
-    ctx.lineJoin = 'round'
-    ctx.lineCap = 'round'
-    ctx.strokeStyle = `hsla(${layerHue}, 72%, ${70 - layer * 5}%, ${layerAlpha})`
-    ctx.shadowColor = `hsla(${hue}, 60%, 52%, ${layerAlpha * 0.4})`
-    ctx.shadowBlur = 12
-    ctx.stroke()
-    if (layer === 0) {
-      ctx.globalAlpha = layerAlpha * 0.35
-      ctx.fillStyle = `hsla(${hue + 8}, 82%, 72%, 1)`
-      ctx.fill()
-    }
-    ctx.restore()
-  }
+  if (radius < 12) return
+
+  const baseScale = Math.max(radius, settings.baseScaleMinPx * dpr)
+  const ringThicknessPx = Math.max(
+    radius * settings.ringThicknessRatio,
+    settings.minRingThicknessPx * dpr
+  )
+  const glowThicknessPx = Math.max(
+    radius * settings.glowThicknessRatio,
+    settings.minGlowThicknessPx * dpr
+  )
+  const highlightThicknessPx = ringThicknessPx * settings.highlightRatio
+  const alpha = Math.max(0, settings.alphaStart - progress * settings.alphaFalloff)
+
+  if (alpha <= 0.001) return
+
+  const normalizedGlowWidth = (ringThicknessPx * 1.45) / baseScale
+  const normalizedRingWidth = ringThicknessPx / baseScale
+  const normalizedHighlightWidth = highlightThicknessPx / baseScale
+  const normalizedGlowBlur = glowThicknessPx / baseScale
+  const normalizedHighlightBlur = (glowThicknessPx * 0.55) / baseScale
+
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.scale(baseScale, baseScale)
+  drawNormalizedHeartPath(ctx)
+
+  ctx.globalAlpha = alpha * 0.55
+  ctx.lineWidth = normalizedGlowWidth
+  ctx.shadowBlur = normalizedGlowBlur
+  ctx.shadowColor = `hsla(${hue}, 88%, 72%, ${alpha * 0.65})`
+  ctx.strokeStyle = `hsla(${(hue + 6) % 360}, 84%, 62%, 0.6)`
+  ctx.stroke()
+
+  ctx.globalAlpha = alpha * 0.9
+  ctx.lineWidth = normalizedRingWidth
+  ctx.shadowBlur = normalizedGlowBlur * 0.85
+  ctx.shadowColor = `hsla(${(hue + 4) % 360}, 96%, 78%, ${alpha * 0.8})`
+  ctx.strokeStyle = `hsla(${hue}, 96%, 90%, 1)`
+  ctx.stroke()
+
+  ctx.globalAlpha = alpha * 0.75
+  ctx.lineWidth = normalizedHighlightWidth
+  ctx.shadowBlur = normalizedHighlightBlur
+  ctx.shadowColor = `hsla(${(hue + 32) % 360}, 98%, 96%, ${alpha * 0.75})`
+  ctx.strokeStyle = `hsla(${(hue + 28) % 360}, 96%, 98%, 1)`
+  ctx.stroke()
+
+  ctx.restore()
 }
 
-export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWavesProps) => {
+export const CanvasHeartWaves = ({
+  disabled = false,
+  onPulse,
+  settings,
+}: CanvasHeartWavesProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rafRef = useRef<number | null>(null)
   const dprRef = useRef(1)
@@ -109,6 +177,11 @@ export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWaves
   const idRef = useRef(0)
   const lastTapRef = useRef(0)
   const lastPairEmitRef = useRef<Map<string, number>>(new Map())
+  const settingsRef = useRef<HeartWaveSettings>(DEFAULT_HEART_WAVE_SETTINGS)
+
+  useEffect(() => {
+    settingsRef.current = settings ?? DEFAULT_HEART_WAVE_SETTINGS
+  }, [settings])
 
   const resize = () => {
     const canvas = canvasRef.current
@@ -168,6 +241,7 @@ export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWaves
       const dpr = dprRef.current
       const w = canvas.width
       const h = canvas.height
+      const currentSettings = settingsRef.current
 
       ctx.globalCompositeOperation = 'source-over'
       ctx.fillStyle = 'rgba(8, 4, 18, 0.18)'
@@ -179,16 +253,24 @@ export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWaves
       for (let i = ripples.length - 1; i >= 0; i -= 1) {
         const ripple = ripples[i]
         const age = now - ripple.createdAt
-        if (age > RIPPLE_LIFETIME) {
+        if (age > currentSettings.rippleLifetime) {
           ripples.splice(i, 1)
           continue
         }
 
-        const progress = age / RIPPLE_LIFETIME
-        const radius = Math.min(w, h) * 0.45 * progress
-        const alpha = Math.max(0, 0.4 - progress * 0.35)
-        if (alpha <= 0 || radius <= 1) continue
-        drawRippleHeart(ctx, ripple.x, ripple.y, radius, ripple.hue, alpha)
+        const progress = getRippleProgress(age, currentSettings)
+        const radius = getRippleRadius(age, w, h, currentSettings)
+        if (radius <= 1) continue
+        drawRippleHeart(
+          ctx,
+          ripple.x,
+          ripple.y,
+          radius,
+          ripple.hue,
+          progress,
+          dpr,
+          currentSettings
+        )
       }
 
       // Detect simple interactions (ripples crossing)
@@ -199,9 +281,10 @@ export const CanvasHeartWaves = ({ disabled = false, onPulse }: CanvasHeartWaves
           const r2 = ripples[b]
           const age1 = now - r1.createdAt
           const age2 = now - r2.createdAt
-          if (age1 > RIPPLE_LIFETIME || age2 > RIPPLE_LIFETIME) continue
-          const radius1 = Math.min(w, h) * 0.45 * (age1 / RIPPLE_LIFETIME)
-          const radius2 = Math.min(w, h) * 0.45 * (age2 / RIPPLE_LIFETIME)
+          if (age1 > currentSettings.rippleLifetime || age2 > currentSettings.rippleLifetime)
+            continue
+          const radius1 = getRippleRadius(age1, w, h, currentSettings)
+          const radius2 = getRippleRadius(age2, w, h, currentSettings)
           const dx = r1.x - r2.x
           const dy = r1.y - r2.y
           const distance = Math.sqrt(dx * dx + dy * dy)

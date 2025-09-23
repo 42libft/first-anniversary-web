@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
-import { CanvasHeartWaves } from '../components/CanvasHeartWaves'
+import {
+  CanvasHeartWaves,
+  DEFAULT_HEART_WAVE_SETTINGS,
+  type HeartWaveSettings,
+} from '../components/CanvasHeartWaves'
 import { totalLikes } from '../data/likes'
 import type { SceneComponentProps } from '../types/scenes'
 
@@ -18,6 +23,23 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
   const [ctaVisible, setCtaVisible] = useState(false)
   const [showTopLine, setShowTopLine] = useState(false)
   const [showBottomLine, setShowBottomLine] = useState(false)
+  const [waveSettings, setWaveSettings] = useState<HeartWaveSettings>(
+    () => ({ ...DEFAULT_HEART_WAVE_SETTINGS })
+  )
+  const [controlsOpen, setControlsOpen] = useState(true)
+  const [panelRoot, setPanelRoot] = useState<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const host = document.createElement('div')
+    host.className = 'likes-control-host'
+    document.body.appendChild(host)
+    setPanelRoot(host)
+    return () => {
+      document.body.removeChild(host)
+      setPanelRoot(null)
+    }
+  }, [])
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -71,6 +93,7 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
       <CanvasHeartWaves
         disabled={phase !== 'play'}
         onPulse={handlePulse}
+        settings={waveSettings}
       />
 
       <div className="likes-count-center" aria-hidden>
@@ -105,6 +128,205 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
           </button>
         </div>
       )}
+
+      {panelRoot
+        ? createPortal(
+            <div
+              className={`likes-control-layer${controlsOpen ? ' is-open' : ''}`}
+              aria-live="polite"
+            >
+              <button
+                type="button"
+                className="likes-control-toggle"
+                onClick={() => setControlsOpen((prev) => !prev)}
+              >
+                {controlsOpen ? 'HIDE CONTROL' : 'SHOW CONTROL'}
+              </button>
+              <aside
+                className="likes-control-panel"
+                aria-label="Likes演出の調整パネル"
+              >
+                <header className="likes-control-panel__header">
+                  <h2 className="likes-control-panel__title">
+                    MEDIA ART CONTROL
+                  </h2>
+                  <div className="likes-control-panel__actions">
+                    <button
+                      type="button"
+                      className="likes-control-panel__action"
+                      onClick={() => setWaveSettings({ ...DEFAULT_HEART_WAVE_SETTINGS })}
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      className="likes-control-panel__action"
+                      onClick={() => setControlsOpen(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </header>
+                <div className="likes-control-panel__grid">
+          <label className="likes-control-panel__field">
+            <span>Ripple Lifetime (ms)</span>
+            <input
+              type="number"
+              min={600}
+              max={12000}
+              step={50}
+              value={waveSettings.rippleLifetime}
+              onChange={(event) => {
+                const next = Number.parseInt(event.target.value, 10)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, rippleLifetime: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Radius Factor</span>
+            <input
+              type="number"
+              min={0.2}
+              max={4}
+              step={0.05}
+              value={waveSettings.rippleRadiusFactor}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, rippleRadiusFactor: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Base Scale Min (px)</span>
+            <input
+              type="number"
+              min={12}
+              max={240}
+              step={2}
+              value={waveSettings.baseScaleMinPx}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, baseScaleMinPx: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Ring Thickness Ratio</span>
+            <input
+              type="number"
+              min={0.01}
+              max={0.6}
+              step={0.01}
+              value={waveSettings.ringThicknessRatio}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, ringThicknessRatio: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Min Ring Thickness (px)</span>
+            <input
+              type="number"
+              min={2}
+              max={120}
+              step={1}
+              value={waveSettings.minRingThicknessPx}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, minRingThicknessPx: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Glow Thickness Ratio</span>
+            <input
+              type="number"
+              min={0.01}
+              max={0.8}
+              step={0.01}
+              value={waveSettings.glowThicknessRatio}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, glowThicknessRatio: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Min Glow Thickness (px)</span>
+            <input
+              type="number"
+              min={2}
+              max={240}
+              step={1}
+              value={waveSettings.minGlowThicknessPx}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, minGlowThicknessPx: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Highlight Ratio</span>
+            <input
+              type="number"
+              min={0.1}
+              max={1}
+              step={0.01}
+              value={waveSettings.highlightRatio}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, highlightRatio: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Alpha Start</span>
+            <input
+              type="number"
+              min={0}
+              max={1}
+              step={0.01}
+              value={waveSettings.alphaStart}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, alphaStart: next }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
+            <span>Alpha Falloff</span>
+            <input
+              type="number"
+              min={0}
+              max={2}
+              step={0.01}
+              value={waveSettings.alphaFalloff}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({ ...prev, alphaFalloff: next }))
+              }}
+            />
+          </label>
+        </div>
+                <pre className="likes-control-panel__snapshot">
+{JSON.stringify(waveSettings, null, 2)}
+                </pre>
+              </aside>
+            </div>,
+            panelRoot
+          )
+        : null}
 
     </section>
   )
