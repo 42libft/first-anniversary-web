@@ -5,6 +5,7 @@ export type HeartWaveSettings = {
   rippleRadiusFactor: number
   baseScaleMinPx: number
   radiusProgressExponent: number
+  radiusSpeed: number
   ringThicknessRatio: number
   minRingThicknessPx: number
   glowThicknessRatio: number
@@ -41,6 +42,7 @@ export const DEFAULT_HEART_WAVE_SETTINGS: HeartWaveSettings = {
   rippleRadiusFactor: 1.35,
   baseScaleMinPx: 6,
   radiusProgressExponent: 1.1,
+  radiusSpeed: 0.6,
   ringThicknessRatio: 0.04,
   minRingThicknessPx: 2,
   glowThicknessRatio: 0.005,
@@ -50,23 +52,44 @@ export const DEFAULT_HEART_WAVE_SETTINGS: HeartWaveSettings = {
   alphaFalloff: 0.5,
 }
 
-const getRippleRadius = (
+type RippleMetrics = {
+  radius: number
+  radialProgress: number
+  alpha: number
+  travelProgressRaw: number
+}
+
+const getRippleMetrics = (
   age: number,
   width: number,
   height: number,
   settings: HeartWaveSettings
-) => {
-  const linear = clamp01(age / settings.rippleLifetime)
-  const exponent = Math.max(0.1, settings.radiusProgressExponent)
-  const easedRadiusProgress =
-    exponent === 1
-      ? linear
-      : exponent > 1
-        ? Math.pow(linear, exponent)
-        : 1 - Math.pow(1 - linear, exponent)
-
+): RippleMetrics => {
   const reach = Math.hypot(width, height) * 0.5 * settings.rippleRadiusFactor
-  return reach * easedRadiusProgress
+  if (reach <= 0) {
+    return { radius: 0, radialProgress: 0, alpha: 0, travelProgressRaw: 1 }
+  }
+
+  const speed = Math.max(0.05, settings.radiusSpeed)
+  const travelProgressRaw = (age * speed) / Math.max(1, settings.rippleLifetime)
+  const timeProgress = clamp01(travelProgressRaw)
+  const exponent = Math.max(0.1, settings.radiusProgressExponent)
+
+  const eased =
+    exponent === 1
+      ? timeProgress
+      : exponent > 1
+        ? Math.pow(timeProgress, exponent)
+        : 1 - Math.pow(1 - timeProgress, 1 / exponent)
+
+  const radius = reach * Math.min(1, eased)
+  const radialProgress = Math.min(1, radius / reach)
+
+  const edgeFade = Math.pow(1 - radialProgress, 1.4)
+  const overshoot = clamp01(travelProgressRaw - 1)
+  const alpha = Math.max(0, settings.alphaStart * edgeFade * (1 - overshoot * 1.8))
+
+  return { radius, radialProgress, alpha, travelProgressRaw }
 }
 
 const drawNormalizedHeartPath = (ctx: CanvasRenderingContext2D) => {
@@ -83,7 +106,8 @@ const drawRippleHeart = (
   y: number,
   radius: number,
   hue: number,
-  progress: number,
+  radialProgress: number,
+  alpha: number,
   dpr: number,
   settings: HeartWaveSettings
 ) => {
@@ -94,22 +118,17 @@ const drawRippleHeart = (
     radius * settings.ringThicknessRatio,
     settings.minRingThicknessPx * dpr
   )
-  const _glowThicknessPx = Math.max(
-    radius * settings.glowThicknessRatio,
-    settings.minGlowThicknessPx * dpr
-  )
+  const glowPx = Math.max(radius * settings.glowThicknessRatio, settings.minGlowThicknessPx * dpr)
   const highlightThicknessPx = ringThicknessPx * settings.highlightRatio
 
-  const fade = Math.pow(1 - progress, 1.18)
-  const alpha = Math.max(0, settings.alphaStart * fade - progress * settings.alphaFalloff)
-  const crestShift = clamp01(progress * 1.12)
-  const wakeIntensity = clamp01((progress - 0.32) / 0.55)
+  const crestShift = radialProgress
+  const wakeIntensity = clamp01((radialProgress - 0.55) / 0.35)
 
   if (alpha <= 0.001) return
 
   const normalizedGlowWidth = Math.max(
-    0.25 / dpr,
-    ((ringThicknessPx + _glowThicknessPx * 0.2) * (1.6 + wakeIntensity * 0.4)) / baseScale
+    0.18 / dpr,
+    ((ringThicknessPx + glowPx * 0.2) * (1.45 + wakeIntensity * 0.35)) / baseScale
   )
   const normalizedRingWidth = Math.max(0.2 / dpr, ringThicknessPx / baseScale)
   const normalizedHighlightWidth = Math.max(0.12 / dpr, highlightThicknessPx / baseScale)
@@ -121,17 +140,17 @@ const drawRippleHeart = (
 
   ctx.globalAlpha = alpha * 0.28
   ctx.lineWidth = normalizedGlowWidth
-  ctx.strokeStyle = `hsla(${(hue + 188) % 360}, 48%, ${62 + wakeIntensity * 6}%, ${0.35 + wakeIntensity * 0.15})`
+  ctx.strokeStyle = `hsla(${(hue + 188) % 360}, 46%, ${62 + wakeIntensity * 5}%, ${0.32 + wakeIntensity * 0.14})`
   ctx.stroke()
 
   ctx.globalAlpha = alpha * 0.62
-  ctx.lineWidth = normalizedRingWidth * (0.82 + crestShift * 0.18)
-  ctx.strokeStyle = `hsla(${(hue + 200) % 360}, 64%, ${70 + wakeIntensity * 5}%, 0.7)`
+  ctx.lineWidth = normalizedRingWidth * (0.85 + crestShift * 0.16)
+  ctx.strokeStyle = `hsla(${(hue + 200) % 360}, 60%, ${68 + wakeIntensity * 5}%, 0.62)`
   ctx.stroke()
 
   ctx.globalAlpha = alpha * 0.48
   ctx.lineWidth = normalizedHighlightWidth
-  ctx.strokeStyle = `hsla(${(hue + 210) % 360}, 74%, 86%, 0.85)`
+  ctx.strokeStyle = `hsla(${(hue + 210) % 360}, 82%, 88%, 0.7)`
   ctx.stroke()
 
   if (wakeIntensity > 0.04) {
@@ -140,7 +159,7 @@ const drawRippleHeart = (
     ctx.lineWidth = normalizedRingWidth * 0.58
     ctx.save()
     ctx.scale(wakeScale, wakeScale)
-    ctx.strokeStyle = `hsla(${(hue + 205) % 360}, 58%, 78%, 0.55)`
+    ctx.strokeStyle = `hsla(${(hue + 205) % 360}, 58%, 78%, 0.45)`
     ctx.stroke()
     ctx.restore()
   }
@@ -233,24 +252,29 @@ export const CanvasHeartWaves = ({
         const age = now - ripple.createdAt
         const effectiveAge = age - ripple.phaseOffset
         if (effectiveAge < 0) continue
-        if (effectiveAge > currentSettings.rippleLifetime + 50) {
-          ripples.splice(i, 1)
+        const metrics = getRippleMetrics(effectiveAge, w, h, currentSettings)
+        if (metrics.radius <= 0.5 || metrics.alpha <= 0.001) {
+          if (metrics.travelProgressRaw >= 1.1) {
+            ripples.splice(i, 1)
+          }
           continue
         }
 
-        const progress = clamp01(effectiveAge / currentSettings.rippleLifetime)
-        const radius = getRippleRadius(effectiveAge, w, h, currentSettings)
-        if (radius <= 1) continue
         drawRippleHeart(
           ctx,
           ripple.x,
           ripple.y,
-          radius,
+          metrics.radius,
           ripple.hue,
-          progress,
+          metrics.radialProgress,
+          metrics.alpha,
           dpr,
           currentSettings
         )
+
+        if (metrics.travelProgressRaw >= 1.15) {
+          ripples.splice(i, 1)
+        }
       }
 
       rafRef.current = requestAnimationFrame(render)

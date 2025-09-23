@@ -232,6 +232,24 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
             />
           </label>
           <label className="likes-control-panel__field">
+            <span>Radius Speed</span>
+            <input
+              type="number"
+              min={0.1}
+              max={3}
+              step={0.05}
+              value={waveSettings.radiusSpeed}
+              onChange={(event) => {
+                const next = Number.parseFloat(event.target.value)
+                if (Number.isNaN(next)) return
+                setWaveSettings((prev) => ({
+                  ...prev,
+                  radiusSpeed: next,
+                }))
+              }}
+            />
+          </label>
+          <label className="likes-control-panel__field">
             <span>Ring Thickness Ratio</span>
             <input
               type="number"
