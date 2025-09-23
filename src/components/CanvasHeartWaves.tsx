@@ -26,11 +26,13 @@ type Ripple = {
   y: number
   createdAt: number
   hue: number
+  phaseOffset: number
 }
 
-const MAX_RIPPLES = 14
+const MAX_RIPPLES = 240
 const MIN_TAP_INTERVAL = 120 // ms
-const HEART_COLORS = [326, 336, 12, 304]
+const HEART_COLORS = [332, 8, 348, 358]
+const HARMONIC_COUNT = 10
 
 const easeOutCubic = (t: number) => 1 - (1 - t) * (1 - t) * (1 - t)
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
@@ -190,17 +192,25 @@ export const CanvasHeartWaves = ({
     const dpr = dprRef.current
     const x = (clientX - rect.left) * dpr
     const y = (clientY - rect.top) * dpr
+    const currentSettings = settingsRef.current
 
-    idRef.current += 1
-    const ripple: Ripple = {
-      id: idRef.current,
-      x,
-      y,
-      createdAt: performance.now(),
-      hue: HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)],
+    const now = performance.now()
+    const spacing = Math.max(60, Math.min(currentSettings.rippleLifetime * 0.12, 220))
+    const newRipples: Ripple[] = []
+
+    for (let index = 0; index < HARMONIC_COUNT; index += 1) {
+      idRef.current += 1
+      newRipples.push({
+        id: idRef.current,
+        x,
+        y,
+        createdAt: now,
+        hue: HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)],
+        phaseOffset: index * spacing,
+      })
     }
 
-    ripplesRef.current = [...ripplesRef.current.slice(-MAX_RIPPLES + 1), ripple]
+    ripplesRef.current = [...ripplesRef.current, ...newRipples].slice(-MAX_RIPPLES)
 
     if (shouldCount) onPulse?.()
   }
@@ -228,13 +238,15 @@ export const CanvasHeartWaves = ({
       for (let i = ripples.length - 1; i >= 0; i -= 1) {
         const ripple = ripples[i]
         const age = now - ripple.createdAt
-        if (age > currentSettings.rippleLifetime) {
+        const effectiveAge = age - ripple.phaseOffset
+        if (effectiveAge < 0) continue
+        if (effectiveAge > currentSettings.rippleLifetime + 50) {
           ripples.splice(i, 1)
           continue
         }
 
-        const progress = getRippleProgress(age, currentSettings)
-        const radius = getRippleRadius(age, w, h, currentSettings)
+        const progress = getRippleProgress(effectiveAge, currentSettings)
+        const radius = getRippleRadius(effectiveAge, w, h, currentSettings)
         if (radius <= 1) continue
         drawRippleHeart(
           ctx,
