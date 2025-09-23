@@ -4,6 +4,7 @@ export type HeartWaveSettings = {
   rippleLifetime: number
   rippleRadiusFactor: number
   baseScaleMinPx: number
+  radiusProgressExponent: number
   ringThicknessRatio: number
   minRingThicknessPx: number
   glowThicknessRatio: number
@@ -38,6 +39,7 @@ export const DEFAULT_HEART_WAVE_SETTINGS: HeartWaveSettings = {
   rippleLifetime: 1700,
   rippleRadiusFactor: 0.2,
   baseScaleMinPx: 42,
+  radiusProgressExponent: 1.35,
   ringThicknessRatio: 0.12,
   minRingThicknessPx: 6,
   glowThicknessRatio: 0.01,
@@ -55,7 +57,14 @@ const getRippleRadius = (
   width: number,
   height: number,
   settings: HeartWaveSettings
-) => Math.min(width, height) * settings.rippleRadiusFactor * getRippleProgress(age, settings)
+) => {
+  const normalizedProgress = getRippleProgress(age, settings)
+  const easedRadiusProgress = Math.pow(
+    normalizedProgress,
+    Math.max(0.2, settings.radiusProgressExponent)
+  )
+  return Math.min(width, height) * settings.rippleRadiusFactor * easedRadiusProgress
+}
 
 const drawNormalizedHeartPath = (ctx: CanvasRenderingContext2D) => {
   ctx.beginPath()
