@@ -40,11 +40,11 @@ export const DEFAULT_HEART_WAVE_SETTINGS: HeartWaveSettings = {
   baseScaleMinPx: 42,
   ringThicknessRatio: 0.12,
   minRingThicknessPx: 6,
-  glowThicknessRatio: 0.2,
-  minGlowThicknessPx: 42,
-  highlightRatio: 0.55,
-  alphaStart: 0.82,
-  alphaFalloff: 0.6,
+  glowThicknessRatio: 0.01,
+  minGlowThicknessPx: 20,
+  highlightRatio: 0.32,
+  alphaStart: 0.62,
+  alphaFalloff: 0.52,
 }
 
 const getRippleProgress = (age: number, settings: HeartWaveSettings) =>
@@ -87,16 +87,18 @@ const drawRippleHeart = (
     settings.minGlowThicknessPx * dpr
   )
   const highlightThicknessPx = ringThicknessPx * settings.highlightRatio
-  const alpha = Math.max(0, settings.alphaStart - progress * settings.alphaFalloff)
-  const crestShift = clamp01(progress * 1.25)
-  const wakeIntensity = clamp01((progress - 0.35) / 0.5)
+
+  const fade = Math.pow(1 - progress, 1.25)
+  const alpha = Math.max(0, settings.alphaStart * fade - progress * settings.alphaFalloff)
+  const crestShift = clamp01(progress * 1.12)
+  const wakeIntensity = clamp01((progress - 0.32) / 0.55)
 
   if (alpha <= 0.001) return
 
-  const normalizedGlowWidth = (ringThicknessPx * 1.45) / baseScale
+  const normalizedGlowWidth = (ringThicknessPx * (1.8 + wakeIntensity)) / baseScale
   const normalizedRingWidth = ringThicknessPx / baseScale
   const normalizedHighlightWidth = highlightThicknessPx / baseScale
-  const normalizedGlowBlur = glowThicknessPx / baseScale
+  const normalizedGlowBlur = glowThicknessPx * (1.4 + wakeIntensity * 0.6) / baseScale
   const normalizedHighlightBlur = (glowThicknessPx * 0.55) / baseScale
 
   ctx.save()
@@ -104,31 +106,43 @@ const drawRippleHeart = (
   ctx.scale(baseScale, baseScale)
   drawNormalizedHeartPath(ctx)
 
-  ctx.globalAlpha = alpha * 0.42
-  ctx.lineWidth = normalizedGlowWidth * (1 + wakeIntensity * 0.5)
-  ctx.shadowBlur = normalizedGlowBlur * (1.1 + wakeIntensity * 0.6)
-  ctx.shadowColor = `hsla(${hue}, 86%, 68%, ${alpha * 0.7})`
-  ctx.strokeStyle = `hsla(${(hue + 4) % 360}, 80%, 60%, ${0.45 + wakeIntensity * 0.25})`
+  ctx.globalAlpha = alpha * 0.36
+  ctx.lineWidth = normalizedGlowWidth
+  ctx.shadowBlur = normalizedGlowBlur
+  ctx.shadowColor = `hsla(${hue}, 64%, 64%, ${alpha * 0.55})`
+  ctx.strokeStyle = `hsla(${(hue + 8) % 360}, 58%, 58%, ${0.36 + wakeIntensity * 0.2})`
   ctx.stroke()
 
-  ctx.globalAlpha = alpha * 0.92
-  ctx.lineWidth = normalizedRingWidth * (0.92 + crestShift * 0.2)
-  ctx.shadowBlur = normalizedGlowBlur * (0.55 + wakeIntensity * 0.25)
-  ctx.shadowColor = `hsla(${(hue + 2) % 360}, 94%, 82%, ${alpha * 0.85})`
-  ctx.strokeStyle = `hsla(${hue}, 96%, 90%, 0.96)`
+  ctx.globalAlpha = alpha * 0.78
+  ctx.lineWidth = normalizedRingWidth * (0.88 + crestShift * 0.26)
+  ctx.shadowBlur = normalizedGlowBlur * (0.42 + wakeIntensity * 0.22)
+  ctx.shadowColor = `hsla(${(hue + 2) % 360}, 72%, 76%, ${alpha * 0.58})`
+  ctx.strokeStyle = `hsla(${(hue + 6) % 360}, 68%, ${66 + wakeIntensity * 6}%, 0.85)`
   ctx.stroke()
 
-  ctx.globalAlpha = alpha * 0.68
+  ctx.globalAlpha = alpha * 0.54
   ctx.lineWidth = normalizedHighlightWidth
   ctx.shadowBlur = normalizedHighlightBlur
-  ctx.shadowColor = `hsla(${(hue + 24) % 360}, 96%, 94%, ${alpha * 0.7})`
-  ctx.strokeStyle = `hsla(${(hue + 18) % 360}, 98%, 98%, 1)`
+  ctx.shadowColor = `hsla(${(hue + 18) % 360}, 84%, 86%, ${alpha * 0.48})`
+  ctx.strokeStyle = `hsla(${(hue + 16) % 360}, 82%, 92%, 0.82)`
   ctx.stroke()
 
-  ctx.globalAlpha = alpha * (0.18 + wakeIntensity * 0.18)
-  ctx.shadowBlur = normalizedHighlightBlur * 0.3
-  ctx.fillStyle = `hsla(${(hue + 12) % 360}, 92%, ${76 + wakeIntensity * 12}%, 1)`
+  ctx.globalAlpha = alpha * (0.12 + wakeIntensity * 0.12)
+  ctx.shadowBlur = normalizedHighlightBlur * 0.2
+  ctx.fillStyle = `hsla(${(hue + 10) % 360}, 70%, ${72 + wakeIntensity * 8}%, 0.6)`
   ctx.fill()
+
+  if (wakeIntensity > 0.02) {
+    const wakeScale = 1 + wakeIntensity * 0.12
+    ctx.globalAlpha = alpha * 0.28 * wakeIntensity
+    ctx.shadowBlur = normalizedGlowBlur * 0.4
+    ctx.lineWidth = normalizedRingWidth * 0.65
+    ctx.save()
+    ctx.scale(wakeScale, wakeScale)
+    ctx.strokeStyle = `hsla(${(hue + 14) % 360}, 58%, 70%, 0.65)`
+    ctx.stroke()
+    ctx.restore()
+  }
 
   ctx.restore()
 }
