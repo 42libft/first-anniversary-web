@@ -69,28 +69,33 @@ const drawRippleHeart = (
   hue: number,
   alpha: number
 ) => {
-  if (radius <= 1 || alpha <= 0) return
-  const baseScale = Math.max(0.4, radius / 140)
-  const layers = 2
+  if (radius < 12 || alpha <= 0) return
+  const baseScale = radius / 120
+  const layers = 3
   for (let layer = 0; layer < layers; layer += 1) {
-    const layerScale = baseScale * (1 + layer * 0.2)
-    const layerAlpha = alpha * (layer === 0 ? 1 : 0.6)
+    const scale = baseScale * (1 + layer * 0.22)
+    const layerAlpha = alpha * (layer === 0 ? 0.88 : 0.35)
     const layerHue = hue + layer * 6
     ctx.save()
     ctx.translate(x, y)
-    ctx.scale(layerScale, layerScale)
+    ctx.scale(scale, scale)
     ctx.beginPath()
-    ctx.moveTo(0, -0.6)
-    ctx.bezierCurveTo(-0.8, -1.2, -1.5, -0.1, 0, 1)
-    ctx.bezierCurveTo(1.5, -0.1, 0.8, -1.2, 0, -0.6)
+    ctx.moveTo(0, -0.62)
+    ctx.bezierCurveTo(-0.82, -1.2, -1.52, -0.08, 0, 1.02)
+    ctx.bezierCurveTo(1.52, -0.08, 0.82, -1.2, 0, -0.62)
     ctx.closePath()
-    const strokeWidth = Math.max(0.12, 0.9 / layerScale)
-    ctx.lineWidth = strokeWidth
-    ctx.strokeStyle = `hsla(${layerHue}, 70%, ${68 - layer * 6}%, ${layerAlpha})`
-    ctx.setLineDash([0.85, 1.4])
-    ctx.shadowColor = `hsla(${hue}, 76%, 62%, ${layerAlpha * 0.35})`
-    ctx.shadowBlur = 8
+    ctx.lineWidth = Math.max(0.16, 0.58 / scale)
+    ctx.lineJoin = 'round'
+    ctx.lineCap = 'round'
+    ctx.strokeStyle = `hsla(${layerHue}, 72%, ${70 - layer * 5}%, ${layerAlpha})`
+    ctx.shadowColor = `hsla(${hue}, 60%, 52%, ${layerAlpha * 0.4})`
+    ctx.shadowBlur = 12
     ctx.stroke()
+    if (layer === 0) {
+      ctx.globalAlpha = layerAlpha * 0.35
+      ctx.fillStyle = `hsla(${hue + 8}, 82%, 72%, 1)`
+      ctx.fill()
+    }
     ctx.restore()
   }
 }
