@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
+import { type CSSProperties, type PointerEvent, useEffect, useRef, useState } from 'react'
 
-import { TapRippleField } from '../components/TapRippleField'
 import { linkExchangeCounts, totalLinks } from '../data/links'
 import type { SceneComponentProps } from '../types/scenes'
 
@@ -20,7 +19,7 @@ const NETWORK_NODES = [
   { id: 'n8', cx: 30, cy: 78, r: 1.35 },
   { id: 'n9', cx: 58, cy: 78, r: 1.1 },
   { id: 'n10', cx: 86, cy: 70, r: 1.25 },
-]
+] as const
 
 const NETWORK_EDGES: Array<[number, number]> = [
   [0, 2],
@@ -37,13 +36,21 @@ const NETWORK_EDGES: Array<[number, number]> = [
   [5, 9],
 ]
 
+type Spark = {
+  id: number
+  path: string
+}
+
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const [count, setCount] = useState(() => Math.min(10, FINAL_TARGET))
-  const [phase, setPhase] = useState<'play' | 'announce' | 'cta'> (
+  const [phase, setPhase] = useState<'play' | 'announce' | 'cta'>(
     FINAL_TARGET > 0 ? 'play' : 'announce'
   )
   const [ctaVisible, setCtaVisible] = useState(false)
   const [showLines, setShowLines] = useState(false)
+  const [sparks, setSparks] = useState<Spark[]>([])
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  const sparkIdRef = useRef(0)
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -67,18 +74,42 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     }
   }, [phase])
 
-  const handlePulse = () => {
+  const handleTap = (event: PointerEvent<HTMLDivElement>) => {
     if (phase !== 'play') return
+    if (!stageRef.current) return
+    const rect = stageRef.current.getBoundingClientRect()
+    const startX = event.clientX - rect.left
+    const startY = event.clientY - rect.top
+    const target = NETWORK_NODES[Math.floor(Math.random() * NETWORK_NODES.length)]
+    const endX = (target.cx / 100) * rect.width
+    const endY = (target.cy / 100) * rect.height
+
+    sparkIdRef.current += 1
+    const spark: Spark = {
+      id: sparkIdRef.current,
+      path: `M ${startX} ${startY} L ${endX} ${endY}`,
+    }
+    setSparks((prev) => [...prev, spark])
+    window.setTimeout(() => {
+      setSparks((prev) => prev.filter((item) => item.id !== spark.id))
+    }, 1200)
+
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
+    event.preventDefault()
   }
 
   return (
     <section
       className="links-full"
       role="presentation"
-      aria-label="共有したリンクの記録を水面のネットワークで振り返る"
+      aria-label="共有したリンクの記録をネットワークの光で振り返る"
     >
-      <div className="links-stage" aria-hidden>
+      <div
+        ref={stageRef}
+        className="links-stage"
+        aria-hidden
+        onPointerDown={handleTap}
+      >
         <svg className="links-network" viewBox="0 0 100 100">
           <defs>
             <linearGradient id="links-line" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -110,11 +141,18 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
             />
           ))}
         </svg>
-        <TapRippleField
-          disabled={phase !== 'play'}
-          onPulse={handlePulse}
-          variant="links"
-        />
+        {sparks.map((spark) => {
+          const style: CSSProperties & {
+            WebkitOffsetPath?: string
+            WebkitOffsetDistance?: string
+          } = {
+            offsetPath: `path('${spark.path}')`,
+            WebkitOffsetPath: `path('${spark.path}')`,
+            offsetDistance: '0%',
+            WebkitOffsetDistance: '0%',
+          }
+          return <span key={spark.id} className="links-spark" style={style} />
+        })}
       </div>
 
       <div className="links-count" aria-hidden>

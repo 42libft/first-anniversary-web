@@ -1207,6 +1207,20 @@
   animation-delay: 2.4s;
 }
 
+.links-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #d2f4ff 0%, rgba(32, 120, 220, 0.6) 60%, rgba(32, 120, 220, 0) 100%);
+  filter: drop-shadow(0 0 12px rgba(120, 226, 255, 0.55));
+  offset-rotate: 0deg;
+  offset-distance: 0%;
+  -webkit-offset-distance: 0%;
+  animation: linksSparkTravel 1100ms ease-out forwards;
+  pointer-events: none;
+}
+
 @keyframes linksEdgePulse {
   0%,
   100% {
@@ -1226,6 +1240,24 @@
   }
   50% {
     filter: drop-shadow(0 0 12px rgba(140, 236, 255, 0.55));
+  }
+}
+
+@keyframes linksSparkTravel {
+  0% {
+    offset-distance: 0%;
+    -webkit-offset-distance: 0%;
+    opacity: 0.85;
+    transform: scale(0.9);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    -webkit-offset-distance: 100%;
+    opacity: 0;
+    transform: scale(0.4);
   }
 }
 
