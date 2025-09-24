@@ -1225,10 +1225,12 @@
 }
 
 .links-sparkline--strong {
-  stroke-width: 1.35;
+  stroke: url(#links-spark-strong);
+  stroke-width: 1.6;
   filter:
-    drop-shadow(0 0 18px rgba(140, 226, 255, 0.8))
-    drop-shadow(0 0 38px rgba(80, 200, 255, 0.65));
+    drop-shadow(0 0 18px rgba(140, 226, 255, 0.85))
+    drop-shadow(0 0 38px rgba(80, 200, 255, 0.7));
+  animation: linksSparkDrawStrong 1400ms ease-out forwards;
 }
 
 @keyframes linksEdgePulse {
@@ -1265,6 +1267,21 @@
   100% {
     stroke-dashoffset: 0;
     opacity: 0.25;
+  }
+}
+
+@keyframes linksSparkDrawStrong {
+  0% {
+    stroke-dashoffset: 24;
+    opacity: 1;
+  }
+  70% {
+    stroke-dashoffset: 0;
+    opacity: 0.9;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.45;
   }
 }
 
