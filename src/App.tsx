@@ -10,7 +10,8 @@ import { IntroScene } from './scenes/IntroScene'
 import { JourneysScene } from './scenes/JourneysScene'
 import { LetterScene } from './scenes/LetterScene'
 import { LikesScene } from './scenes/LikesScene'
-import { MeetupsScene } from './scenes/MeetupsScene'
+import { LinksScene } from './scenes/LinksScene'
+import { MediaScene } from './scenes/MediaScene'
 import { MessagesScene } from './scenes/MessagesScene'
 import { PrologueScene } from './scenes/PrologueScene'
 import { ResultScene } from './scenes/ResultScene'
@@ -32,8 +33,10 @@ const renderScene = (
       return <MessagesScene {...props} />
     case 'likes':
       return <LikesScene {...props} />
-    case 'meetups':
-      return <MeetupsScene {...props} />
+    case 'links':
+      return <LinksScene {...props} />
+    case 'media':
+      return <MediaScene {...props} />
     case 'letter':
       return <LetterScene {...props} />
     case 'result':

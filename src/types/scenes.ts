@@ -12,7 +12,8 @@ export type SceneId =
   | 'journeys'
   | 'messages'
   | 'likes'
-  | 'meetups'
+  | 'links'
+  | 'media'
   | 'letter'
   | 'result'
 
@@ -39,7 +40,8 @@ export const sceneOrder: SceneId[] = [
   'journeys',
   'messages',
   'likes',
-  'meetups',
+  'links',
+  'media',
   'letter',
   'result',
 ]
@@ -50,7 +52,8 @@ export const sceneTitleMap: Record<SceneId, string> = {
   journeys: 'Journeys',
   messages: 'Messages',
   likes: 'Likes',
-  meetups: 'Meetups',
+  links: 'Links',
+  media: 'Media',
   letter: 'Letter',
   result: 'Result',
 }

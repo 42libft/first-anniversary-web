@@ -15,6 +15,49 @@
   overscroll-behavior: none;
 }
 
+.tap-ripple-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+.tap-ripple {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0.75;
+  animation: tapRippleExpand 1100ms ease-out forwards;
+}
+
+.tap-ripple-field--links .tap-ripple {
+  border-color: rgba(152, 236, 255, 0.6);
+  box-shadow: 0 0 14px rgba(96, 226, 255, 0.45);
+}
+
+.tap-ripple-field--media .tap-ripple {
+  border-color: rgba(186, 176, 255, 0.52);
+  box-shadow: 0 0 18px rgba(208, 200, 255, 0.38);
+}
+
+@keyframes tapRippleExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 0.75;
+  }
+  60% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(8.4);
+    opacity: 0;
+  }
+}
+
 /* Intro: star layers + shooting star */
 .intro-sky {
   position: absolute;
@@ -1056,6 +1099,252 @@
   .likes-control-panel__grid {
     max-height: 46vh;
     overflow: auto;
+  }
+}
+
+.links-full {
+  position: relative;
+  inset: 0;
+  width: 100%;
+  min-height: 100%;
+  background:
+    radial-gradient(58% 68% at 16% 20%, rgba(90, 210, 255, 0.21), transparent 68%),
+    radial-gradient(46% 60% at 78% 78%, rgba(38, 176, 225, 0.18), transparent 64%),
+    linear-gradient(160deg, rgba(8, 24, 44, 0.9), rgba(12, 40, 58, 0.92));
+  overflow: hidden;
+}
+
+.links-full::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      120deg,
+      rgba(140, 220, 255, 0.06) 0%,
+      rgba(140, 220, 255, 0.06) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  opacity: 0.6;
+  mix-blend-mode: screen;
+  animation: linksGridDrift 16s linear infinite;
+  pointer-events: none;
+}
+
+.links-full::after {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  background: radial-gradient(circle, rgba(120, 226, 255, 0.14) 0%, transparent 70%);
+  filter: blur(180px);
+  pointer-events: none;
+}
+
+.links-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -52%);
+  font-size: clamp(2.4rem, 12vw, 5.2rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: rgba(220, 248, 255, 0.92);
+  text-shadow:
+    0 0 20px rgba(80, 190, 255, 0.3),
+    0 0 42px rgba(32, 160, 255, 0.28);
+  pointer-events: none;
+}
+
+.links-meta {
+  position: absolute;
+  left: 50%;
+  bottom: calc(15% + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1.2rem;
+  font-size: clamp(0.68rem, 2.8vw, 0.82rem);
+  letter-spacing: 0.08em;
+  color: rgba(208, 240, 255, 0.78);
+  text-transform: uppercase;
+}
+
+.links-meta p {
+  margin: 0;
+}
+
+.links-caption {
+  position: absolute;
+  bottom: clamp(3.4rem, 12vh, 5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 420px);
+  text-align: center;
+  font-size: clamp(0.82rem, 3vw, 1rem);
+  letter-spacing: 0.08em;
+  color: rgba(212, 242, 255, 0.85);
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.links-caption.is-visible {
+  opacity: 1;
+}
+
+.links-cta {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: clamp(1.5rem, 10vh, 5rem) 1.2rem
+    calc(env(safe-area-inset-bottom, 0px) + clamp(2rem, 12vh, 4.2rem));
+}
+
+.links-cta button {
+  padding: 0.68rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 220, 255, 0.45);
+  background: rgba(8, 30, 52, 0.72);
+  color: rgba(220, 248, 255, 0.92);
+  font-size: clamp(0.64rem, 2.6vw, 0.82rem);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+@keyframes linksGridDrift {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(1deg) scale(1.02);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.media-full {
+  position: relative;
+  inset: 0;
+  width: 100%;
+  min-height: 100%;
+  background:
+    radial-gradient(52% 58% at 20% 24%, rgba(176, 196, 255, 0.28), transparent 70%),
+    radial-gradient(48% 54% at 78% 74%, rgba(120, 176, 255, 0.22), transparent 68%),
+    linear-gradient(168deg, rgba(16, 20, 52, 0.86), rgba(22, 26, 60, 0.92));
+  overflow: hidden;
+}
+
+.media-full::before {
+  content: '';
+  position: absolute;
+  inset: -4%;
+  background:
+    conic-gradient(from 45deg, rgba(128, 188, 255, 0.22), rgba(255, 255, 255, 0) 45%),
+    conic-gradient(from 180deg, rgba(200, 196, 255, 0.18), rgba(255, 255, 255, 0) 55%);
+  mix-blend-mode: screen;
+  animation: mediaAurora 18s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.media-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(2.4rem, 12vw, 5.2rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: rgba(236, 240, 255, 0.95);
+  text-shadow:
+    0 0 22px rgba(160, 178, 255, 0.25),
+    0 0 44px rgba(102, 126, 255, 0.28);
+  pointer-events: none;
+}
+
+.media-meta {
+  position: absolute;
+  left: 50%;
+  bottom: calc(16% + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1.5rem;
+  font-size: clamp(0.68rem, 3vw, 0.86rem);
+  letter-spacing: 0.1em;
+  color: rgba(220, 224, 255, 0.78);
+  text-transform: uppercase;
+}
+
+.media-meta p {
+  margin: 0;
+}
+
+.media-caption {
+  position: absolute;
+  width: min(90%, 440px);
+  left: 50%;
+  bottom: clamp(3rem, 14vh, 5.4rem);
+  transform: translateX(-50%);
+  text-align: center;
+  color: rgba(230, 232, 255, 0.86);
+  font-size: clamp(0.8rem, 3vw, 1rem);
+  letter-spacing: 0.08em;
+  opacity: 0;
+  animation: mediaCaptionReveal 3400ms ease forwards;
+}
+
+.media-caption p {
+  margin: 0.3rem 0;
+}
+
+.media-cta {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: clamp(1.5rem, 10vh, 5rem) clamp(1.2rem, 4vw, 2.6rem)
+    calc(env(safe-area-inset-bottom, 0px) + clamp(2rem, 12vh, 4.2rem));
+}
+
+.media-cta button {
+  padding: 0.7rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(170, 184, 255, 0.45);
+  background: rgba(18, 22, 60, 0.75);
+  color: rgba(234, 236, 255, 0.94);
+  font-size: clamp(0.64rem, 2.6vw, 0.82rem);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+@keyframes mediaAurora {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.6;
+  }
+  40% {
+    transform: rotate(4deg) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(-2deg) scale(1.02);
+    opacity: 0.6;
+  }
+}
+
+@keyframes mediaCaptionReveal {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  25% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 }
 

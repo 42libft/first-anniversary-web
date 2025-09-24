@@ -15,8 +15,9 @@
 | Prologue | ノベルゲーム風の通話導入。背景演出は独立管理（星空は未適用）。 |
 | Journeys | 紙芝居（単一ビュー順送り）。移動/思い出/自由記述/クイズをページ化。距離HUDはここだけ表示。 |
 | Messages | キャンバス上で「文字のメモリーストリーム」を全画面に描画（フルブリード）。タップ位置から文字が曲線を流れ、端で反射・滞留。 |
-| Likes | ハートの演出＋クイズ。Messagesとトーンを変えて味変（今後強化）。 |
-| Meetups | 月ごとの思い出アルバム。各ページ固有のメディアアート背景に写真＋テキストをレイアウト。 |
+| Likes | ハートの演出＋カウント。水面のリングがタップ位置から広がり、総数がアナウンスされる。 |
+| Links | 共有したリンク数をネットワークのリップルで可視化。タップで光の波が広がり総数をカウント。 |
+| Media | やり取りした写真・動画数をオーロラ状の光で表現。タップでフレームの残光が広がる。 |
 | Letter | デジタル封筒から実物の手紙へ誘導。音・演出は最終仕上げで調整。 |
 | Result | Apexリザルト画面をオマージュ。合計距離／メッセージ数／好き回数／会った日数／バッジを表示し、Introとループ。 |
 
@@ -59,7 +60,8 @@
   }
 - move ステップ完了時に距離HUDへ累計を反映（HUDは Journeys のみ表示）。Reduced Motion 環境ではアニメをスキップしつつ距離だけ即時更新します。
 - question ステップの回答は `useStoredJourneyResponses` が localStorage を正とします（保存後はロック可）。
-- Meetups セクションのデータは `src/data/meetups.ts` に集約。各ページ固有のメディアアート背景（グラデーション）とノートを記述します。
+- Links の総数は `src/data/links.ts` に集約。Discord で共有したリンクの方向別カウントを保持します。
+- Media の総数は `src/data/media.ts` で管理。送受信した写真・動画の枚数を記録します。
 - シーンの進行順は `src/types/scenes.ts` の `sceneOrder` で一元管理。`App` が現在シーンとナビゲーションロジックを保持します。
 
 ## 技術スタック
@@ -112,7 +114,8 @@ src/
 ├── App.tsx              # シーン遷移とHUDを司るルートコンポーネント
 ├── components/          # HUDやシーン用レイアウトなど共通UI
 ├── data/journeys.ts     # Journeysセクションのベースデータ
-├── data/meetups.ts      # Meetupsセクションの月別メディアアート設定
+├── data/links.ts        # Linksセクションのリンク交換カウント
+├── data/media.ts        # Mediaセクションのメディア交換カウント
 ├── hooks/               # ローカルストレージなど状態管理系フック
 ├── scenes/              # 各シーンの骨組みコンポーネント
 └── types/               # Journey/シーン/回答データの型定義
@@ -125,14 +128,16 @@ src/
 ## 主要変更ファイル（ダイジェスト）
 - `src/data/journeys.ts`: Journeys データを move / episode / question ステップ構造に刷新。
 - `src/scenes/JourneysScene.tsx`: ステップ進行・距離HUD連動・回答の閲覧/編集トグルを統合。
-- `src/data/meetups.ts`: Meetups の月別メディアアート設定とノートを定義。
-- `src/scenes/MeetupsScene.tsx`: インタラクティブなアルバムUIとタイムラインナビゲーションを実装。
-- `src/App.css`: Journeys/Meetups 向けのスタイル拡張とHUD調整。
+- `src/data/links.ts`: Discord のリンク共有カウントを定義。
+- `src/data/media.ts`: 写真・動画の送受信カウントを定義。
+- `src/scenes/LinksScene.tsx`: リンク用の水面リップル演出とカウント表示。
+- `src/scenes/MediaScene.tsx`: メディア用のオーロラ演出とカウント表示。
+- `src/App.css`: 各シーンのメディアアート／HUD スタイルを管理。
 
 ## 衝突回避ガイド
 - Journeys の move ステップIDは `distanceTraveled` 計算のキーになるため削除せず、編集時はIDを据え置いてください。
 - question ステップの `prompt` を変更する際は同じIDを使いつつ文言だけ差し替えると、保存済み回答が維持されます。
-- Meetups の `background` には文字列のCSSグラデーションを渡す前提です。変数化する場合も `--meetups-accent`/`--meetups-ambient` を残してください。
+- Links/Media 向けの背景は CSS グラデーションで構成されています。色味を変更する際は各セクションの `::before`/`::after` を調整してください。
 - `DistanceHUD` は Journeys のみ表示。レイアウト変更時も他シーンには出ません。
 
 ## 簡易E2Eチェック手順
@@ -142,7 +147,9 @@ src/
    - Prologue: ノベルを最後まで進めて Journeys へ（星空なし）。
    - Journeys: 紙芝居で各ページをタップ進行。moveでHUD加算、questionで保存/ロック。
    - Messages: 画面タップで文字ストリームが出現し、端で反射・滞留すること。ログとカウントが増えること。
-   - Likes: 「好き」の演出とクイズを確認。
+   - Likes: ハートの水面演出をタップで体験し、カウントが最大になることを確認。
+   - Links: タップでネットワークリップルが発生し、合計リンク数が増えることを確認。
+   - Media: タップでオーロラ状の光が広がり、合計メディア数が表示されることを確認。
    - Result: サマリーに遷移し、`もう一度再生` でIntroへループ。
 3. ブラウザの DevTools で `prefers-reduced-motion` を有効にし、Journeys の move ステップが瞬時に完了して距離が加算されることを確認。
 
@@ -152,7 +159,7 @@ src/
 3. **M3**: Prologue（ノベル導入）
 4. **M4**: Journeys（移動アニメ＋思い出表示＋距離カウント）
 5. **M5**: Messages／Likes
-6. **M6**: Meetups
+6. **M6**: Links / Media（Discord交換記録の演出）
 7. **M7**: Letter／Result（Apex風）
 8. **M8**: 演出仕上げ（サウンド含む最終調整）
 
