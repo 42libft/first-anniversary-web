@@ -1225,11 +1225,10 @@
 }
 
 .links-sparkline--strong {
-  stroke: rgba(255, 255, 255, 0.95);
-  stroke-width: 0.95;
+  stroke-width: 1.35;
   filter:
-    drop-shadow(0 0 14px rgba(120, 226, 255, 0.8))
-    drop-shadow(0 0 36px rgba(80, 200, 255, 0.65));
+    drop-shadow(0 0 18px rgba(140, 226, 255, 0.8))
+    drop-shadow(0 0 38px rgba(80, 200, 255, 0.65));
 }
 
 @keyframes linksEdgePulse {
