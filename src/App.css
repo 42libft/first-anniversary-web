@@ -1158,15 +1158,16 @@
 
 .links-meta {
   position: absolute;
-  left: 50%;
-  bottom: calc(15% + env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
+  top: calc(env(safe-area-inset-top, 0px) + 1.2rem);
+  left: clamp(1rem, 6vw, 2.6rem);
   display: flex;
-  gap: 1.2rem;
-  font-size: clamp(0.68rem, 2.8vw, 0.82rem);
-  letter-spacing: 0.08em;
-  color: rgba(208, 240, 255, 0.78);
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: clamp(0.64rem, 2.6vw, 0.82rem);
+  letter-spacing: 0.1em;
+  color: rgba(200, 236, 255, 0.78);
   text-transform: uppercase;
+  text-align: left;
 }
 
 .links-meta p {
@@ -1255,7 +1256,6 @@
   stroke-dashoffset: 1;
   opacity: 0;
   animation: linksSparkDraw 1200ms ease-out forwards;
-  animation-delay: var(--spark-delay, 0ms);
 }
 
 .links-sparkline:nth-child(odd) {
@@ -1296,14 +1296,13 @@
 
 .links-caption {
   position: absolute;
+  right: clamp(1rem, 8vw, 3rem);
   bottom: clamp(3.4rem, 12vh, 5rem);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(90%, 420px);
-  text-align: center;
-  font-size: clamp(0.82rem, 3vw, 1rem);
-  letter-spacing: 0.08em;
-  color: rgba(212, 242, 255, 0.85);
+  width: min(76vw, 320px);
+  text-align: right;
+  font-size: clamp(0.78rem, 2.6vw, 0.95rem);
+  letter-spacing: 0.1em;
+  color: rgba(212, 242, 255, 0.78);
   opacity: 0;
   transition: opacity 900ms ease;
 }
@@ -1313,7 +1312,7 @@
 }
 
 .links-caption p {
-  margin: 0.25rem 0;
+  margin: 0.2rem 0;
 }
 
 .links-cta {

@@ -15,7 +15,7 @@ const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
-const NETWORK_NODES = [
+const STATIC_NODES = [
   { id: 'n1', cx: 12, cy: 26 },
   { id: 'n2', cx: 22, cy: 62 },
   { id: 'n3', cx: 38, cy: 18 },
@@ -28,7 +28,7 @@ const NETWORK_NODES = [
   { id: 'n10', cx: 86, cy: 70 },
 ] as const
 
-const NETWORK_EDGES: Array<[number, number]> = [
+const STATIC_EDGES: Array<[number, number]> = [
   [0, 2],
   [2, 4],
   [4, 6],
@@ -42,6 +42,8 @@ const NETWORK_EDGES: Array<[number, number]> = [
   [2, 5],
   [5, 9],
 ]
+
+type Node = { id: string; cx: number; cy: number }
 
 type Segment = {
   id: number
@@ -57,23 +59,23 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   )
   const [ctaVisible, setCtaVisible] = useState(false)
   const [showLines, setShowLines] = useState(false)
+  const [customNodes, setCustomNodes] = useState<Node[]>([])
+  const [customEdges, setCustomEdges] = useState<Array<[number, number]>>([])
   const [segments, setSegments] = useState<Segment[]>([])
   const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set())
   const stageRef = useRef<HTMLDivElement | null>(null)
   const networkRef = useRef<SVGSVGElement | null>(null)
   const batchRef = useRef(0)
 
-  const adjacency = useMemo(() => {
-    const map = new Map<number, number[]>()
-    NETWORK_NODES.forEach((_, index) => {
-      map.set(index, [])
-    })
-    NETWORK_EDGES.forEach(([from, to]) => {
-      map.get(from)?.push(to)
-      map.get(to)?.push(from)
-    })
-    return map
-  }, [])
+  const allNodes = useMemo<Node[]>(
+    () => [...STATIC_NODES, ...customNodes],
+    [customNodes]
+  )
+
+  const edges = useMemo<Array<[number, number]>>(
+    () => [...STATIC_EDGES, ...customEdges],
+    [customEdges]
+  )
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -109,42 +111,6 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     return { x: svgPoint.x, y: svgPoint.y }
   }
 
-  const findNearestNodeIndex = (x: number, y: number) => {
-    let nearestIndex = 0
-    let minDistance = Number.POSITIVE_INFINITY
-    NETWORK_NODES.forEach((node, index) => {
-      const distance = Math.hypot(x - node.cx, y - node.cy)
-      if (distance < minDistance) {
-        minDistance = distance
-        nearestIndex = index
-      }
-    })
-    return nearestIndex
-  }
-
-  const findPath = (startIndex: number, targetIndex: number) => {
-    if (startIndex === targetIndex) return [startIndex]
-    const visited = new Set<number>([startIndex])
-    const queue: Array<{ index: number; path: number[] }> = [
-      { index: startIndex, path: [startIndex] },
-    ]
-    while (queue.length) {
-      const current = queue.shift()
-      if (!current) break
-      const neighbors = adjacency.get(current.index) ?? []
-      for (const neighbor of neighbors) {
-        if (visited.has(neighbor)) continue
-        const nextPath = [...current.path, neighbor]
-        if (neighbor === targetIndex) {
-          return nextPath
-        }
-        visited.add(neighbor)
-        queue.push({ index: neighbor, path: nextPath })
-      }
-    }
-    return [startIndex, targetIndex]
-  }
-
   const handleTap = (event: PointerEvent<HTMLDivElement>) => {
     if (phase !== 'play') return
     const svgPoint = toViewBoxPoint(event)
@@ -152,39 +118,68 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
 
     batchRef.current += 1
     const batchId = batchRef.current
-    const startIndex = findNearestNodeIndex(svgPoint.x, svgPoint.y)
-    let targetIndex = startIndex
-    while (targetIndex === startIndex && NETWORK_NODES.length > 1) {
-      targetIndex = Math.floor(Math.random() * NETWORK_NODES.length)
-    }
-    const path = findPath(startIndex, targetIndex)
+
+    const distanceList = allNodes.map((node, index) => ({
+      index,
+      distance: Math.hypot(svgPoint.x - node.cx, svgPoint.y - node.cy),
+    }))
+    distanceList.sort((a, b) => a.distance - b.distance)
+    const nearestIndices = distanceList.slice(0, Math.min(2, distanceList.length))
+
+    const newNodeIndex = STATIC_NODES.length + customNodes.length
+    const newNodeId = `c${Date.now()}`
+    const newNode: Node = { id: newNodeId, cx: svgPoint.x, cy: svgPoint.y }
+    const newEdges: Array<[number, number]> = nearestIndices.map((item) => [
+      newNodeIndex,
+      item.index,
+    ])
+
+    setCustomNodes((prev) => [...prev, newNode])
+    setCustomEdges((prev) => [...prev, ...newEdges])
 
     const newSegments: Segment[] = []
 
-    path.forEach((nodeIndex, order) => {
-      const node = NETWORK_NODES[nodeIndex]
+    // segment from tap to new node
+    const tapPoint = { x: svgPoint.x, y: svgPoint.y }
+    const newNodePoint = { x: newNode.cx, y: newNode.cy }
+    newSegments.push(createSegment(batchId, 0, tapPoint, newNodePoint))
+
+    nearestIndices.forEach((entry, idx) => {
+      const target = allNodes[entry.index]
+      if (!target) return
+      const targetPoint = { x: target.cx, y: target.cy }
+      newSegments.push(createSegment(batchId, idx + 1, newNodePoint, targetPoint))
       setActiveNodes((prev) => {
         const next = new Set(prev)
-        next.add(node.id)
+        next.add(target.id)
         return next
       })
       window.setTimeout(() => {
         setActiveNodes((prev) => {
           const next = new Set(prev)
-          next.delete(node.id)
+          next.delete(target.id)
           return next
         })
-      }, 900 + order * 120)
-
-      const startPoint = order === 0 ? svgPoint : nodePoint(path[order - 1])
-      const endPoint = nodePoint(nodeIndex)
-      newSegments.push(createSegment(batchId, order, startPoint, endPoint))
+      }, 1200 + idx * 150)
     })
+
+    setActiveNodes((prev) => {
+      const next = new Set(prev)
+      next.add(newNodeId)
+      return next
+    })
+    window.setTimeout(() => {
+      setActiveNodes((prev) => {
+        const next = new Set(prev)
+        next.delete(newNodeId)
+        return next
+      })
+    }, 1400)
 
     setSegments((prev) => [...prev, ...newSegments])
     window.setTimeout(() => {
       setSegments((prev) => prev.filter((segment) => segment.batch !== batchId))
-    }, 2000)
+    }, 6000)
 
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
     event.preventDefault()
@@ -209,9 +204,9 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               <stop offset="100%" stopColor="rgba(28, 144, 210, 0.32)" />
             </linearGradient>
           </defs>
-          {NETWORK_EDGES.map(([fromIndex, toIndex], index) => {
-            const from = NETWORK_NODES[fromIndex]
-            const to = NETWORK_NODES[toIndex]
+          {edges.map(([fromIndex, toIndex], index) => {
+            const from = allNodes[fromIndex]
+            const to = allNodes[toIndex]
             return (
               <line
                 key={`edge-${index}`}
@@ -223,27 +218,26 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               />
             )
           })}
-          {NETWORK_NODES.map((node) => (
+          {allNodes.map((node) => (
             <circle
               key={node.id}
               cx={node.cx}
               cy={node.cy}
-              r={1.35}
+              r={0.85}
               className={`links-network__node${
                 activeNodes.has(node.id) ? ' is-active' : ''
               }`}
             />
           ))}
           {segments.map((segment) => {
-            const style: CSSProperties = {
-              animationDelay: `${segment.delay}ms`,
-            }
+          const style: CSSProperties = {
+            animationDelay: `${segment.delay}ms`,
+          }
             return (
               <path
                 key={segment.id}
                 d={segment.d}
                 className="links-sparkline"
-                pathLength={1}
                 style={style}
               />
             )
@@ -279,14 +273,6 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       )}
     </section>
   )
-}
-
-const nodePoint = (index: number) => {
-  const node = NETWORK_NODES[index]
-  return {
-    x: node.cx,
-    y: node.cy,
-  }
 }
 
 const createSegment = (
