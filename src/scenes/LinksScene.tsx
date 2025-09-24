@@ -142,18 +142,14 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     setDynamicEdges((prev) => [...prev, ...newEdges])
 
     const newSegments: Segment[] = []
-    const tapPoint = { x: svgPoint.x, y: svgPoint.y }
     const newNodePoint = { x: newNode.cx, y: newNode.cy }
-
-    newSegments.push(createSegment(batchId, 0, tapPoint, newNodePoint, true))
 
     nearestIndices.forEach((entry, idx) => {
       const target = allNodes[entry.index]
       if (!target) return
       const targetPoint = { x: target.cx, y: target.cy }
-      newSegments.push(
-        createSegment(batchId, idx + 1, newNodePoint, targetPoint, false)
-      )
+      const isStrong = idx === 0
+      newSegments.push(createSegment(batchId, idx, newNodePoint, targetPoint, isStrong))
 
       setActiveNodes((prev) => {
         const next = new Set(prev)
