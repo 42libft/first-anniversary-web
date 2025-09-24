@@ -341,29 +341,6 @@ export const CanvasHeartWaves = ({
     }
   }, [disabled])
 
-  useEffect(() => {
-    if (disabled) return
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
-
-    const autoPulse = () => {
-      const x = rect.left + rect.width * (0.25 + Math.random() * 0.5)
-      const y = rect.top + rect.height * (0.3 + Math.random() * 0.4)
-      spawnRipple(x, y, false)
-    }
-
-    const initial = setTimeout(autoPulse, 320)
-    const interval = setInterval(() => {
-      if (!disabled) autoPulse()
-    }, 3600)
-
-    return () => {
-      clearTimeout(initial)
-      clearInterval(interval)
-    }
-  }, [disabled])
-
   return (
     <canvas
       ref={canvasRef}
