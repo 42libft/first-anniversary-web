@@ -212,8 +212,8 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
             </linearGradient>
             <linearGradient id="links-spark-strong" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
-              <stop offset="80%" stopColor="rgba(140, 220, 255, 0.75)" />
-              <stop offset="100%" stopColor="rgba(64, 168, 240, 0.1)" />
+              <stop offset="80%" stopColor="rgba(140, 220, 255, 0.78)" />
+              <stop offset="100%" stopColor="rgba(64, 168, 240, 0.12)" />
             </linearGradient>
           </defs>
           {edges.map(([fromIndex, toIndex], index) => {
@@ -241,26 +241,26 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               }`}
             />
           ))}
+          {segments.map((segment) => {
+            const style: CSSProperties = {
+              animationDelay: `${segment.delay}ms`,
+            }
+            return (
+              <line
+                key={segment.id}
+                x1={segment.startX}
+                y1={segment.startY}
+                x2={segment.endX}
+                y2={segment.endY}
+                className={`links-sparkline${
+                  segment.isStrong ? ' links-sparkline--strong' : ''
+                }`}
+                stroke={segment.isStrong ? 'url(#links-spark-strong)' : undefined}
+                style={style}
+              />
+            )
+          })}
         </svg>
-        {segments.map((segment) => {
-          const style: CSSProperties = {
-            animationDelay: `${segment.delay}ms`,
-          }
-          return (
-            <line
-              key={segment.id}
-              x1={segment.startX}
-              y1={segment.startY}
-              x2={segment.endX}
-              y2={segment.endY}
-              className={`links-sparkline${
-                segment.isStrong ? ' links-sparkline--strong' : ''
-              }`}
-              stroke={segment.isStrong ? 'url(#links-spark-strong)' : undefined}
-              style={style}
-            />
-          )
-        })}
       </div>
 
       <div className="links-count" aria-hidden>
