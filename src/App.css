@@ -1222,7 +1222,7 @@
   background: linear-gradient(90deg, rgba(198, 244, 255, 0.9), rgba(64, 168, 240, 0));
   box-shadow: 0 0 8px rgba(96, 226, 255, 0.35);
   transform-origin: 0% 50%;
-  transform: translateY(-50%) rotate(0deg) scaleX(0);
+  transform: translateY(-50%) rotate(var(--spark-rotate, 0deg)) scaleX(0);
   animation: linksSparkSegment 1200ms ease-out forwards;
   pointer-events: none;
 }
@@ -1260,11 +1260,11 @@
 @keyframes linksSparkSegment {
   0% {
     opacity: 0.9;
-    transform: translateY(-50%) rotate(0deg) scaleX(0);
+    transform: translateY(-50%) rotate(var(--spark-rotate, 0deg)) scaleX(0);
   }
   100% {
     opacity: 0.12;
-    transform: translateY(-50%) rotate(0deg) scaleX(1);
+    transform: translateY(-50%) rotate(var(--spark-rotate, 0deg)) scaleX(1);
   }
 }
 

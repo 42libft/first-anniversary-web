@@ -236,14 +236,13 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           ))}
         </svg>
         {segments.map((segment) => {
-          const style: CSSProperties = {
+          const style: CSSProperties & { [key: string]: string | number } = {
             left: `${segment.startX}%`,
             top: `${segment.startY}%`,
             width: `${segment.length}%`,
-            transform: `translateY(-50%) rotate(${segment.angle}deg) scaleX(0)`,
-            transformOrigin: '0% 50%',
             animationDelay: `${segment.delay}ms`,
           }
+          style['--spark-rotate'] = `${segment.angle}deg`
           return (
             <span
               key={segment.id}
