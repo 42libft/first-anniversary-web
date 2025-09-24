@@ -50,38 +50,10 @@ type Segment = {
   batch: number
   startX: number
   startY: number
-  length: number
-  angle: number
+  endX: number
+  endY: number
   delay: number
   isStrong: boolean
-}
-
-const toStagePoint = (point: { x: number; y: number }, rect: DOMRect) => ({
-  x: (point.x / 100) * rect.width,
-  y: (point.y / 100) * rect.height,
-})
-
-const createSegment = (
-  batch: number,
-  order: number,
-  start: { x: number; y: number },
-  end: { x: number; y: number },
-  isStrong: boolean
-): Segment => {
-  const dx = end.x - start.x
-  const dy = end.y - start.y
-  const length = Math.hypot(dx, dy)
-  const angle = (Math.atan2(dy, dx) * 180) / Math.PI
-  return {
-    id: batch * 100 + order,
-    batch,
-    startX: start.x,
-    startY: start.y,
-    length,
-    angle,
-    delay: order * 140,
-    isStrong,
-  }
 }
 
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
@@ -146,9 +118,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const handleTap = (event: PointerEvent<HTMLDivElement>) => {
     if (phase !== 'play') return
     const svgPoint = toViewBoxPoint(event)
-    if (!svgPoint || !stageRef.current) return
-
-    const stageRect = stageRef.current.getBoundingClientRect()
+    if (!svgPoint) return
 
     batchRef.current += 1
     const batchId = batchRef.current
@@ -172,15 +142,18 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     setDynamicEdges((prev) => [...prev, ...newEdges])
 
     const newSegments: Segment[] = []
-    const newNodeStagePoint = toStagePoint({ x: newNode.cx, y: newNode.cy }, stageRect)
-
     nearestIndices.forEach((entry, idx) => {
       const target = allNodes[entry.index]
       if (!target) return
-      const targetStagePoint = toStagePoint({ x: target.cx, y: target.cy }, stageRect)
       const isStrong = idx === 0
       newSegments.push(
-        createSegment(batchId, idx, newNodeStagePoint, targetStagePoint, isStrong)
+        createSegment(
+          batchId,
+          idx,
+          { x: newNode.cx, y: newNode.cy },
+          { x: target.cx, y: target.cy },
+          isStrong
+        )
       )
 
       setActiveNodes((prev) => {
@@ -265,18 +238,18 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           ))}
         </svg>
         {segments.map((segment) => {
-          const style: CSSProperties & Record<string, string | number> = {
-            left: `${segment.startX}px`,
-            top: `${segment.startY}px`,
-            width: `${segment.length}px`,
+          const style: CSSProperties = {
             animationDelay: `${segment.delay}ms`,
           }
-          style['--spark-rotate'] = `${segment.angle}deg`
           return (
-            <span
+            <line
               key={segment.id}
-              className={`links-spark${
-                segment.isStrong ? ' links-spark--strong' : ''
+              x1={segment.startX}
+              y1={segment.startY}
+              x2={segment.endX}
+              y2={segment.endY}
+              className={`links-sparkline${
+                segment.isStrong ? ' links-sparkline--strong' : ''
               }`}
               style={style}
             />
@@ -312,4 +285,23 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       )}
     </section>
   )
+}
+
+const createSegment = (
+  batch: number,
+  order: number,
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+  isStrong: boolean
+): Segment => {
+  return {
+    id: batch * 100 + order,
+    batch,
+    startX: start.x,
+    startY: start.y,
+    endX: end.x,
+    endY: end.y,
+    delay: order * 140,
+    isStrong,
+  }
 }
