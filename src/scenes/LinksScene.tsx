@@ -16,16 +16,16 @@ const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
 const NETWORK_NODES = [
-  { id: 'n1', cx: 12, cy: 26, r: 1.6 },
-  { id: 'n2', cx: 22, cy: 62, r: 1.15 },
-  { id: 'n3', cx: 38, cy: 18, r: 1.4 },
-  { id: 'n4', cx: 48, cy: 44, r: 1.1 },
-  { id: 'n5', cx: 60, cy: 16, r: 1.4 },
-  { id: 'n6', cx: 70, cy: 58, r: 1.6 },
-  { id: 'n7', cx: 82, cy: 30, r: 1.2 },
-  { id: 'n8', cx: 30, cy: 78, r: 1.35 },
-  { id: 'n9', cx: 58, cy: 78, r: 1.1 },
-  { id: 'n10', cx: 86, cy: 70, r: 1.25 },
+  { id: 'n1', cx: 12, cy: 26 },
+  { id: 'n2', cx: 22, cy: 62 },
+  { id: 'n3', cx: 38, cy: 18 },
+  { id: 'n4', cx: 48, cy: 44 },
+  { id: 'n5', cx: 60, cy: 16 },
+  { id: 'n6', cx: 70, cy: 58 },
+  { id: 'n7', cx: 82, cy: 30 },
+  { id: 'n8', cx: 30, cy: 78 },
+  { id: 'n9', cx: 58, cy: 78 },
+  { id: 'n10', cx: 86, cy: 70 },
 ] as const
 
 const NETWORK_EDGES: Array<[number, number]> = [
@@ -46,10 +46,7 @@ const NETWORK_EDGES: Array<[number, number]> = [
 type Segment = {
   id: number
   batch: number
-  x: number
-  y: number
-  length: number
-  angle: number
+  d: string
   delay: number
 }
 
@@ -63,6 +60,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const [segments, setSegments] = useState<Segment[]>([])
   const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set())
   const stageRef = useRef<HTMLDivElement | null>(null)
+  const networkRef = useRef<SVGSVGElement | null>(null)
   const batchRef = useRef(0)
 
   const adjacency = useMemo(() => {
@@ -99,13 +97,23 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     }
   }, [phase])
 
-  const findNearestNodeIndex = (x: number, y: number, rect: DOMRect) => {
+  const toViewBoxPoint = (event: PointerEvent<HTMLDivElement>) => {
+    if (!networkRef.current) return null
+    const svg = networkRef.current
+    const point = svg.createSVGPoint()
+    point.x = event.clientX
+    point.y = event.clientY
+    const ctm = svg.getScreenCTM()
+    if (!ctm) return null
+    const svgPoint = point.matrixTransform(ctm.inverse())
+    return { x: svgPoint.x, y: svgPoint.y }
+  }
+
+  const findNearestNodeIndex = (x: number, y: number) => {
     let nearestIndex = 0
     let minDistance = Number.POSITIVE_INFINITY
     NETWORK_NODES.forEach((node, index) => {
-      const nodeX = (node.cx / 100) * rect.width
-      const nodeY = (node.cy / 100) * rect.height
-      const distance = Math.hypot(x - nodeX, y - nodeY)
+      const distance = Math.hypot(x - node.cx, y - node.cy)
       if (distance < minDistance) {
         minDistance = distance
         nearestIndex = index
@@ -139,23 +147,21 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
 
   const handleTap = (event: PointerEvent<HTMLDivElement>) => {
     if (phase !== 'play') return
-    if (!stageRef.current) return
-    const rect = stageRef.current.getBoundingClientRect()
-    const startX = event.clientX - rect.left
-    const startY = event.clientY - rect.top
+    const svgPoint = toViewBoxPoint(event)
+    if (!svgPoint) return
 
-    const startIndex = findNearestNodeIndex(startX, startY, rect)
+    batchRef.current += 1
+    const batchId = batchRef.current
+    const startIndex = findNearestNodeIndex(svgPoint.x, svgPoint.y)
     let targetIndex = startIndex
     while (targetIndex === startIndex && NETWORK_NODES.length > 1) {
       targetIndex = Math.floor(Math.random() * NETWORK_NODES.length)
     }
     const path = findPath(startIndex, targetIndex)
-    batchRef.current += 1
-    const batchId = batchRef.current
 
     const newSegments: Segment[] = []
 
-    path.forEach((nodeIndex, idx) => {
+    path.forEach((nodeIndex, order) => {
       const node = NETWORK_NODES[nodeIndex]
       setActiveNodes((prev) => {
         const next = new Set(prev)
@@ -168,19 +174,17 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           next.delete(node.id)
           return next
         })
-      }, 900 + idx * 120)
+      }, 900 + order * 120)
 
-      const startPoint = idx === 0 ? { x: startX, y: startY } : nodePoint(path[idx - 1], rect)
-      const endPoint = nodePoint(nodeIndex, rect)
-      newSegments.push(
-        createSegment(batchId, idx, startPoint, endPoint)
-      )
+      const startPoint = order === 0 ? svgPoint : nodePoint(path[order - 1])
+      const endPoint = nodePoint(nodeIndex)
+      newSegments.push(createSegment(batchId, order, startPoint, endPoint))
     })
 
     setSegments((prev) => [...prev, ...newSegments])
     window.setTimeout(() => {
       setSegments((prev) => prev.filter((segment) => segment.batch !== batchId))
-    }, 1600)
+    }, 2000)
 
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
     event.preventDefault()
@@ -198,7 +202,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         aria-hidden
         onPointerDown={handleTap}
       >
-        <svg className="links-network" viewBox="0 0 100 100">
+        <svg ref={networkRef} className="links-network" viewBox="0 0 100 100">
           <defs>
             <linearGradient id="links-line" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="rgba(96, 226, 255, 0.65)" />
@@ -224,23 +228,27 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               key={node.id}
               cx={node.cx}
               cy={node.cy}
-              r={node.r}
+              r={1.35}
               className={`links-network__node${
                 activeNodes.has(node.id) ? ' is-active' : ''
               }`}
             />
           ))}
+          {segments.map((segment) => {
+            const style: CSSProperties = {
+              animationDelay: `${segment.delay}ms`,
+            }
+            return (
+              <path
+                key={segment.id}
+                d={segment.d}
+                className="links-sparkline"
+                pathLength={1}
+                style={style}
+              />
+            )
+          })}
         </svg>
-        {segments.map((segment) => {
-          const style: CSSProperties & { '--spark-rotate': string } = {
-            left: `${segment.x}px`,
-            top: `${segment.y}px`,
-            width: `${segment.length}px`,
-            animationDelay: `${segment.delay}ms`,
-            '--spark-rotate': `${segment.angle}deg`,
-          }
-          return <span key={segment.id} className="links-spark" style={style} />
-        })}
       </div>
 
       <div className="links-count" aria-hidden>
@@ -273,11 +281,11 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   )
 }
 
-const nodePoint = (index: number, rect: DOMRect) => {
+const nodePoint = (index: number) => {
   const node = NETWORK_NODES[index]
   return {
-    x: (node.cx / 100) * rect.width,
-    y: (node.cy / 100) * rect.height,
+    x: node.cx,
+    y: node.cy,
   }
 }
 
@@ -287,17 +295,10 @@ const createSegment = (
   start: { x: number; y: number },
   end: { x: number; y: number }
 ): Segment => {
-  const dx = end.x - start.x
-  const dy = end.y - start.y
-  const length = Math.hypot(dx, dy)
-  const angle = (Math.atan2(dy, dx) * 180) / Math.PI
   return {
     id: batch * 100 + order,
     batch,
-    x: start.x,
-    y: start.y,
-    length,
-    angle,
+    d: `M ${start.x} ${start.y} L ${end.x} ${end.y}`,
     delay: order * 110,
   }
 }
