@@ -1,4 +1,11 @@
-import { type CSSProperties, type PointerEvent, useEffect, useRef, useState } from 'react'
+import {
+  type CSSProperties,
+  type PointerEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import { linkExchangeCounts, totalLinks } from '../data/links'
 import type { SceneComponentProps } from '../types/scenes'
@@ -36,9 +43,14 @@ const NETWORK_EDGES: Array<[number, number]> = [
   [5, 9],
 ]
 
-type Spark = {
+type Segment = {
   id: number
-  path: string
+  batch: number
+  x: number
+  y: number
+  length: number
+  angle: number
+  delay: number
 }
 
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
@@ -48,9 +60,22 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   )
   const [ctaVisible, setCtaVisible] = useState(false)
   const [showLines, setShowLines] = useState(false)
-  const [sparks, setSparks] = useState<Spark[]>([])
+  const [segments, setSegments] = useState<Segment[]>([])
+  const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set())
   const stageRef = useRef<HTMLDivElement | null>(null)
-  const sparkIdRef = useRef(0)
+  const batchRef = useRef(0)
+
+  const adjacency = useMemo(() => {
+    const map = new Map<number, number[]>()
+    NETWORK_NODES.forEach((_, index) => {
+      map.set(index, [])
+    })
+    NETWORK_EDGES.forEach(([from, to]) => {
+      map.get(from)?.push(to)
+      map.get(to)?.push(from)
+    })
+    return map
+  }, [])
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -74,25 +99,88 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     }
   }, [phase])
 
+  const findNearestNodeIndex = (x: number, y: number, rect: DOMRect) => {
+    let nearestIndex = 0
+    let minDistance = Number.POSITIVE_INFINITY
+    NETWORK_NODES.forEach((node, index) => {
+      const nodeX = (node.cx / 100) * rect.width
+      const nodeY = (node.cy / 100) * rect.height
+      const distance = Math.hypot(x - nodeX, y - nodeY)
+      if (distance < minDistance) {
+        minDistance = distance
+        nearestIndex = index
+      }
+    })
+    return nearestIndex
+  }
+
+  const findPath = (startIndex: number, targetIndex: number) => {
+    if (startIndex === targetIndex) return [startIndex]
+    const visited = new Set<number>([startIndex])
+    const queue: Array<{ index: number; path: number[] }> = [
+      { index: startIndex, path: [startIndex] },
+    ]
+    while (queue.length) {
+      const current = queue.shift()
+      if (!current) break
+      const neighbors = adjacency.get(current.index) ?? []
+      for (const neighbor of neighbors) {
+        if (visited.has(neighbor)) continue
+        const nextPath = [...current.path, neighbor]
+        if (neighbor === targetIndex) {
+          return nextPath
+        }
+        visited.add(neighbor)
+        queue.push({ index: neighbor, path: nextPath })
+      }
+    }
+    return [startIndex, targetIndex]
+  }
+
   const handleTap = (event: PointerEvent<HTMLDivElement>) => {
     if (phase !== 'play') return
     if (!stageRef.current) return
     const rect = stageRef.current.getBoundingClientRect()
     const startX = event.clientX - rect.left
     const startY = event.clientY - rect.top
-    const target = NETWORK_NODES[Math.floor(Math.random() * NETWORK_NODES.length)]
-    const endX = (target.cx / 100) * rect.width
-    const endY = (target.cy / 100) * rect.height
 
-    sparkIdRef.current += 1
-    const spark: Spark = {
-      id: sparkIdRef.current,
-      path: `M ${startX} ${startY} L ${endX} ${endY}`,
+    const startIndex = findNearestNodeIndex(startX, startY, rect)
+    let targetIndex = startIndex
+    while (targetIndex === startIndex && NETWORK_NODES.length > 1) {
+      targetIndex = Math.floor(Math.random() * NETWORK_NODES.length)
     }
-    setSparks((prev) => [...prev, spark])
+    const path = findPath(startIndex, targetIndex)
+    batchRef.current += 1
+    const batchId = batchRef.current
+
+    const newSegments: Segment[] = []
+
+    path.forEach((nodeIndex, idx) => {
+      const node = NETWORK_NODES[nodeIndex]
+      setActiveNodes((prev) => {
+        const next = new Set(prev)
+        next.add(node.id)
+        return next
+      })
+      window.setTimeout(() => {
+        setActiveNodes((prev) => {
+          const next = new Set(prev)
+          next.delete(node.id)
+          return next
+        })
+      }, 900 + idx * 120)
+
+      const startPoint = idx === 0 ? { x: startX, y: startY } : nodePoint(path[idx - 1], rect)
+      const endPoint = nodePoint(nodeIndex, rect)
+      newSegments.push(
+        createSegment(batchId, idx, startPoint, endPoint)
+      )
+    })
+
+    setSegments((prev) => [...prev, ...newSegments])
     window.setTimeout(() => {
-      setSparks((prev) => prev.filter((item) => item.id !== spark.id))
-    }, 1200)
+      setSegments((prev) => prev.filter((segment) => segment.batch !== batchId))
+    }, 1600)
 
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
     event.preventDefault()
@@ -137,21 +225,21 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               cx={node.cx}
               cy={node.cy}
               r={node.r}
-              className="links-network__node"
+              className={`links-network__node${
+                activeNodes.has(node.id) ? ' is-active' : ''
+              }`}
             />
           ))}
         </svg>
-        {sparks.map((spark) => {
-          const style: CSSProperties & {
-            WebkitOffsetPath?: string
-            WebkitOffsetDistance?: string
-          } = {
-            offsetPath: `path('${spark.path}')`,
-            WebkitOffsetPath: `path('${spark.path}')`,
-            offsetDistance: '0%',
-            WebkitOffsetDistance: '0%',
+        {segments.map((segment) => {
+          const style: CSSProperties & { '--spark-rotate': string } = {
+            left: `${segment.x}px`,
+            top: `${segment.y}px`,
+            width: `${segment.length}px`,
+            animationDelay: `${segment.delay}ms`,
+            '--spark-rotate': `${segment.angle}deg`,
           }
-          return <span key={spark.id} className="links-spark" style={style} />
+          return <span key={segment.id} className="links-spark" style={style} />
         })}
       </div>
 
@@ -183,4 +271,33 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       )}
     </section>
   )
+}
+
+const nodePoint = (index: number, rect: DOMRect) => {
+  const node = NETWORK_NODES[index]
+  return {
+    x: (node.cx / 100) * rect.width,
+    y: (node.cy / 100) * rect.height,
+  }
+}
+
+const createSegment = (
+  batch: number,
+  order: number,
+  start: { x: number; y: number },
+  end: { x: number; y: number }
+): Segment => {
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const length = Math.hypot(dx, dy)
+  const angle = (Math.atan2(dy, dx) * 180) / Math.PI
+  return {
+    id: batch * 100 + order,
+    batch,
+    x: start.x,
+    y: start.y,
+    length,
+    angle,
+    delay: order * 110,
+  }
 }

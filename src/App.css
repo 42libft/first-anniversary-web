@@ -1209,15 +1209,13 @@
 
 .links-spark {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  height: 2px;
   border-radius: 999px;
-  background: radial-gradient(circle, #d2f4ff 0%, rgba(32, 120, 220, 0.6) 60%, rgba(32, 120, 220, 0) 100%);
-  filter: drop-shadow(0 0 12px rgba(120, 226, 255, 0.55));
-  offset-rotate: 0deg;
-  offset-distance: 0%;
-  -webkit-offset-distance: 0%;
-  animation: linksSparkTravel 1100ms ease-out forwards;
+  background: linear-gradient(90deg, rgba(198, 244, 255, 0.9), rgba(64, 168, 240, 0));
+  box-shadow: 0 0 8px rgba(96, 226, 255, 0.35);
+  transform-origin: 0% 50%;
+  transform: rotate(var(--spark-rotate, 0deg)) translateY(-50%) scaleX(0);
+  animation: linksSparkSegment 1000ms ease-out forwards;
   pointer-events: none;
 }
 
@@ -1243,21 +1241,17 @@
   }
 }
 
-@keyframes linksSparkTravel {
+@keyframes linksSparkSegment {
   0% {
-    offset-distance: 0%;
-    -webkit-offset-distance: 0%;
     opacity: 0.85;
-    transform: scale(0.9);
+    transform: rotate(var(--spark-rotate, 0deg)) translateY(-50%) scaleX(0);
   }
-  60% {
+  50% {
     opacity: 1;
   }
   100% {
-    offset-distance: 100%;
-    -webkit-offset-distance: 100%;
     opacity: 0;
-    transform: scale(0.4);
+    transform: rotate(var(--spark-rotate, 0deg)) translateY(-50%) scaleX(1);
   }
 }
 
