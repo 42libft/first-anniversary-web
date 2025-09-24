@@ -28,6 +28,7 @@ type Ripple = {
   createdAt: number
   hue: number
   phaseOffset: number
+  strength: number
 }
 
 const MAX_RIPPLES = 240
@@ -108,6 +109,7 @@ const drawRippleHeart = (
   hue: number,
   radialProgress: number,
   alpha: number,
+  strength: number,
   dpr: number,
   settings: HeartWaveSettings
 ) => {
@@ -137,25 +139,25 @@ const drawRippleHeart = (
   ctx.scale(baseScale, baseScale)
   drawNormalizedHeartPath(ctx)
 
-  ctx.globalAlpha = alpha * 0.22
+  ctx.globalAlpha = alpha * strength * 0.26
   ctx.lineWidth = normalizedGlowWidth
-  ctx.strokeStyle = `hsla(${(hue + 188) % 360}, 44%, ${62 + wakeIntensity * 4}%, ${0.26 + wakeIntensity * 0.1})`
+  ctx.strokeStyle = `hsla(${(hue + 188) % 360}, 44%, ${62 + wakeIntensity * 4}%, ${0.24 + wakeIntensity * 0.1})`
   ctx.stroke()
 
-  ctx.globalAlpha = alpha * 0.5
-  ctx.lineWidth = normalizedRingWidth * (0.95)
-  ctx.strokeStyle = `hsla(${(hue + 198) % 360}, 58%, ${70 + wakeIntensity * 4}%, 0.52)`
+  ctx.globalAlpha = alpha * strength * 0.6
+  ctx.lineWidth = normalizedRingWidth
+  ctx.strokeStyle = `hsla(${(hue + 198) % 360}, 58%, ${70 + wakeIntensity * 4}%, 0.48)`
   ctx.stroke()
 
-  ctx.globalAlpha = alpha * 0.32
+  ctx.globalAlpha = alpha * strength * 0.35
   ctx.lineWidth = normalizedHighlightWidth
-  ctx.strokeStyle = `hsla(${(hue + 205) % 360}, 80%, 88%, 0.5)`
+  ctx.strokeStyle = `hsla(${(hue + 205) % 360}, 80%, 88%, 0.42)`
   ctx.stroke()
 
   if (wakeIntensity > 0.04) {
     const wakeScale = 1 + wakeIntensity * 0.04
-    ctx.globalAlpha = alpha * 0.15 * wakeIntensity
-    ctx.lineWidth = normalizedRingWidth * 0.45
+    ctx.globalAlpha = alpha * strength * 0.18 * wakeIntensity
+    ctx.lineWidth = normalizedRingWidth * 0.38
     ctx.save()
     ctx.scale(wakeScale, wakeScale)
     ctx.strokeStyle = `hsla(${(hue + 205) % 360}, 56%, 80%, 0.35)`
@@ -203,21 +205,29 @@ export const CanvasHeartWaves = ({
     const currentSettings = settingsRef.current
 
     const now = performance.now()
-    const spacing = Math.max(
-      40,
-      currentSettings.rippleLifetime / (HARMONIC_COUNT + 1)
+    const baseSpacing = Math.max(
+      32,
+      currentSettings.rippleLifetime / (HARMONIC_COUNT + 3)
     )
+    const spacingFalloff = 0.78
+    const strengthFalloff = 0.58
     const newRipples: Ripple[] = []
 
+    let cumulativeOffset = 0
     for (let index = 0; index < HARMONIC_COUNT; index += 1) {
       idRef.current += 1
+      if (index > 0) {
+        cumulativeOffset += baseSpacing * Math.pow(spacingFalloff, index - 1)
+      }
+      const strength = Math.pow(strengthFalloff, index)
       newRipples.push({
         id: idRef.current,
         x,
         y,
         createdAt: now,
         hue: HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)],
-        phaseOffset: index * spacing,
+        phaseOffset: cumulativeOffset,
+        strength,
       })
     }
 
@@ -267,6 +277,7 @@ export const CanvasHeartWaves = ({
           ripple.hue,
           metrics.radialProgress,
           metrics.alpha,
+          ripple.strength,
           dpr,
           currentSettings
         )
