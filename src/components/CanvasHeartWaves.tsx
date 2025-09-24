@@ -6,6 +6,7 @@ export type HeartWaveSettings = {
   baseScaleMinPx: number
   radiusProgressExponent: number
   radiusSpeed: number
+  fadeOutRatio: number
   ringThicknessRatio: number
   minRingThicknessPx: number
   glowThicknessRatio: number
@@ -43,7 +44,8 @@ export const DEFAULT_HEART_WAVE_SETTINGS: HeartWaveSettings = {
   rippleRadiusFactor: 1.35,
   baseScaleMinPx: 6,
   radiusProgressExponent: 1.1,
-  radiusSpeed: 0.6,
+  radiusSpeed: 0.35,
+  fadeOutRatio: 0.7,
   ringThicknessRatio: 0.02,
   minRingThicknessPx: 1.5,
   glowThicknessRatio: 0.002,
@@ -86,9 +88,14 @@ const getRippleMetrics = (
   const radius = reach * Math.min(1, eased)
   const radialProgress = Math.min(1, radius / reach)
 
-  const edgeFade = Math.pow(1 - radialProgress, 1.4)
-  const overshoot = clamp01(travelProgressRaw - 1)
-  const alpha = Math.max(0, settings.alphaStart * edgeFade * (1 - overshoot * 1.8))
+  const fadeRatio = clamp01(settings.fadeOutRatio)
+  const fadeProgress =
+    fadeRatio <= 0
+      ? 0
+      : Math.max(0, fadeRatio - radialProgress) / Math.max(fadeRatio, 0.0001)
+  const edgeFade = Math.pow(fadeProgress, 1.4)
+  const overshoot = clamp01((radialProgress - fadeRatio) / Math.max(0.05, 1 - fadeRatio))
+  const alpha = Math.max(0, settings.alphaStart * edgeFade * (1 - overshoot * 1.2))
 
   return { radius, radialProgress, alpha, travelProgressRaw }
 }
@@ -263,7 +270,10 @@ export const CanvasHeartWaves = ({
         if (effectiveAge < 0) continue
         const metrics = getRippleMetrics(effectiveAge, w, h, currentSettings)
         if (metrics.radius <= 0.5 || metrics.alpha <= 0.001) {
-          if (metrics.travelProgressRaw >= 1.1) {
+          if (
+            metrics.radialProgress >= currentSettings.fadeOutRatio ||
+            metrics.travelProgressRaw >= 1
+          ) {
             ripples.splice(i, 1)
           }
           continue
@@ -282,7 +292,10 @@ export const CanvasHeartWaves = ({
           currentSettings
         )
 
-        if (metrics.travelProgressRaw >= 1.15) {
+        if (
+          metrics.radialProgress >= currentSettings.fadeOutRatio + 0.08 ||
+          metrics.travelProgressRaw >= 1.1
+        ) {
           ripples.splice(i, 1)
         }
       }
