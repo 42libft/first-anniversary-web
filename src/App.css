@@ -778,19 +778,30 @@
   width: 100%;
   min-height: 100%;
   background:
-    radial-gradient(circle at 16% 22%, rgba(88, 226, 245, 0.18), transparent 60%),
-    radial-gradient(circle at 82% 74%, rgba(64, 160, 220, 0.22), transparent 58%),
-    linear-gradient(165deg, rgba(8, 24, 44, 0.9), rgba(10, 46, 62, 0.92));
+    radial-gradient(58% 68% at 20% 18%, rgba(118, 234, 255, 0.24), transparent 68%),
+    radial-gradient(48% 60% at 82% 70%, rgba(64, 162, 210, 0.2), transparent 65%),
+    linear-gradient(175deg, rgba(8, 32, 52, 0.68), rgba(10, 50, 70, 0.78));
   overflow: hidden;
+}
+.likes-full::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 45%),
+    linear-gradient(305deg, rgba(176, 236, 255, 0.06), rgba(255, 255, 255, 0) 55%);
+  mix-blend-mode: screen;
+  opacity: 0.75;
+  pointer-events: none;
 }
 .likes-full::after {
   content: '';
   position: absolute;
   inset: -30%;
   background:
-    radial-gradient(circle at 40% 35%, rgba(180, 230, 255, 0.08), transparent 68%),
-    radial-gradient(circle at 70% 68%, rgba(96, 196, 255, 0.06), transparent 72%);
-  filter: blur(160px);
+    radial-gradient(circle at 40% 35%, rgba(160, 224, 252, 0.12), transparent 68%),
+    radial-gradient(circle at 70% 68%, rgba(90, 206, 255, 0.1), transparent 72%);
+  filter: blur(200px);
   pointer-events: none;
 }
 .likes-full .canvas-love {
