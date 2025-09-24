@@ -50,10 +50,10 @@ type Segment = {
   batch: number
   startX: number
   startY: number
-  length: number
-  angle: number
+  endX: number
+  endY: number
   delay: number
-  strength: number
+  isStrong: boolean
 }
 
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
@@ -145,14 +145,15 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     const tapPoint = { x: svgPoint.x, y: svgPoint.y }
     const newNodePoint = { x: newNode.cx, y: newNode.cy }
 
-    newSegments.push(createSegment(batchId, 0, tapPoint, newNodePoint, 1))
+    newSegments.push(createSegment(batchId, 0, tapPoint, newNodePoint, true))
 
     nearestIndices.forEach((entry, idx) => {
       const target = allNodes[entry.index]
       if (!target) return
       const targetPoint = { x: target.cx, y: target.cy }
-      const strength = Math.max(0.4, 0.75 - idx * 0.18)
-      newSegments.push(createSegment(batchId, idx + 1, newNodePoint, targetPoint, strength))
+      newSegments.push(
+        createSegment(batchId, idx + 1, newNodePoint, targetPoint, false)
+      )
 
       setActiveNodes((prev) => {
         const next = new Set(prev)
@@ -236,18 +237,22 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           ))}
         </svg>
         {segments.map((segment) => {
-          const style: CSSProperties & { [key: string]: string | number } = {
+          const dx = segment.endX - segment.startX
+          const dy = segment.endY - segment.startY
+          const length = Math.hypot(dx, dy)
+          const angle = (Math.atan2(dy, dx) * 180) / Math.PI
+          const style: CSSProperties & Record<string, string | number> = {
             left: `${segment.startX}%`,
             top: `${segment.startY}%`,
-            width: `${segment.length}%`,
+            width: `${length}%`,
             animationDelay: `${segment.delay}ms`,
           }
-          style['--spark-rotate'] = `${segment.angle}deg`
+          style['--spark-rotate'] = `${angle}deg`
           return (
             <span
               key={segment.id}
               className={`links-spark${
-                segment.strength > 0.9 ? ' links-spark--strong' : ''
+                segment.isStrong ? ' links-spark--strong' : ''
               }`}
               style={style}
             />
@@ -290,20 +295,16 @@ const createSegment = (
   order: number,
   start: { x: number; y: number },
   end: { x: number; y: number },
-  strength: number
+  isStrong: boolean
 ): Segment => {
-  const dx = end.x - start.x
-  const dy = end.y - start.y
-  const length = Math.hypot(dx, dy)
-  const angle = (Math.atan2(dy, dx) * 180) / Math.PI
   return {
     id: batch * 100 + order,
     batch,
     startX: start.x,
     startY: start.y,
-    length,
-    angle,
+    endX: end.x,
+    endY: end.y,
     delay: order * 120,
-    strength,
+    isStrong,
   }
 }
