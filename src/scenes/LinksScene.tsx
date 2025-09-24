@@ -48,8 +48,12 @@ type Node = { id: string; cx: number; cy: number }
 type Segment = {
   id: number
   batch: number
-  d: string
+  startX: number
+  startY: number
+  length: number
+  angle: number
   delay: number
+  strength: number
 }
 
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
@@ -59,8 +63,8 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   )
   const [ctaVisible, setCtaVisible] = useState(false)
   const [showLines, setShowLines] = useState(false)
-  const [customNodes, setCustomNodes] = useState<Node[]>([])
-  const [customEdges, setCustomEdges] = useState<Array<[number, number]>>([])
+  const [dynamicNodes, setDynamicNodes] = useState<Node[]>([])
+  const [dynamicEdges, setDynamicEdges] = useState<Array<[number, number]>>([])
   const [segments, setSegments] = useState<Segment[]>([])
   const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set())
   const stageRef = useRef<HTMLDivElement | null>(null)
@@ -68,13 +72,13 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const batchRef = useRef(0)
 
   const allNodes = useMemo<Node[]>(
-    () => [...STATIC_NODES, ...customNodes],
-    [customNodes]
+    () => [...STATIC_NODES, ...dynamicNodes],
+    [dynamicNodes]
   )
 
   const edges = useMemo<Array<[number, number]>>(
-    () => [...STATIC_EDGES, ...customEdges],
-    [customEdges]
+    () => [...STATIC_EDGES, ...dynamicEdges],
+    [dynamicEdges]
   )
 
   useEffect(() => {
@@ -124,9 +128,9 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       distance: Math.hypot(svgPoint.x - node.cx, svgPoint.y - node.cy),
     }))
     distanceList.sort((a, b) => a.distance - b.distance)
-    const nearestIndices = distanceList.slice(0, Math.min(2, distanceList.length))
+    const nearestIndices = distanceList.slice(0, Math.min(3, distanceList.length))
 
-    const newNodeIndex = STATIC_NODES.length + customNodes.length
+    const newNodeIndex = STATIC_NODES.length + dynamicNodes.length
     const newNodeId = `c${Date.now()}`
     const newNode: Node = { id: newNodeId, cx: svgPoint.x, cy: svgPoint.y }
     const newEdges: Array<[number, number]> = nearestIndices.map((item) => [
@@ -134,21 +138,22 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       item.index,
     ])
 
-    setCustomNodes((prev) => [...prev, newNode])
-    setCustomEdges((prev) => [...prev, ...newEdges])
+    setDynamicNodes((prev) => [...prev, newNode])
+    setDynamicEdges((prev) => [...prev, ...newEdges])
 
     const newSegments: Segment[] = []
-
-    // segment from tap to new node
     const tapPoint = { x: svgPoint.x, y: svgPoint.y }
     const newNodePoint = { x: newNode.cx, y: newNode.cy }
-    newSegments.push(createSegment(batchId, 0, tapPoint, newNodePoint))
+
+    newSegments.push(createSegment(batchId, 0, tapPoint, newNodePoint, 1))
 
     nearestIndices.forEach((entry, idx) => {
       const target = allNodes[entry.index]
       if (!target) return
       const targetPoint = { x: target.cx, y: target.cy }
-      newSegments.push(createSegment(batchId, idx + 1, newNodePoint, targetPoint))
+      const strength = Math.max(0.4, 0.75 - idx * 0.18)
+      newSegments.push(createSegment(batchId, idx + 1, newNodePoint, targetPoint, strength))
+
       setActiveNodes((prev) => {
         const next = new Set(prev)
         next.add(target.id)
@@ -160,7 +165,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           next.delete(target.id)
           return next
         })
-      }, 1200 + idx * 150)
+      }, 1400 + idx * 160)
     })
 
     setActiveNodes((prev) => {
@@ -174,7 +179,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         next.delete(newNodeId)
         return next
       })
-    }, 1400)
+    }, 1600)
 
     setSegments((prev) => [...prev, ...newSegments])
     window.setTimeout(() => {
@@ -223,26 +228,32 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               key={node.id}
               cx={node.cx}
               cy={node.cy}
-              r={0.85}
+              r={0.82}
               className={`links-network__node${
                 activeNodes.has(node.id) ? ' is-active' : ''
               }`}
             />
           ))}
-          {segments.map((segment) => {
+        </svg>
+        {segments.map((segment) => {
           const style: CSSProperties = {
+            left: `${segment.startX}%`,
+            top: `${segment.startY}%`,
+            width: `${segment.length}%`,
+            transform: `translateY(-50%) rotate(${segment.angle}deg) scaleX(0)`,
+            transformOrigin: '0% 50%',
             animationDelay: `${segment.delay}ms`,
           }
-            return (
-              <path
-                key={segment.id}
-                d={segment.d}
-                className="links-sparkline"
-                style={style}
-              />
-            )
-          })}
-        </svg>
+          return (
+            <span
+              key={segment.id}
+              className={`links-spark${
+                segment.strength > 0.9 ? ' links-spark--strong' : ''
+              }`}
+              style={style}
+            />
+          )
+        })}
       </div>
 
       <div className="links-count" aria-hidden>
@@ -279,12 +290,21 @@ const createSegment = (
   batch: number,
   order: number,
   start: { x: number; y: number },
-  end: { x: number; y: number }
+  end: { x: number; y: number },
+  strength: number
 ): Segment => {
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const length = Math.hypot(dx, dy)
+  const angle = (Math.atan2(dy, dx) * 180) / Math.PI
   return {
     id: batch * 100 + order,
     batch,
-    d: `M ${start.x} ${start.y} L ${end.x} ${end.y}`,
-    delay: order * 110,
+    startX: start.x,
+    startY: start.y,
+    length,
+    angle,
+    delay: order * 120,
+    strength,
   }
 }
