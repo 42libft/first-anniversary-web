@@ -45,7 +45,7 @@ export const DEFAULT_HEART_WAVE_SETTINGS: HeartWaveSettings = {
   baseScaleMinPx: 6,
   radiusProgressExponent: 1.1,
   radiusSpeed: 0.35,
-  fadeOutRatio: 0.7,
+  fadeOutRatio: 0.56,
   ringThicknessRatio: 0.02,
   minRingThicknessPx: 1.5,
   glowThicknessRatio: 0.002,
