@@ -9,6 +9,34 @@ const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
+const NETWORK_NODES = [
+  { id: 'n1', cx: 12, cy: 26, r: 1.6 },
+  { id: 'n2', cx: 22, cy: 62, r: 1.15 },
+  { id: 'n3', cx: 38, cy: 18, r: 1.4 },
+  { id: 'n4', cx: 48, cy: 44, r: 1.1 },
+  { id: 'n5', cx: 60, cy: 16, r: 1.4 },
+  { id: 'n6', cx: 70, cy: 58, r: 1.6 },
+  { id: 'n7', cx: 82, cy: 30, r: 1.2 },
+  { id: 'n8', cx: 30, cy: 78, r: 1.35 },
+  { id: 'n9', cx: 58, cy: 78, r: 1.1 },
+  { id: 'n10', cx: 86, cy: 70, r: 1.25 },
+]
+
+const NETWORK_EDGES: Array<[number, number]> = [
+  [0, 2],
+  [2, 4],
+  [4, 6],
+  [0, 3],
+  [3, 5],
+  [5, 7],
+  [7, 9],
+  [1, 3],
+  [1, 8],
+  [8, 5],
+  [2, 5],
+  [5, 9],
+]
+
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const [count, setCount] = useState(() => Math.min(10, FINAL_TARGET))
   const [phase, setPhase] = useState<'play' | 'announce' | 'cta'> (
@@ -50,11 +78,44 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       role="presentation"
       aria-label="共有したリンクの記録を水面のネットワークで振り返る"
     >
-      <TapRippleField
-        disabled={phase !== 'play'}
-        onPulse={handlePulse}
-        variant="links"
-      />
+      <div className="links-stage" aria-hidden>
+        <svg className="links-network" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="links-line" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(96, 226, 255, 0.65)" />
+              <stop offset="100%" stopColor="rgba(28, 144, 210, 0.32)" />
+            </linearGradient>
+          </defs>
+          {NETWORK_EDGES.map(([fromIndex, toIndex], index) => {
+            const from = NETWORK_NODES[fromIndex]
+            const to = NETWORK_NODES[toIndex]
+            return (
+              <line
+                key={`edge-${index}`}
+                x1={from.cx}
+                y1={from.cy}
+                x2={to.cx}
+                y2={to.cy}
+                className="links-network__edge"
+              />
+            )
+          })}
+          {NETWORK_NODES.map((node) => (
+            <circle
+              key={node.id}
+              cx={node.cx}
+              cy={node.cy}
+              r={node.r}
+              className="links-network__node"
+            />
+          ))}
+        </svg>
+        <TapRippleField
+          disabled={phase !== 'play'}
+          onPulse={handlePulse}
+          variant="links"
+        />
+      </div>
 
       <div className="links-count" aria-hidden>
         {formatNumber(count)}
