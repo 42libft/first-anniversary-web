@@ -43,13 +43,13 @@ export const DEFAULT_HEART_WAVE_SETTINGS: HeartWaveSettings = {
   baseScaleMinPx: 6,
   radiusProgressExponent: 1.1,
   radiusSpeed: 0.6,
-  ringThicknessRatio: 0.04,
-  minRingThicknessPx: 2,
-  glowThicknessRatio: 0.005,
-  minGlowThicknessPx: 12,
-  highlightRatio: 0.2,
-  alphaStart: 0.45,
-  alphaFalloff: 0.5,
+  ringThicknessRatio: 0.02,
+  minRingThicknessPx: 1.5,
+  glowThicknessRatio: 0.002,
+  minGlowThicknessPx: 8,
+  highlightRatio: 0.1,
+  alphaStart: 0.22,
+  alphaFalloff: 0.45,
 }
 
 type RippleMetrics = {
@@ -119,47 +119,46 @@ const drawRippleHeart = (
     settings.minRingThicknessPx * dpr
   )
   const glowPx = Math.max(radius * settings.glowThicknessRatio, settings.minGlowThicknessPx * dpr)
-  const highlightThicknessPx = ringThicknessPx * settings.highlightRatio
+  const highlightThicknessPx = radius * settings.highlightRatio
 
-  const crestShift = radialProgress
-  const wakeIntensity = clamp01((radialProgress - 0.55) / 0.35)
+  const wakeIntensity = clamp01((radialProgress - 0.65) / 0.2)
 
   if (alpha <= 0.001) return
 
   const normalizedGlowWidth = Math.max(
     0.18 / dpr,
-    ((ringThicknessPx + glowPx * 0.2) * (1.45 + wakeIntensity * 0.35)) / baseScale
+    ((ringThicknessPx + glowPx) * 1.2) / baseScale
   )
-  const normalizedRingWidth = Math.max(0.2 / dpr, ringThicknessPx / baseScale)
-  const normalizedHighlightWidth = Math.max(0.12 / dpr, highlightThicknessPx / baseScale)
+  const normalizedRingWidth = Math.max(0.12 / dpr, ringThicknessPx / baseScale)
+  const normalizedHighlightWidth = Math.max(0.08 / dpr, highlightThicknessPx / baseScale)
 
   ctx.save()
   ctx.translate(x, y)
   ctx.scale(baseScale, baseScale)
   drawNormalizedHeartPath(ctx)
 
-  ctx.globalAlpha = alpha * 0.28
+  ctx.globalAlpha = alpha * 0.22
   ctx.lineWidth = normalizedGlowWidth
-  ctx.strokeStyle = `hsla(${(hue + 188) % 360}, 46%, ${62 + wakeIntensity * 5}%, ${0.32 + wakeIntensity * 0.14})`
+  ctx.strokeStyle = `hsla(${(hue + 188) % 360}, 44%, ${62 + wakeIntensity * 4}%, ${0.26 + wakeIntensity * 0.1})`
   ctx.stroke()
 
-  ctx.globalAlpha = alpha * 0.62
-  ctx.lineWidth = normalizedRingWidth * (0.85 + crestShift * 0.16)
-  ctx.strokeStyle = `hsla(${(hue + 200) % 360}, 60%, ${68 + wakeIntensity * 5}%, 0.62)`
+  ctx.globalAlpha = alpha * 0.5
+  ctx.lineWidth = normalizedRingWidth * (0.95)
+  ctx.strokeStyle = `hsla(${(hue + 198) % 360}, 58%, ${70 + wakeIntensity * 4}%, 0.52)`
   ctx.stroke()
 
-  ctx.globalAlpha = alpha * 0.48
+  ctx.globalAlpha = alpha * 0.32
   ctx.lineWidth = normalizedHighlightWidth
-  ctx.strokeStyle = `hsla(${(hue + 210) % 360}, 82%, 88%, 0.7)`
+  ctx.strokeStyle = `hsla(${(hue + 205) % 360}, 80%, 88%, 0.5)`
   ctx.stroke()
 
   if (wakeIntensity > 0.04) {
-    const wakeScale = 1 + wakeIntensity * 0.09
-    ctx.globalAlpha = alpha * 0.22 * wakeIntensity
-    ctx.lineWidth = normalizedRingWidth * 0.58
+    const wakeScale = 1 + wakeIntensity * 0.04
+    ctx.globalAlpha = alpha * 0.15 * wakeIntensity
+    ctx.lineWidth = normalizedRingWidth * 0.45
     ctx.save()
     ctx.scale(wakeScale, wakeScale)
-    ctx.strokeStyle = `hsla(${(hue + 205) % 360}, 58%, 78%, 0.45)`
+    ctx.strokeStyle = `hsla(${(hue + 205) % 360}, 56%, 80%, 0.35)`
     ctx.stroke()
     ctx.restore()
   }
