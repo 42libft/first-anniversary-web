@@ -50,10 +50,38 @@ type Segment = {
   batch: number
   startX: number
   startY: number
-  endX: number
-  endY: number
+  length: number
+  angle: number
   delay: number
   isStrong: boolean
+}
+
+const toStagePoint = (point: { x: number; y: number }, rect: DOMRect) => ({
+  x: (point.x / 100) * rect.width,
+  y: (point.y / 100) * rect.height,
+})
+
+const createSegment = (
+  batch: number,
+  order: number,
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+  isStrong: boolean
+): Segment => {
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const length = Math.hypot(dx, dy)
+  const angle = (Math.atan2(dy, dx) * 180) / Math.PI
+  return {
+    id: batch * 100 + order,
+    batch,
+    startX: start.x,
+    startY: start.y,
+    length,
+    angle,
+    delay: order * 140,
+    isStrong,
+  }
 }
 
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
@@ -67,8 +95,8 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const [dynamicEdges, setDynamicEdges] = useState<Array<[number, number]>>([])
   const [segments, setSegments] = useState<Segment[]>([])
   const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set())
-  const stageRef = useRef<HTMLDivElement | null>(null)
   const networkRef = useRef<SVGSVGElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
   const batchRef = useRef(0)
 
   const allNodes = useMemo<Node[]>(
@@ -118,7 +146,9 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const handleTap = (event: PointerEvent<HTMLDivElement>) => {
     if (phase !== 'play') return
     const svgPoint = toViewBoxPoint(event)
-    if (!svgPoint) return
+    if (!svgPoint || !stageRef.current) return
+
+    const stageRect = stageRef.current.getBoundingClientRect()
 
     batchRef.current += 1
     const batchId = batchRef.current
@@ -142,14 +172,16 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     setDynamicEdges((prev) => [...prev, ...newEdges])
 
     const newSegments: Segment[] = []
-    const newNodePoint = { x: newNode.cx, y: newNode.cy }
+    const newNodeStagePoint = toStagePoint({ x: newNode.cx, y: newNode.cy }, stageRect)
 
     nearestIndices.forEach((entry, idx) => {
       const target = allNodes[entry.index]
       if (!target) return
-      const targetPoint = { x: target.cx, y: target.cy }
+      const targetStagePoint = toStagePoint({ x: target.cx, y: target.cy }, stageRect)
       const isStrong = idx === 0
-      newSegments.push(createSegment(batchId, idx, newNodePoint, targetPoint, isStrong))
+      newSegments.push(
+        createSegment(batchId, idx, newNodeStagePoint, targetStagePoint, isStrong)
+      )
 
       setActiveNodes((prev) => {
         const next = new Set(prev)
@@ -176,7 +208,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         next.delete(newNodeId)
         return next
       })
-    }, 1600)
+    }, 1800)
 
     setSegments((prev) => [...prev, ...newSegments])
     window.setTimeout(() => {
@@ -233,17 +265,13 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           ))}
         </svg>
         {segments.map((segment) => {
-          const dx = segment.endX - segment.startX
-          const dy = segment.endY - segment.startY
-          const length = Math.hypot(dx, dy)
-          const angle = (Math.atan2(dy, dx) * 180) / Math.PI
           const style: CSSProperties & Record<string, string | number> = {
-            left: `${segment.startX}%`,
-            top: `${segment.startY}%`,
-            width: `${length}%`,
+            left: `${segment.startX}px`,
+            top: `${segment.startY}px`,
+            width: `${segment.length}px`,
             animationDelay: `${segment.delay}ms`,
           }
-          style['--spark-rotate'] = `${angle}deg`
+          style['--spark-rotate'] = `${segment.angle}deg`
           return (
             <span
               key={segment.id}
@@ -284,23 +312,4 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       )}
     </section>
   )
-}
-
-const createSegment = (
-  batch: number,
-  order: number,
-  start: { x: number; y: number },
-  end: { x: number; y: number },
-  isStrong: boolean
-): Segment => {
-  return {
-    id: batch * 100 + order,
-    batch,
-    startX: start.x,
-    startY: start.y,
-    endX: end.x,
-    endY: end.y,
-    delay: order * 120,
-    isStrong,
-  }
 }
