@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 
 export type TapRippleFieldProps = {
   disabled?: boolean
-  onPulse?: () => void
+  onPulse?: (position?: { x: number; y: number }) => void
   className?: string
   variant?: 'links' | 'media'
   showRipples?: boolean
@@ -36,12 +36,17 @@ export const TapRippleField = ({
     const x = ((event.clientX - rect.left) / rect.width) * 100
     const y = ((event.clientY - rect.top) / rect.height) * 100
     idRef.current += 1
+    const normalized = {
+      x: Math.min(1, Math.max(0, x / 100)),
+      y: Math.min(1, Math.max(0, y / 100)),
+    }
+
     if (showRipples) {
       const ripple: Ripple = { id: idRef.current, x, y }
       setRipples((prev) => [...prev, ripple])
       window.setTimeout(() => removeRipple(ripple.id), 1100)
     }
-    onPulse?.()
+    onPulse?.(normalized)
     event.preventDefault()
   }
 

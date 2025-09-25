@@ -16,6 +16,10 @@ const FINAL_TARGET = totalMedia
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 36))
 const MAX_SHARDS = 54
 const MIN_OFFSET_GAP = 0.18
+const COUNTER_PROTECTED_RADIUS = 0.22
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value))
 
 type Shard = {
   id: number
@@ -177,23 +181,61 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   }, [phase, shards, clearTimer, startShardFade, controls.fadeDuration])
 
   const pickOffset = useCallback((range: number, minGap: number) => {
-    let value = 0
-    for (let attempt = 0; attempt < 6; attempt += 1) {
+    let fallback = 0
+    for (let attempt = 0; attempt < 10; attempt += 1) {
       const candidate = (Math.random() * 2 - 1) * range
-      if (Math.abs(candidate) >= minGap) {
+      const gapOk = Math.abs(candidate) >= minGap
+      const protectedOk = Math.hypot(candidate, 0) >= COUNTER_PROTECTED_RADIUS
+      if (gapOk && protectedOk) {
         return candidate
       }
-      value = candidate
+      fallback = candidate
     }
-    return value
+    if (Math.abs(fallback) < minGap) {
+      const direction = fallback === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(fallback)
+      fallback = direction * minGap
+    }
+    return clamp(fallback, -range, range)
   }, [])
 
-  const handlePulse = () => {
+  const handlePulse = (position?: { x: number; y: number }) => {
     if (phase !== 'play') return
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
 
-    const x = pickOffset(0.85, MIN_OFFSET_GAP)
-    const y = pickOffset(0.6, MIN_OFFSET_GAP * 0.6)
+    const spawnRangeX = 0.85
+    const spawnRangeY = 0.68
+
+    const resolveAxis = (
+      coord: number,
+      range: number,
+      gap: number,
+      jitter: number
+    ) => {
+      const centered = (coord - 0.5) * 2 * range
+      const noise = (Math.random() - 0.5) * jitter
+      let value = centered + noise
+      if (Math.abs(value) < gap) {
+        const direction = value === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(value)
+        value = direction * gap
+      }
+      return clamp(value, -range, range)
+    }
+
+    const withinProtectedZone = (coord?: { x: number; y: number }) => {
+      if (!coord) return false
+      const offsetX = coord.x - 0.5
+      const offsetY = coord.y - 0.5
+      return Math.hypot(offsetX, offsetY) < 0.22
+    }
+
+    const useTap = position && !withinProtectedZone(position)
+
+    const x = useTap
+      ? resolveAxis(position!.x, spawnRangeX, MIN_OFFSET_GAP, 0.28)
+      : pickOffset(spawnRangeX, MIN_OFFSET_GAP)
+    const y = useTap
+      ? resolveAxis(position!.y, spawnRangeY, MIN_OFFSET_GAP * 0.6, 0.32)
+      : pickOffset(spawnRangeY, MIN_OFFSET_GAP * 0.6)
     const depth = -120 - Math.random() * 260
     const scale = 0.58 + Math.random() * 0.62
     const hue = Math.random()
@@ -286,7 +328,9 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
             const tiltX = shard.tiltX.toFixed(2)
             const tiltY = shard.tiltY.toFixed(2)
             const rotateZ = shard.rotateZ.toFixed(2)
-            const alpha = (0.38 + shard.tone * 0.38).toFixed(3)
+            const distanceFromCenter = Math.hypot(shard.x * 0.8, shard.y * 1.1)
+            const visibilityScale = clamp(1 - Math.max(0, 0.28 - distanceFromCenter) / 0.28, 0.32, 1)
+            const alpha = ( (0.38 + shard.tone * 0.38) * visibilityScale ).toFixed(3)
             const driftFactor = shard.drift.toFixed(3)
 
             const style = {

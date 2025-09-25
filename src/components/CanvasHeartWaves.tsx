@@ -18,7 +18,7 @@ export type HeartWaveSettings = {
 
 export type CanvasHeartWavesProps = {
   disabled?: boolean
-  onPulse?: () => void
+  onPulse?: (position?: { x: number; y: number }) => void
   settings?: HeartWaveSettings
 }
 
