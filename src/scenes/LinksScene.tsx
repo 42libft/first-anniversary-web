@@ -12,6 +12,8 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const FINAL_TARGET = totalLinks
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
+const SEGMENT_LIFETIME = 4600
+const MAX_SEGMENTS = 30
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
@@ -184,10 +186,14 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       })
     }, 1800)
 
-    setSegments((prev) => [...prev, ...newSegments])
+    setSegments((prev) => {
+      const merged = [...prev, ...newSegments]
+      if (merged.length <= MAX_SEGMENTS) return merged
+      return merged.slice(merged.length - MAX_SEGMENTS)
+    })
     window.setTimeout(() => {
       setSegments((prev) => prev.filter((segment) => segment.batch !== batchId))
-    }, 6000)
+    }, SEGMENT_LIFETIME)
 
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
     event.preventDefault()
