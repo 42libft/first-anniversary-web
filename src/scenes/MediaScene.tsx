@@ -19,9 +19,6 @@ const MIN_OFFSET_GAP = 0.18
 const COUNTER_PROTECTED_RADIUS = 0.22
 const SPAWN_RANGE_X = 0.92
 const SPAWN_RANGE_Y = 0.74
-const TAP_JITTER_X = 0.38
-const TAP_JITTER_Y = 0.44
-
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
 
@@ -49,51 +46,45 @@ const pushOutsideProtectedZone = (x: number, y: number) => {
   return { x: nextX, y: nextY }
 }
 
-const generateRadialCandidate = () => {
-  const angle = Math.random() * Math.PI * 2
-  const radius = Math.sqrt(Math.random())
-  const x = Math.cos(angle) * SPAWN_RANGE_X * radius
-  const y = Math.sin(angle) * SPAWN_RANGE_Y * radius
-  return pushOutsideProtectedZone(x, y)
+const halton = (index: number, base: number) => {
+  let result = 0
+  let f = 1 / base
+  let i = index
+
+  while (i > 0) {
+    result += f * (i % base)
+    i = Math.floor(i / base)
+    f /= base
+  }
+
+  return result
 }
 
-const scoreCandidate = (
-  candidate: { x: number; y: number },
-  shards: Shard[],
-  anchor?: { x: number; y: number }
-) => {
-  const { x, y } = candidate
-  let minDistance = Number.POSITIVE_INFINITY
-  const recent = shards.slice(-32)
-  for (let index = 0; index < recent.length; index += 1) {
-    const shard = recent[index]
-    const dx = x - shard.x
-    const dy = y - shard.y
-    const distance = Math.hypot(dx, dy)
-    if (distance < minDistance) {
-      minDistance = distance
-    }
-  }
+const sampleScatterPoint = (index: number) => {
+  const baseIndex = index + 1
+  const haltonX = halton(baseIndex, 2)
+  const haltonY = halton(baseIndex, 3)
 
-  if (minDistance === Number.POSITIVE_INFINITY) {
-    minDistance = Math.hypot(x, y)
-  }
+  const baseX = (haltonX * 2 - 1) * SPAWN_RANGE_X
+  const baseY = (haltonY * 2 - 1) * SPAWN_RANGE_Y
 
-  const edgeClearance = Math.min(
-    SPAWN_RANGE_X - Math.abs(x),
-    SPAWN_RANGE_Y - Math.abs(y)
-  )
+  const jitterAngle = Math.random() * Math.PI * 2
+  const jitterRadius = Math.pow(Math.random(), 0.72) * 0.3
+  const jitterX = Math.cos(jitterAngle) * SPAWN_RANGE_X * jitterRadius
+  const jitterY = Math.sin(jitterAngle) * SPAWN_RANGE_Y * jitterRadius
 
-  let anchorBonus = 0
-  if (anchor) {
-    const normalizedDx = (x - anchor.x) / SPAWN_RANGE_X
-    const normalizedDy = (y - anchor.y) / SPAWN_RANGE_Y
-    const anchorDistance = Math.hypot(normalizedDx, normalizedDy)
-    anchorBonus = Math.max(0, 1.35 - anchorDistance) * 0.62
-  }
-
-  return minDistance * 0.72 + edgeClearance * 0.48 + Math.hypot(x, y) * 0.28 + anchorBonus
+  return pushOutsideProtectedZone(baseX + jitterX, baseY + jitterY)
 }
+
+const ensureGap = (value: number, gap: number) => {
+  if (Math.abs(value) >= gap) {
+    return value
+  }
+  const direction = value === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(value)
+  return direction * gap
+}
+
+const lerp = (start: number, end: number, amount: number) => start + (end - start) * amount
 
 type Shard = {
   id: number
@@ -140,6 +131,7 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   const timersRef = useRef<number[]>([])
   const fadeStartTimersRef = useRef<Map<number, number>>(new Map())
   const removalTimersRef = useRef<Map<number, number>>(new Map())
+  const scatterIndexRef = useRef(Math.floor(Math.random() * 2048))
 
   const registerTimer = useCallback((handler: () => void, delay: number) => {
     const timerId = window.setTimeout(() => {
@@ -258,20 +250,11 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     if (phase !== 'play') return
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
 
-    const resolveAxis = (
-      coord: number,
-      range: number,
-      gap: number,
-      jitter: number
-    ) => {
+    const projectTapAxis = (coord: number, range: number, gap: number) => {
       const centered = (coord - 0.5) * 2 * range
-      const noise = (Math.random() - 0.5) * jitter
-      let value = centered + noise
-      if (Math.abs(value) < gap) {
-        const direction = value === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(value)
-        value = direction * gap
-      }
-      return clampToRange(value, range)
+      const noise = (Math.random() - 0.5) * gap * 0.22
+      const adjusted = ensureGap(centered + noise, gap)
+      return clampToRange(adjusted, range)
     }
 
     const withinProtectedZone = (coord?: { x: number; y: number }) => {
@@ -281,51 +264,29 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
       return Math.hypot(offsetX, offsetY) < COUNTER_PROTECTED_RADIUS
     }
 
-    const existingShards = shards.slice(-MAX_SHARDS)
     const tapUsable = position && !withinProtectedZone(position)
 
     const tapAnchor = tapUsable
       ? pushOutsideProtectedZone(
-          resolveAxis(position!.x, SPAWN_RANGE_X, MIN_OFFSET_GAP, TAP_JITTER_X * 0.4),
-          resolveAxis(position!.y, SPAWN_RANGE_Y, MIN_OFFSET_GAP * 0.6, TAP_JITTER_Y * 0.4)
+          projectTapAxis(position!.x, SPAWN_RANGE_X, MIN_OFFSET_GAP),
+          projectTapAxis(position!.y, SPAWN_RANGE_Y, MIN_OFFSET_GAP * 0.6)
         )
       : undefined
 
-    const candidatePool: { x: number; y: number }[] = []
+    const scatterIndex = scatterIndexRef.current
+    scatterIndexRef.current += 1
+
+    const scatterPoint = sampleScatterPoint(scatterIndex)
+
+    let candidateX = scatterPoint.x
+    let candidateY = scatterPoint.y
+
     if (tapAnchor) {
-      candidatePool.push(tapAnchor)
-      for (let index = 0; index < 4; index += 1) {
-        const jitterAngle = Math.random() * Math.PI * 2
-        const jitterRadius = 0.26 + Math.random() * 0.42
-        const jitterX = tapAnchor.x + Math.cos(jitterAngle) * TAP_JITTER_X * jitterRadius
-        const jitterY = tapAnchor.y + Math.sin(jitterAngle) * TAP_JITTER_Y * jitterRadius
-        candidatePool.push(pushOutsideProtectedZone(jitterX, jitterY))
-      }
+      candidateX = lerp(candidateX, tapAnchor.x, 0.42)
+      candidateY = lerp(candidateY, tapAnchor.y, 0.42)
     }
 
-    const globalCandidateCount = tapAnchor ? 12 : 16
-    for (let index = 0; index < globalCandidateCount; index += 1) {
-      candidatePool.push(generateRadialCandidate())
-    }
-
-    if (candidatePool.length === 0) {
-      candidatePool.push(generateRadialCandidate())
-    }
-
-    const bestCandidate = candidatePool.reduce<{ x: number; y: number; score: number } | null>(
-      (best, candidate) => {
-        const candidateScore = scoreCandidate(candidate, existingShards, tapAnchor)
-        if (!best || candidateScore > best.score) {
-          return { ...candidate, score: candidateScore }
-        }
-        return best
-      },
-      null
-    )
-
-    const chosen = bestCandidate ?? { ...generateRadialCandidate(), score: 0 }
-    const x = chosen.x
-    const y = chosen.y
+    const { x, y } = pushOutsideProtectedZone(candidateX, candidateY)
     const depth = -120 - Math.random() * 260
     const scale = 0.58 + Math.random() * 0.62
     const hue = Math.random()
