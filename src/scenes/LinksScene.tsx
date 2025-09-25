@@ -15,6 +15,8 @@ const FINAL_TARGET = totalLinks
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
 const SEGMENT_LIFETIME = 3800
 const MAX_SEGMENTS = 24
+const STRONG_FADE_WINDOW = 640
+const SOFT_FADE_WINDOW = 480
 
 type ControlState = {
   intensity: number
@@ -66,6 +68,7 @@ type Segment = {
   delay: number
   isStrong: boolean
   length: number
+  isFading: boolean
 }
 
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
@@ -208,6 +211,21 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       if (merged.length <= MAX_SEGMENTS) return merged
       return merged.slice(merged.length - MAX_SEGMENTS)
     })
+
+    newSegments.forEach((segment) => {
+      const fadeDelay = Math.max(
+        160,
+        SEGMENT_LIFETIME - (segment.isStrong ? STRONG_FADE_WINDOW : SOFT_FADE_WINDOW)
+      )
+      window.setTimeout(() => {
+        setSegments((prev) =>
+          prev.map((item) =>
+            item.id === segment.id ? { ...item, isFading: true } : item
+          )
+        )
+      }, fadeDelay)
+    })
+
     window.setTimeout(() => {
       setSegments((prev) => prev.filter((segment) => segment.batch !== batchId))
     }, SEGMENT_LIFETIME)
@@ -231,11 +249,11 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
     const softOpacityMid = clamp(0.55 * controls.intensity, 0.04, 0.9)
     const softOpacityLate = clamp(0.34 * controls.intensity, 0.03, 0.7)
-    const softOpacityEnd = 0
+    const softOpacityEnd = clamp(0.26 * controls.intensity, 0.05, 0.62)
     const strongOpacityStart = clamp(0.74 * controls.intensity, 0.05, 1)
     const strongOpacityMid = clamp(0.62 * controls.intensity, 0.05, 0.95)
     const strongOpacityLate = clamp(0.42 * controls.intensity, 0.04, 0.8)
-    const strongOpacityEnd = clamp(0.24 * controls.intensity, 0.02, 0.6)
+    const strongOpacityEnd = clamp(0.38 * controls.intensity, 0.06, 0.82)
     const strongThickness = clamp(controls.thickness * 1.22, 0.3, 1.4)
 
     return {
@@ -326,7 +344,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
                 y2={segment.endY}
               className={`links-sparkline${
                 segment.isStrong ? ' links-sparkline--strong' : ''
-              }`}
+              }${segment.isFading ? ' is-fading' : ''}`}
               stroke={
                 segment.isStrong
                   ? 'url(#links-spark-strong)'
@@ -473,5 +491,6 @@ const createSegment = (
     delay: order * 140,
     isStrong,
     length: Math.hypot(dx, dy),
+    isFading: false,
   }
 }
