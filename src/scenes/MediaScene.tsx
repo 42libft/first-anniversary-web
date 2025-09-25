@@ -15,6 +15,7 @@ import type { SceneComponentProps } from '../types/scenes'
 const FINAL_TARGET = totalMedia
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 36))
 const MAX_SHARDS = 54
+const MIN_OFFSET_GAP = 0.18
 
 type Shard = {
   id: number
@@ -175,14 +176,26 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     }
   }, [phase, shards, clearTimer, startShardFade, controls.fadeDuration])
 
+  const pickOffset = useCallback((range: number, minGap: number) => {
+    let value = 0
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const candidate = (Math.random() * 2 - 1) * range
+      if (Math.abs(candidate) >= minGap) {
+        return candidate
+      }
+      value = candidate
+    }
+    return value
+  }, [])
+
   const handlePulse = () => {
     if (phase !== 'play') return
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
 
-    const x = (Math.random() - 0.5) * 0.8
-    const y = Math.random() * 0.45 - 0.12
-    const depth = -90 - Math.random() * 240
-    const scale = 0.62 + Math.random() * 0.75
+    const x = pickOffset(0.85, MIN_OFFSET_GAP)
+    const y = pickOffset(0.6, MIN_OFFSET_GAP * 0.6)
+    const depth = -120 - Math.random() * 260
+    const scale = 0.58 + Math.random() * 0.62
     const hue = Math.random()
     const tone = Math.random()
     const tiltX = (Math.random() - 0.5) * 28
@@ -273,7 +286,7 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
             const tiltX = shard.tiltX.toFixed(2)
             const tiltY = shard.tiltY.toFixed(2)
             const rotateZ = shard.rotateZ.toFixed(2)
-            const alpha = (0.5 + shard.tone * 0.46).toFixed(3)
+            const alpha = (0.38 + shard.tone * 0.38).toFixed(3)
             const driftFactor = shard.drift.toFixed(3)
 
             const style = {
@@ -310,6 +323,7 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         disabled={phase !== 'play'}
         onPulse={handlePulse}
         variant="media"
+        showRipples={false}
       />
 
       <div className="media-count" aria-hidden>

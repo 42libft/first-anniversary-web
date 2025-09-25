@@ -1481,9 +1481,9 @@
   width: 100%;
   min-height: 100%;
   background:
-    radial-gradient(52% 58% at 20% 24%, rgba(176, 196, 255, 0.28), transparent 70%),
-    radial-gradient(48% 54% at 78% 74%, rgba(120, 176, 255, 0.22), transparent 68%),
-    linear-gradient(168deg, rgba(16, 20, 52, 0.86), rgba(22, 26, 60, 0.92));
+    radial-gradient(64% 82% at 18% 18%, rgba(94, 142, 214, 0.28), transparent 68%),
+    radial-gradient(58% 74% at 84% 76%, rgba(104, 126, 214, 0.22), transparent 70%),
+    linear-gradient(176deg, rgba(8, 12, 26, 0.96), rgba(12, 16, 38, 0.98));
   overflow: hidden;
 }
 
@@ -1509,6 +1509,7 @@
   overflow: hidden;
   perspective: 1400px;
   transform-style: preserve-3d;
+  z-index: 0;
 }
 
 .media-stage__grid {
@@ -1621,7 +1622,7 @@
   opacity: var(--shard-alpha, 0.76);
   box-shadow:
     inset 0 0 28px rgba(176, 216, 255, 0.3),
-    0 0 48px rgba(120, 188, 255, 0.28);
+    0 0 42px rgba(96, 178, 255, 0.22);
   mix-blend-mode: screen;
   animation: mediaShardShimmer calc(var(--shard-flight, 3600ms) * 1.2)
     ease-in-out infinite;
@@ -1696,8 +1697,8 @@
       rgba(20, 30, 60, 0) 78%
     );
   box-shadow:
-    0 0 38px rgba(160, 210, 255, 0.48),
-    0 0 96px rgba(110, 180, 255, 0.3);
+    0 0 34px rgba(160, 210, 255, 0.45),
+    0 0 90px rgba(120, 184, 255, 0.32);
   mix-blend-mode: screen;
   opacity: calc(0.62 + var(--media-shard-glow, 1) * 0.28);
   animation: mediaCorePulse calc(var(--media-flight-duration, 3600ms) * 1.6)
@@ -1723,11 +1724,12 @@
   font-size: clamp(2.4rem, 12vw, 5.2rem);
   font-weight: 900;
   letter-spacing: 0.12em;
-  color: rgba(236, 240, 255, 0.95);
+  color: rgba(255, 241, 224, 0.92);
   text-shadow:
-    0 0 22px rgba(160, 178, 255, 0.25),
-    0 0 44px rgba(102, 126, 255, 0.28);
+    0 0 18px rgba(238, 200, 140, 0.36),
+    0 0 42px rgba(120, 160, 255, 0.3);
   pointer-events: none;
+  z-index: 4;
 }
 
 .media-meta {
@@ -1739,8 +1741,9 @@
   gap: 1.5rem;
   font-size: clamp(0.68rem, 3vw, 0.86rem);
   letter-spacing: 0.1em;
-  color: rgba(220, 224, 255, 0.78);
+  color: rgba(235, 232, 255, 0.68);
   text-transform: uppercase;
+  z-index: 4;
 }
 
 .media-meta p {
@@ -1754,11 +1757,12 @@
   bottom: clamp(3rem, 14vh, 5.4rem);
   transform: translateX(-50%);
   text-align: center;
-  color: rgba(230, 232, 255, 0.86);
+  color: rgba(245, 238, 255, 0.82);
   font-size: clamp(0.8rem, 3vw, 1rem);
   letter-spacing: 0.08em;
   opacity: 0;
   animation: mediaCaptionReveal 3400ms ease forwards;
+  z-index: 4;
 }
 
 .media-caption p {
@@ -1773,14 +1777,15 @@
   justify-content: center;
   padding: clamp(1.5rem, 10vh, 5rem) clamp(1.2rem, 4vw, 2.6rem)
     calc(env(safe-area-inset-bottom, 0px) + clamp(2rem, 12vh, 4.2rem));
+  z-index: 4;
 }
 
 .media-cta button {
   padding: 0.7rem 1.5rem;
   border-radius: 999px;
   border: 1px solid rgba(170, 184, 255, 0.45);
-  background: rgba(18, 22, 60, 0.75);
-  color: rgba(234, 236, 255, 0.94);
+  background: rgba(24, 30, 66, 0.78);
+  color: rgba(250, 244, 236, 0.9);
   font-size: clamp(0.64rem, 2.6vw, 0.82rem);
   letter-spacing: 0.26em;
   text-transform: uppercase;

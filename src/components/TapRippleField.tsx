@@ -5,6 +5,7 @@ export type TapRippleFieldProps = {
   onPulse?: () => void
   className?: string
   variant?: 'links' | 'media'
+  showRipples?: boolean
 }
 
 type Ripple = {
@@ -18,6 +19,7 @@ export const TapRippleField = ({
   onPulse,
   className,
   variant,
+  showRipples = true,
 }: TapRippleFieldProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const idRef = useRef(0)
@@ -34,11 +36,13 @@ export const TapRippleField = ({
     const x = ((event.clientX - rect.left) / rect.width) * 100
     const y = ((event.clientY - rect.top) / rect.height) * 100
     idRef.current += 1
-    const ripple: Ripple = { id: idRef.current, x, y }
-    setRipples((prev) => [...prev, ripple])
+    if (showRipples) {
+      const ripple: Ripple = { id: idRef.current, x, y }
+      setRipples((prev) => [...prev, ripple])
+      window.setTimeout(() => removeRipple(ripple.id), 1100)
+    }
     onPulse?.()
     event.preventDefault()
-    window.setTimeout(() => removeRipple(ripple.id), 1100)
   }
 
   return (
@@ -54,18 +58,19 @@ export const TapRippleField = ({
       onPointerDown={handlePointerDown}
       role="presentation"
     >
-      {ripples.map((ripple) => (
-        <span
-          key={ripple.id}
-          className={['tap-ripple', variant ? `tap-ripple--${variant}` : '']
-            .filter(Boolean)
-            .join(' ')}
-          style={{
-            left: `${ripple.x}%`,
-            top: `${ripple.y}%`,
-          }}
-        />
-      ))}
+      {showRipples &&
+        ripples.map((ripple) => (
+          <span
+            key={ripple.id}
+            className={['tap-ripple', variant ? `tap-ripple--${variant}` : '']
+              .filter(Boolean)
+              .join(' ')}
+            style={{
+              left: `${ripple.x}%`,
+              top: `${ripple.y}%`,
+            }}
+          />
+        ))}
     </div>
   )
 }
