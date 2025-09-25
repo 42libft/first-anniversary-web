@@ -54,6 +54,7 @@ type Segment = {
   endY: number
   delay: number
   isStrong: boolean
+  length: number
 }
 
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
@@ -207,18 +208,21 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         <svg ref={networkRef} className="links-network" viewBox="0 0 100 100">
           <defs>
             <linearGradient id="links-line" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(96, 226, 255, 0.65)" />
-              <stop offset="100%" stopColor="rgba(28, 144, 210, 0.32)" />
+              <stop offset="0%" stopColor="rgba(96, 226, 255, 0.72)" />
+              <stop offset="46%" stopColor="rgba(56, 156, 230, 0.42)" />
+              <stop offset="100%" stopColor="rgba(18, 60, 120, 0.18)" />
             </linearGradient>
             <linearGradient id="links-spark-strong" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
-              <stop offset="80%" stopColor="rgba(140, 220, 255, 0.78)" />
-              <stop offset="100%" stopColor="rgba(64, 168, 240, 0.12)" />
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.98)" />
+              <stop offset="14%" stopColor="rgba(224, 250, 255, 0.96)" />
+              <stop offset="48%" stopColor="rgba(142, 232, 255, 0.82)" />
+              <stop offset="82%" stopColor="rgba(58, 190, 255, 0.48)" />
+              <stop offset="100%" stopColor="rgba(24, 80, 138, 0.05)" />
             </linearGradient>
             <linearGradient id="links-spark-soft" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(180, 234, 255, 0.65)" />
-              <stop offset="75%" stopColor="rgba(90, 188, 245, 0.42)" />
-              <stop offset="100%" stopColor="rgba(60, 142, 220, 0)" />
+              <stop offset="0%" stopColor="rgba(186, 236, 255, 0.72)" />
+              <stop offset="55%" stopColor="rgba(122, 210, 255, 0.46)" />
+              <stop offset="100%" stopColor="rgba(40, 120, 210, 0.08)" />
             </linearGradient>
           </defs>
           {edges.map(([fromIndex, toIndex], index) => {
@@ -247,9 +251,10 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
             />
           ))}
           {segments.map((segment) => {
-            const style: CSSProperties = {
+            const style = {
               animationDelay: `${segment.delay}ms`,
-            }
+              '--spark-length': `${segment.length}`,
+            } as CSSProperties
             return (
               <line
                 key={segment.id}
@@ -309,6 +314,8 @@ const createSegment = (
   end: { x: number; y: number },
   isStrong: boolean
 ): Segment => {
+  const dx = end.x - start.x
+  const dy = end.y - start.y
   return {
     id: batch * 100 + order,
     batch,
@@ -318,5 +325,6 @@ const createSegment = (
     endY: end.y,
     delay: order * 140,
     isStrong,
+    length: Math.hypot(dx, dy),
   }
 }
