@@ -1275,16 +1275,17 @@
     stroke-dashoffset: var(--spark-length, 22);
     opacity: var(--links-spark-soft-opacity-start, 0.62);
   }
-  48% {
+  65% {
+    stroke-dashoffset: 0;
     opacity: var(--links-spark-soft-opacity-mid, 0.55);
   }
-  80% {
+  85% {
     stroke-dashoffset: 0;
     opacity: var(--links-spark-soft-opacity-late, 0.34);
   }
   100% {
     stroke-dashoffset: 0;
-    opacity: var(--links-spark-soft-opacity-end, 0.16);
+    opacity: 0;
   }
 }
 
@@ -1293,16 +1294,17 @@
     stroke-dashoffset: var(--spark-length, 22);
     opacity: var(--links-spark-strong-opacity-start, 0.74);
   }
-  40% {
+  60% {
+    stroke-dashoffset: 0;
     opacity: var(--links-spark-strong-opacity-mid, 0.62);
   }
-  85% {
+  88% {
     stroke-dashoffset: 0;
     opacity: var(--links-spark-strong-opacity-late, 0.42);
   }
   100% {
     stroke-dashoffset: 0;
-    opacity: var(--links-spark-strong-opacity-end, 0.24);
+    opacity: 0;
   }
 }
 
