@@ -1178,6 +1178,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .links-network {
@@ -1270,36 +1271,36 @@
 @keyframes linksSparkDraw {
   0% {
     stroke-dashoffset: var(--spark-length, 22);
-    opacity: 0.7;
+    opacity: 0.62;
   }
   48% {
-    opacity: 0.66;
+    opacity: 0.55;
   }
   80% {
     stroke-dashoffset: 0;
-    opacity: 0.48;
+    opacity: 0.34;
   }
   100% {
     stroke-dashoffset: 0;
-    opacity: 0.32;
+    opacity: 0.16;
   }
 }
 
 @keyframes linksSparkDrawStrong {
   0% {
     stroke-dashoffset: var(--spark-length, 22);
-    opacity: 0.82;
+    opacity: 0.74;
   }
   40% {
-    opacity: 0.78;
+    opacity: 0.62;
   }
   85% {
     stroke-dashoffset: 0;
-    opacity: 0.58;
+    opacity: 0.42;
   }
   100% {
     stroke-dashoffset: 0;
-    opacity: 0.44;
+    opacity: 0.24;
   }
 }
 

@@ -12,8 +12,8 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const FINAL_TARGET = totalLinks
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
-const SEGMENT_LIFETIME = 4600
-const MAX_SEGMENTS = 30
+const SEGMENT_LIFETIME = 3800
+const MAX_SEGMENTS = 24
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
