@@ -22,20 +22,10 @@ const SPAWN_RANGE_Y = 0.74
 const TAP_JITTER_X = 0.38
 const TAP_JITTER_Y = 0.44
 
-type Quadrant = 'TL' | 'TR' | 'BL' | 'BR'
-
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
 
 const clampToRange = (value: number, range: number) => clamp(value, -range, range)
-
-// CSS座標系ではY正方向が下になるため、象限角度はそれに合わせて定義する
-const quadrantAngles: Record<Quadrant, number> = {
-  TL: -(3 * Math.PI) / 4,
-  TR: -Math.PI / 4,
-  BL: (3 * Math.PI) / 4,
-  BR: Math.PI / 4,
-}
 
 const pushOutsideProtectedZone = (x: number, y: number) => {
   let nextX = clampToRange(x, SPAWN_RANGE_X)
@@ -59,23 +49,19 @@ const pushOutsideProtectedZone = (x: number, y: number) => {
   return { x: nextX, y: nextY }
 }
 
-const getQuadrant = (x: number, y: number): Quadrant => {
-  const horizontal = x < 0 ? 'L' : 'R'
-  const vertical = y < 0 ? 'T' : 'B'
-  return `${vertical}${horizontal}` as Quadrant
-}
-
-const generateQuadrantCandidate = (quadrant: Quadrant) => {
-  const baseAngle = quadrantAngles[quadrant]
-  const angleOffset = (Math.random() - 0.5) * (Math.PI / 2) * 0.68
-  const angle = baseAngle + angleOffset
-  const radius = 0.35 + Math.sqrt(Math.random()) * 0.65
+const generateRadialCandidate = () => {
+  const angle = Math.random() * Math.PI * 2
+  const radius = Math.sqrt(Math.random())
   const x = Math.cos(angle) * SPAWN_RANGE_X * radius
   const y = Math.sin(angle) * SPAWN_RANGE_Y * radius
   return pushOutsideProtectedZone(x, y)
 }
 
-const scoreCandidate = (candidate: { x: number; y: number }, shards: Shard[]) => {
+const scoreCandidate = (
+  candidate: { x: number; y: number },
+  shards: Shard[],
+  anchor?: { x: number; y: number }
+) => {
   const { x, y } = candidate
   let minDistance = Number.POSITIVE_INFINITY
   const recent = shards.slice(-32)
@@ -98,7 +84,15 @@ const scoreCandidate = (candidate: { x: number; y: number }, shards: Shard[]) =>
     SPAWN_RANGE_Y - Math.abs(y)
   )
 
-  return minDistance * 0.72 + edgeClearance * 0.52 + Math.hypot(x, y) * 0.36
+  let anchorBonus = 0
+  if (anchor) {
+    const normalizedDx = (x - anchor.x) / SPAWN_RANGE_X
+    const normalizedDy = (y - anchor.y) / SPAWN_RANGE_Y
+    const anchorDistance = Math.hypot(normalizedDx, normalizedDy)
+    anchorBonus = Math.max(0, 1.35 - anchorDistance) * 0.62
+  }
+
+  return minDistance * 0.72 + edgeClearance * 0.48 + Math.hypot(x, y) * 0.28 + anchorBonus
 }
 
 type Shard = {
@@ -288,63 +282,39 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     }
 
     const existingShards = shards.slice(-MAX_SHARDS)
-    const quadrantCounts: Record<Quadrant, number> = {
-      TL: 0,
-      TR: 0,
-      BL: 0,
-      BR: 0,
-    }
-    existingShards.forEach((shard) => {
-      const quadrant = getQuadrant(shard.x, shard.y)
-      quadrantCounts[quadrant] += 1
-    })
-    const quadrantsByDensity = (Object.entries(quadrantCounts) as [Quadrant, number][])
-      .map(([quadrant, count]) => ({ quadrant, count, noise: Math.random() }))
-      .sort((a, b) => {
-        if (a.count !== b.count) return a.count - b.count
-        return a.noise - b.noise
-      })
-      .map((entry) => [entry.quadrant, entry.count] as [Quadrant, number])
-
-    const candidatePool: { x: number; y: number }[] = []
     const tapUsable = position && !withinProtectedZone(position)
 
-    if (tapUsable) {
-      const base = {
-        x: resolveAxis(position!.x, SPAWN_RANGE_X, MIN_OFFSET_GAP, TAP_JITTER_X * 0.4),
-        y: resolveAxis(position!.y, SPAWN_RANGE_Y, MIN_OFFSET_GAP * 0.6, TAP_JITTER_Y * 0.4),
-      }
-      candidatePool.push(pushOutsideProtectedZone(base.x, base.y))
+    const tapAnchor = tapUsable
+      ? pushOutsideProtectedZone(
+          resolveAxis(position!.x, SPAWN_RANGE_X, MIN_OFFSET_GAP, TAP_JITTER_X * 0.4),
+          resolveAxis(position!.y, SPAWN_RANGE_Y, MIN_OFFSET_GAP * 0.6, TAP_JITTER_Y * 0.4)
+        )
+      : undefined
 
-      for (let index = 0; index < 3; index += 1) {
-        const jittered = {
-          x: base.x + (Math.random() - 0.5) * TAP_JITTER_X,
-          y: base.y + (Math.random() - 0.5) * TAP_JITTER_Y,
-        }
-        candidatePool.push(pushOutsideProtectedZone(jittered.x, jittered.y))
+    const candidatePool: { x: number; y: number }[] = []
+    if (tapAnchor) {
+      candidatePool.push(tapAnchor)
+      for (let index = 0; index < 4; index += 1) {
+        const jitterAngle = Math.random() * Math.PI * 2
+        const jitterRadius = 0.26 + Math.random() * 0.42
+        const jitterX = tapAnchor.x + Math.cos(jitterAngle) * TAP_JITTER_X * jitterRadius
+        const jitterY = tapAnchor.y + Math.sin(jitterAngle) * TAP_JITTER_Y * jitterRadius
+        candidatePool.push(pushOutsideProtectedZone(jitterX, jitterY))
       }
+    }
 
-      const lowestQuadrant = quadrantsByDensity[0]?.[0]
-      const baseQuadrant = getQuadrant(base.x, base.y)
-      if (lowestQuadrant && lowestQuadrant !== baseQuadrant) {
-        candidatePool.push(generateQuadrantCandidate(lowestQuadrant))
-      }
-    } else {
-      quadrantsByDensity.forEach(([quadrant], index) => {
-        const attempts = index === 0 ? 3 : index === 1 ? 2 : 1
-        for (let attempt = 0; attempt < attempts; attempt += 1) {
-          candidatePool.push(generateQuadrantCandidate(quadrant))
-        }
-      })
+    const globalCandidateCount = tapAnchor ? 12 : 16
+    for (let index = 0; index < globalCandidateCount; index += 1) {
+      candidatePool.push(generateRadialCandidate())
     }
 
     if (candidatePool.length === 0) {
-      candidatePool.push(generateQuadrantCandidate('TR'))
+      candidatePool.push(generateRadialCandidate())
     }
 
     const bestCandidate = candidatePool.reduce<{ x: number; y: number; score: number } | null>(
       (best, candidate) => {
-        const candidateScore = scoreCandidate(candidate, existingShards)
+        const candidateScore = scoreCandidate(candidate, existingShards, tapAnchor)
         if (!best || candidateScore > best.score) {
           return { ...candidate, score: candidateScore }
         }
@@ -353,8 +323,9 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
       null
     )
 
-    const x = bestCandidate?.x ?? 0
-    const y = bestCandidate?.y ?? 0
+    const chosen = bestCandidate ?? { ...generateRadialCandidate(), score: 0 }
+    const x = chosen.x
+    const y = chosen.y
     const depth = -120 - Math.random() * 260
     const scale = 0.58 + Math.random() * 0.62
     const hue = Math.random()
