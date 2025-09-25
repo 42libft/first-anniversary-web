@@ -1,6 +1,7 @@
 import {
   type CSSProperties,
   type PointerEvent,
+  type ChangeEvent,
   useEffect,
   useMemo,
   useRef,
@@ -14,6 +15,14 @@ const FINAL_TARGET = totalLinks
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
 const SEGMENT_LIFETIME = 3800
 const MAX_SEGMENTS = 24
+
+type ControlState = {
+  intensity: number
+  softDuration: number
+  strongDuration: number
+  nodeRadius: number
+  thickness: number
+}
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
@@ -70,6 +79,14 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const [dynamicEdges, setDynamicEdges] = useState<Array<[number, number]>>([])
   const [segments, setSegments] = useState<Segment[]>([])
   const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set())
+  const [controls, setControls] = useState<ControlState>({
+    intensity: 1,
+    softDuration: 1180,
+    strongDuration: 1380,
+    nodeRadius: 0.82,
+    thickness: 0.52,
+  })
+  const [panelOpen, setPanelOpen] = useState(false)
   const networkRef = useRef<SVGSVGElement | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
   const batchRef = useRef(0)
@@ -199,6 +216,44 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     event.preventDefault()
   }
 
+  const handleControlChange = (key: keyof ControlState) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const value = Number(event.target.value)
+      setControls((prev) => ({
+        ...prev,
+        [key]: value,
+      }))
+    }
+
+  const stageStyle = useMemo(() => {
+    const clamp = (value: number, min: number, max: number) =>
+      Math.min(max, Math.max(min, value))
+    const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
+    const softOpacityMid = clamp(0.55 * controls.intensity, 0.04, 0.9)
+    const softOpacityLate = clamp(0.34 * controls.intensity, 0.03, 0.7)
+    const softOpacityEnd = clamp(0.16 * controls.intensity, 0.02, 0.5)
+    const strongOpacityStart = clamp(0.74 * controls.intensity, 0.05, 1)
+    const strongOpacityMid = clamp(0.62 * controls.intensity, 0.05, 0.95)
+    const strongOpacityLate = clamp(0.42 * controls.intensity, 0.04, 0.8)
+    const strongOpacityEnd = clamp(0.24 * controls.intensity, 0.02, 0.6)
+    const strongThickness = clamp(controls.thickness * 1.22, 0.3, 1.4)
+
+    return {
+      '--links-spark-soft-duration': `${controls.softDuration}ms`,
+      '--links-spark-strong-duration': `${controls.strongDuration}ms`,
+      '--links-spark-soft-width': controls.thickness,
+      '--links-spark-strong-width': Number(strongThickness.toFixed(2)),
+      '--links-spark-soft-opacity-start': softOpacityStart,
+      '--links-spark-soft-opacity-mid': softOpacityMid,
+      '--links-spark-soft-opacity-late': softOpacityLate,
+      '--links-spark-soft-opacity-end': softOpacityEnd,
+      '--links-spark-strong-opacity-start': strongOpacityStart,
+      '--links-spark-strong-opacity-mid': strongOpacityMid,
+      '--links-spark-strong-opacity-late': strongOpacityLate,
+      '--links-spark-strong-opacity-end': strongOpacityEnd,
+    } as CSSProperties
+  }, [controls])
+
   return (
     <section
       className="links-full"
@@ -208,6 +263,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       <div
         ref={stageRef}
         className="links-stage"
+        style={stageStyle}
         aria-hidden
         onPointerDown={handleTap}
       >
@@ -250,7 +306,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               key={node.id}
               cx={node.cx}
               cy={node.cy}
-              r={0.82}
+              r={controls.nodeRadius}
               className={`links-network__node${
                 activeNodes.has(node.id) ? ' is-active' : ''
               }`}
@@ -309,6 +365,91 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           </button>
         </div>
       )}
+
+      <div
+        className={`links-control-panel${panelOpen ? ' is-open' : ''}`}
+        aria-hidden={false}
+      >
+        <button
+          type="button"
+          className="links-control-panel__toggle"
+          onClick={() => setPanelOpen((prev) => !prev)}
+        >
+          {panelOpen ? 'close' : 'tune'}
+        </button>
+        <div className="links-control-panel__body">
+          <label className="links-control">
+            <span>Light intensity</span>
+            <input
+              type="range"
+              min={0.4}
+              max={1.6}
+              step={0.02}
+              value={controls.intensity}
+              onChange={handleControlChange('intensity')}
+            />
+            <span className="links-control__value">
+              {controls.intensity.toFixed(2)}
+            </span>
+          </label>
+          <label className="links-control">
+            <span>Spark speed (ms)</span>
+            <input
+              type="range"
+              min={600}
+              max={2200}
+              step={20}
+              value={controls.softDuration}
+              onChange={handleControlChange('softDuration')}
+            />
+            <span className="links-control__value">
+              {controls.softDuration}
+            </span>
+          </label>
+          <label className="links-control">
+            <span>Strong spark speed (ms)</span>
+            <input
+              type="range"
+              min={800}
+              max={2600}
+              step={20}
+              value={controls.strongDuration}
+              onChange={handleControlChange('strongDuration')}
+            />
+            <span className="links-control__value">
+              {controls.strongDuration}
+            </span>
+          </label>
+          <label className="links-control">
+            <span>Node size</span>
+            <input
+              type="range"
+              min={0.5}
+              max={1.3}
+              step={0.02}
+              value={controls.nodeRadius}
+              onChange={handleControlChange('nodeRadius')}
+            />
+            <span className="links-control__value">
+              {controls.nodeRadius.toFixed(2)}
+            </span>
+          </label>
+          <label className="links-control">
+            <span>Spark thickness</span>
+            <input
+              type="range"
+              min={0.3}
+              max={1.2}
+              step={0.02}
+              value={controls.thickness}
+              onChange={handleControlChange('thickness')}
+            />
+            <span className="links-control__value">
+              {controls.thickness.toFixed(2)}
+            </span>
+          </label>
+        </div>
+      </div>
     </section>
   )
 }
