@@ -1227,11 +1227,9 @@
   stroke-linecap: round;
   stroke-dasharray: var(--spark-length, 22);
   stroke-dashoffset: var(--spark-length, 22);
-  opacity: 0;
+  opacity: var(--links-spark-soft-opacity-base, 0.52);
   mix-blend-mode: lighten;
   will-change: stroke-dashoffset, opacity;
-  transition:
-    opacity var(--links-spark-soft-fade, 420ms) cubic-bezier(0.32, 0.04, 0.16, 1);
   filter:
     drop-shadow(0 0 4px rgba(78, 210, 255, 0.32))
     drop-shadow(0 0 12px rgba(38, 148, 220, 0.22));
@@ -1242,9 +1240,7 @@
 .links-sparkline--strong {
   stroke: url(#links-spark-strong);
   stroke-width: var(--links-spark-strong-width, 0.52);
-  transition:
-    opacity var(--links-spark-strong-fade, 720ms) cubic-bezier(0.2, 0.02, 0.08, 0.98),
-    filter var(--links-spark-strong-fade, 720ms) ease-out;
+  opacity: var(--links-spark-strong-opacity-base, 0.82);
   filter:
     drop-shadow(0 0 8px rgba(186, 246, 255, 0.6))
     drop-shadow(0 0 20px rgba(120, 214, 255, 0.38))
@@ -1253,18 +1249,19 @@
       cubic-bezier(0.24, 0.1, 0.12, 1) forwards;
 }
 
-.links-sparkline.is-fading,
-.links-sparkline--strong.is-fading {
-  opacity: 0;
-}
-
 .links-sparkline.is-fading {
+  animation:
+    linksSparkFadeSoft var(--links-spark-soft-fade, 420ms)
+      cubic-bezier(0.32, 0.04, 0.16, 1) forwards;
   filter:
     drop-shadow(0 0 2px rgba(52, 150, 210, 0.22))
     drop-shadow(0 0 6px rgba(32, 110, 180, 0.12));
 }
 
 .links-sparkline--strong.is-fading {
+  animation:
+    linksSparkFadeStrong var(--links-spark-strong-fade, 1280ms)
+      cubic-bezier(0.16, 0.02, 0.08, 0.98) forwards;
   filter:
     drop-shadow(0 0 4px rgba(158, 230, 255, 0.4))
     drop-shadow(0 0 12px rgba(100, 198, 255, 0.28));
@@ -1330,6 +1327,31 @@
   100% {
     stroke-dashoffset: 0;
     opacity: var(--links-spark-strong-opacity-end, 0.44);
+  }
+}
+
+@keyframes linksSparkFadeSoft {
+  0% {
+    opacity: var(--links-spark-soft-opacity-base, 0.52);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes linksSparkFadeStrong {
+  0% {
+    opacity: var(--links-spark-strong-opacity-base, 0.82);
+    filter:
+      drop-shadow(0 0 8px rgba(186, 246, 255, 0.6))
+      drop-shadow(0 0 20px rgba(120, 214, 255, 0.38))
+      drop-shadow(0 0 36px rgba(48, 152, 240, 0.24));
+  }
+  100% {
+    opacity: 0;
+    filter:
+      drop-shadow(0 0 2px rgba(64, 168, 220, 0.16))
+      drop-shadow(0 0 6px rgba(32, 110, 180, 0.1));
   }
 }
 
