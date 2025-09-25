@@ -15,7 +15,7 @@ import type { SceneComponentProps } from '../types/scenes'
 const FINAL_TARGET = totalMedia
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 36))
 const SCATTER_SLOT_COUNT = 160
-const FRAGMENTS_PER_PULSE = 7
+const FRAGMENTS_PER_PULSE = 3
 const MAX_FRAGMENTS = 72
 const CANVAS_RANGE_X = 0.94
 const CANVAS_RANGE_Y = 0.82
