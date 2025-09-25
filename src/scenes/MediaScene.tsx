@@ -14,23 +14,26 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const FINAL_TARGET = totalMedia
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 36))
-const MAX_FRAMES = 27
+const MAX_RINGS = 48
 
-type Frame = {
+type Ring = {
   id: number
-  column: number
+  hue: number
+  spin: 1 | -1
+  scale: number
   tone: number
-  tilt: number
+  offset: number
+  drift: number
   delay: number
   isFading: boolean
 }
 
 type ControlState = {
-  scanDuration: number
-  frameFade: number
+  rotationSpeed: number
+  ringFade: number
   glowIntensity: number
-  grainAmount: number
   paletteShift: number
+  driftStrength: number
 }
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
@@ -41,16 +44,15 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     FINAL_TARGET > 0 ? 'play' : 'announce'
   )
   const [ctaVisible, setCtaVisible] = useState(false)
-  const [frames, setFrames] = useState<Frame[]>([])
+  const [rings, setRings] = useState<Ring[]>([])
   const [controls, setControls] = useState<ControlState>({
-    scanDuration: 3600,
-    frameFade: 4600,
-    glowIntensity: 0.92,
-    grainAmount: 0.28,
-    paletteShift: 26,
+    rotationSpeed: 4200,
+    ringFade: 5200,
+    glowIntensity: 0.88,
+    paletteShift: 32,
+    driftStrength: 0.72,
   })
   const [panelOpen, setPanelOpen] = useState(false)
-  const columnRef = useRef(0)
   const timersRef = useRef<number[]>([])
   const fadeStartTimersRef = useRef<Map<number, number>>(new Map())
   const removalTimersRef = useRef<Map<number, number>>(new Map())
@@ -69,21 +71,21 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     timersRef.current = timersRef.current.filter((id) => id !== timerId)
   }, [])
 
-  const removeFrame = useCallback((frameId: number) => {
-    setFrames((prev) => prev.filter((frame) => frame.id !== frameId))
+  const removeRing = useCallback((ringId: number) => {
+    setRings((prev) => prev.filter((ring) => ring.id !== ringId))
   }, [])
 
-  const startFrameFade = useCallback(
-    (frameId: number, fadeDuration: number) => {
+  const startRingFade = useCallback(
+    (ringId: number, fadeDuration: number) => {
       let shouldScheduleRemoval = false
-      setFrames((prev) => {
+      setRings((prev) => {
         let didChange = false
-        const next = prev.map((frame) => {
-          if (frame.id !== frameId) return frame
-          if (frame.isFading) return frame
+        const next = prev.map((ring) => {
+          if (ring.id !== ringId) return ring
+          if (ring.isFading) return ring
           didChange = true
           shouldScheduleRemoval = true
-          return { ...frame, isFading: true }
+          return { ...ring, isFading: true }
         })
         if (!didChange) return prev
         return next
@@ -93,33 +95,33 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         return
       }
 
-      const existingRemoval = removalTimersRef.current.get(frameId)
+      const existingRemoval = removalTimersRef.current.get(ringId)
       if (existingRemoval !== undefined) {
         clearTimer(existingRemoval)
       }
-      const removalDelay = Math.max(420, fadeDuration) + 180
+      const removalDelay = Math.max(480, fadeDuration) + 200
       const removalTimer = registerTimer(() => {
-        removalTimersRef.current.delete(frameId)
-        removeFrame(frameId)
+        removalTimersRef.current.delete(ringId)
+        removeRing(ringId)
       }, removalDelay)
-      removalTimersRef.current.set(frameId, removalTimer)
+      removalTimersRef.current.set(ringId, removalTimer)
     },
-    [clearTimer, registerTimer, removeFrame]
+    [clearTimer, registerTimer, removeRing]
   )
 
   const stageStyle = useMemo(
     () =>
       ({
-        '--media-scan-duration': `${controls.scanDuration}ms`,
-        '--media-frame-fade': `${controls.frameFade}ms`,
+        '--media-rotation-speed': `${controls.rotationSpeed}ms`,
+        '--media-ring-fade': `${controls.ringFade}ms`,
         '--media-glow-intensity': `${controls.glowIntensity}`,
-        '--media-grain-amount': `${controls.grainAmount}`,
         '--media-palette-shift': `${controls.paletteShift}deg`,
+        '--media-drift-strength': `${controls.driftStrength}`,
       }) as CSSProperties,
     [controls]
   )
 
-  const visibleFrames = useMemo(() => frames.slice(-MAX_FRAMES), [frames])
+  const visibleRings = useMemo(() => rings.slice(-MAX_RINGS), [rings])
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -152,66 +154,76 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   }, [])
 
   useEffect(() => {
-    if (frames.length === 0) return
+    if (rings.length === 0) return
     if (phase !== 'play') {
-      frames.forEach((frame) => {
-        const fadeTimer = fadeStartTimersRef.current.get(frame.id)
+      rings.forEach((ring) => {
+        const fadeTimer = fadeStartTimersRef.current.get(ring.id)
         if (fadeTimer !== undefined) {
           clearTimer(fadeTimer)
-          fadeStartTimersRef.current.delete(frame.id)
+          fadeStartTimersRef.current.delete(ring.id)
         }
-        startFrameFade(frame.id, controls.frameFade)
+        startRingFade(ring.id, controls.ringFade)
       })
     }
-  }, [phase, frames, clearTimer, startFrameFade, controls.frameFade])
+  }, [phase, rings, clearTimer, startRingFade, controls.ringFade])
 
   const handlePulse = () => {
     if (phase !== 'play') return
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
 
-    const column = columnRef.current % 3
-    columnRef.current = (columnRef.current + 1) % 3
+    const hue = Math.random()
+    const spin: 1 | -1 = Math.random() > 0.5 ? 1 : -1
+    const scale = 0.62 + Math.random() * 0.68
     const tone = Math.random()
-    const tilt = (Math.random() - 0.5) * 6
-    const delay = Math.floor(Math.random() * 120)
-    const frameId = Date.now() + Math.floor(Math.random() * 1000)
-    const newFrame: Frame = {
-      id: frameId,
-      column,
+    const offset = Math.random() * 360
+    const drift = Math.random()
+    const delay = Math.floor(Math.random() * 140)
+    const ringId = Date.now() + Math.floor(Math.random() * 1000)
+    const newRing: Ring = {
+      id: ringId,
+      hue,
+      spin,
+      scale,
       tone,
-      tilt,
+      offset,
+      drift,
       delay,
       isFading: false,
     }
 
-    setFrames((prev) => {
-      const next = [...prev, newFrame]
-      const overflow = next.length - MAX_FRAMES
+    setRings((prev) => {
+      const next = [...prev, newRing]
+      const overflow = next.length - MAX_RINGS
       if (overflow <= 0) return next
 
       const trimmed = next.slice(overflow)
       const removed = next.slice(0, overflow)
-      removed.forEach((frame) => {
-        const fadeTimer = fadeStartTimersRef.current.get(frame.id)
+      removed.forEach((ring) => {
+        const fadeTimer = fadeStartTimersRef.current.get(ring.id)
         if (fadeTimer !== undefined) {
           clearTimer(fadeTimer)
-          fadeStartTimersRef.current.delete(frame.id)
+          fadeStartTimersRef.current.delete(ring.id)
         }
-        const removalTimer = removalTimersRef.current.get(frame.id)
+        const removalTimer = removalTimersRef.current.get(ring.id)
         if (removalTimer !== undefined) {
           clearTimer(removalTimer)
-          removalTimersRef.current.delete(frame.id)
+          removalTimersRef.current.delete(ring.id)
         }
       })
       return trimmed
     })
 
-    const holdDuration = Math.max(1200, Math.round(controls.frameFade * 1.15))
+    const holdDuration = Math.max(
+      1600,
+      Math.round(
+        controls.ringFade * (0.9 + drift * controls.driftStrength * 0.8)
+      )
+    )
     const fadeTimer = registerTimer(() => {
-      fadeStartTimersRef.current.delete(frameId)
-      startFrameFade(frameId, controls.frameFade)
+      fadeStartTimersRef.current.delete(ringId)
+      startRingFade(ringId, controls.ringFade)
     }, holdDuration)
-    fadeStartTimersRef.current.set(frameId, fadeTimer)
+    fadeStartTimersRef.current.set(ringId, fadeTimer)
   }
 
   const handleControlChange = (key: keyof ControlState) =>
@@ -227,34 +239,50 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     <section
       className="media-full"
       role="presentation"
-      aria-label="共有したメディアの記録を光のフレームで味わう"
+      aria-label="共有したメディアの記録を光の層で味わう"
     >
       <div className="media-stage" style={stageStyle} aria-hidden>
         <div className="media-stage__grid" />
-        <div className="media-sheet">
-          {[...visibleFrames].reverse().map((frame, index) => {
-            const hueShift = ((frame.tone - 0.5) * controls.paletteShift * 2).toFixed(2)
-            const style = {
-              '--frame-column': `${frame.column}`,
-              '--frame-tone': `${frame.tone}`,
-              '--frame-tilt': `${frame.tilt}`,
-              '--frame-order': `${index}`,
-              '--frame-hue': `${hueShift}deg`,
-              animationDelay: `${frame.delay}ms`,
+        <div className="media-stage__halo" />
+        <div className="media-rings">
+          {[...visibleRings].reverse().map((ring, index) => {
+            const hueShift = ((ring.hue - 0.5) * controls.paletteShift * 2).toFixed(2)
+            const alpha = (0.54 + ring.tone * 0.4).toFixed(3)
+            const scale = (ring.scale + index * 0.004).toFixed(3)
+            const orbitDuration = Math.max(
+              controls.rotationSpeed * (0.72 + ring.drift * 0.9),
+              1600
+            )
+            const driftFactor = (ring.drift * controls.driftStrength).toFixed(3)
+
+            const ringStyle = {
+              '--ring-scale': scale,
+              '--ring-hue': `${hueShift}deg`,
+              '--ring-alpha': alpha,
+              '--ring-offset': `${ring.offset.toFixed(1)}deg`,
+              '--ring-drift': driftFactor,
+              animationDelay: `${ring.delay}ms`,
             } as CSSProperties
+
+            const haloStyle = {
+              '--ring-orbit-duration': `${orbitDuration.toFixed(0)}ms`,
+              '--ring-direction': ring.spin === -1 ? 'reverse' : 'normal',
+            } as CSSProperties
+
             return (
               <div
-                key={frame.id}
-                className={`media-frame${frame.isFading ? ' is-fading' : ''}`}
-                style={style}
+                key={ring.id}
+                className={`media-ring${ring.isFading ? ' is-fading' : ''}`}
+                style={ringStyle}
               >
-                <div className="media-frame__inner" />
-                <div className="media-frame__scan" />
+                <div className="media-ring__halo" style={haloStyle} />
+                <div className="media-ring__glow" />
               </div>
             )
           })}
         </div>
-        <div className="media-stage__grain" />
+        <div className="media-stage__core" />
+        <div className="media-stage__dust" />
       </div>
       <TapRippleField
         disabled={phase !== 'play'}
@@ -273,8 +301,8 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
 
       {phase !== 'play' && (
         <div className="media-caption" role="status">
-          <p>すべての写真と動画が光のフィルムに焼き付いて。</p>
-          <p>この数だけ、ふたりの端末を行き来しました。</p>
+          <p>光の層に並んだ記録が、外周へと重なっていく。</p>
+          <p>ふたりで残したメディアの数だけ、輪が広がりました。</p>
         </div>
       )}
 
@@ -299,28 +327,28 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         </button>
         <div className="media-control-panel__body">
           <label className="media-control">
-            <span>Scan duration (ms)</span>
+            <span>Rotation speed (ms)</span>
+            <input
+              type="range"
+              min={2600}
+              max={8200}
+              step={100}
+              value={controls.rotationSpeed}
+              onChange={handleControlChange('rotationSpeed')}
+            />
+            <span className="media-control__value">{controls.rotationSpeed}</span>
+          </label>
+          <label className="media-control">
+            <span>Ring fade (ms)</span>
             <input
               type="range"
               min={2200}
-              max={6200}
+              max={8800}
               step={100}
-              value={controls.scanDuration}
-              onChange={handleControlChange('scanDuration')}
+              value={controls.ringFade}
+              onChange={handleControlChange('ringFade')}
             />
-            <span className="media-control__value">{controls.scanDuration}</span>
-          </label>
-          <label className="media-control">
-            <span>Frame fade (ms)</span>
-            <input
-              type="range"
-              min={1800}
-              max={7200}
-              step={100}
-              value={controls.frameFade}
-              onChange={handleControlChange('frameFade')}
-            />
-            <span className="media-control__value">{controls.frameFade}</span>
+            <span className="media-control__value">{controls.ringFade}</span>
           </label>
           <label className="media-control">
             <span>Glow intensity</span>
@@ -337,30 +365,30 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
             </span>
           </label>
           <label className="media-control">
-            <span>Grain amount</span>
-            <input
-              type="range"
-              min={0}
-              max={0.6}
-              step={0.02}
-              value={controls.grainAmount}
-              onChange={handleControlChange('grainAmount')}
-            />
-            <span className="media-control__value">
-              {controls.grainAmount.toFixed(2)}
-            </span>
-          </label>
-          <label className="media-control">
             <span>Palette shift (deg)</span>
             <input
               type="range"
               min={0}
-              max={42}
+              max={60}
               step={1}
               value={controls.paletteShift}
               onChange={handleControlChange('paletteShift')}
             />
             <span className="media-control__value">{controls.paletteShift}</span>
+          </label>
+          <label className="media-control">
+            <span>Drift strength</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.02}
+              value={controls.driftStrength}
+              onChange={handleControlChange('driftStrength')}
+            />
+            <span className="media-control__value">
+              {controls.driftStrength.toFixed(2)}
+            </span>
           </label>
         </div>
       </div>
