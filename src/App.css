@@ -1236,7 +1236,7 @@
 
 .links-sparkline--strong {
   stroke: url(#links-spark-strong);
-  stroke-width: 1.18;
+  stroke-width: 0.52;
   filter:
     drop-shadow(0 0 10px rgba(190, 248, 255, 0.78))
     drop-shadow(0 0 24px rgba(120, 220, 255, 0.62))
