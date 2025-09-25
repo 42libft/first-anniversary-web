@@ -1194,9 +1194,9 @@
   stroke: url(#links-line);
   stroke-width: 0.2;
   stroke-linecap: round;
-  opacity: 0.62;
+  opacity: 0.58;
   stroke-dasharray: 3.4 18;
-  animation: linksEdgePulse 7.6s ease-in-out infinite;
+  animation: linksEdgePulse 8.4s linear infinite;
   mix-blend-mode: screen;
   filter: drop-shadow(0 0 6px rgba(64, 158, 224, 0.4));
 }
@@ -1230,7 +1230,8 @@
   opacity: 0;
   mix-blend-mode: lighten;
   will-change: stroke-dashoffset, opacity;
-  transition: opacity 420ms ease;
+  transition:
+    opacity var(--links-spark-soft-fade, 420ms) cubic-bezier(0.32, 0.04, 0.16, 1);
   filter:
     drop-shadow(0 0 4px rgba(78, 210, 255, 0.32))
     drop-shadow(0 0 12px rgba(38, 148, 220, 0.22));
@@ -1241,7 +1242,9 @@
 .links-sparkline--strong {
   stroke: url(#links-spark-strong);
   stroke-width: var(--links-spark-strong-width, 0.52);
-  transition: opacity 480ms ease;
+  transition:
+    opacity var(--links-spark-strong-fade, 720ms) cubic-bezier(0.2, 0.02, 0.08, 0.98),
+    filter var(--links-spark-strong-fade, 720ms) ease-out;
   filter:
     drop-shadow(0 0 8px rgba(186, 246, 255, 0.6))
     drop-shadow(0 0 20px rgba(120, 214, 255, 0.38))
@@ -1255,15 +1258,30 @@
   opacity: 0;
 }
 
+.links-sparkline.is-fading {
+  filter:
+    drop-shadow(0 0 2px rgba(52, 150, 210, 0.22))
+    drop-shadow(0 0 6px rgba(32, 110, 180, 0.12));
+}
+
+.links-sparkline--strong.is-fading {
+  filter:
+    drop-shadow(0 0 4px rgba(158, 230, 255, 0.4))
+    drop-shadow(0 0 12px rgba(100, 198, 255, 0.28));
+}
+
 @keyframes linksEdgePulse {
-  0%,
-  100% {
+  0% {
     stroke-dashoffset: 0;
-    opacity: 0.42;
+    opacity: 0.32;
   }
-  40% {
-    stroke-dashoffset: -8;
-    opacity: 0.78;
+  65% {
+    stroke-dashoffset: -22;
+    opacity: 0.74;
+  }
+  100% {
+    stroke-dashoffset: -32;
+    opacity: 0.12;
   }
 }
 
@@ -1311,7 +1329,7 @@
   }
   100% {
     stroke-dashoffset: 0;
-    opacity: var(--links-spark-strong-opacity-end, 0.38);
+    opacity: var(--links-spark-strong-opacity-end, 0.44);
   }
 }
 

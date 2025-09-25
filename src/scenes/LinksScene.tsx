@@ -2,6 +2,7 @@ import {
   type CSSProperties,
   type PointerEvent,
   type ChangeEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -13,9 +14,9 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const FINAL_TARGET = totalLinks
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
-const STRONG_SEGMENT_LIFETIME = 4200
+const STRONG_SEGMENT_LIFETIME = 5200
 const SOFT_SEGMENT_LIFETIME = 1400
-const STRONG_FADE_DELAY = 3000
+const STRONG_FADE_DELAY = 3800
 const SOFT_FADE_DELAY = 720
 const MAX_SEGMENTS = 32
 
@@ -95,6 +96,15 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const stageRef = useRef<HTMLDivElement | null>(null)
   const batchRef = useRef(0)
   const timersRef = useRef<number[]>([])
+
+  const registerTimer = useCallback((handler: () => void, delay: number) => {
+    const timerId = window.setTimeout(() => {
+      handler()
+      timersRef.current = timersRef.current.filter((id) => id !== timerId)
+    }, delay)
+    timersRef.current.push(timerId)
+    return timerId
+  }, [])
 
   const allNodes = useMemo<Node[]>(
     () => [...STATIC_NODES, ...dynamicNodes],
@@ -177,7 +187,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     nearestIndices.forEach((entry, idx) => {
       const target = allNodes[entry.index]
       if (!target) return
-      const isStrong = idx === 0
+      const isStrong = true
       newSegments.push(
         createSegment(
           batchId,
@@ -227,19 +237,17 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         : SOFT_SEGMENT_LIFETIME
       const fadeDelay = segment.isStrong ? STRONG_FADE_DELAY : SOFT_FADE_DELAY
 
-      const fadeTimer = window.setTimeout(() => {
+      registerTimer(() => {
         setSegments((prev) =>
           prev.map((item) =>
             item.id === segment.id ? { ...item, isFading: true } : item
           )
         )
-      }, Math.max(120, Math.min(fadeDelay, Math.max(0, lifetime - 180))))
+      }, Math.max(160, Math.min(fadeDelay, Math.max(0, lifetime - 420))))
 
-      const removalTimer = window.setTimeout(() => {
+      registerTimer(() => {
         setSegments((prev) => prev.filter((item) => item.id !== segment.id))
       }, lifetime)
-
-      timersRef.current.push(fadeTimer, removalTimer)
     })
 
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
@@ -267,6 +275,8 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     const strongOpacityLate = clamp(0.48 * controls.intensity, 0.08, 0.92)
     const strongOpacityEnd = clamp(0.42 * controls.intensity, 0.12, 0.88)
     const strongThickness = clamp(controls.thickness * 1.22, 0.3, 1.4)
+    const softFadeDuration = Math.max(320, controls.softDuration * 0.9)
+    const strongFadeDuration = Math.max(680, controls.strongDuration * 1.85)
 
     return {
       '--links-spark-soft-duration': `${controls.softDuration}ms`,
@@ -281,6 +291,8 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       '--links-spark-strong-opacity-mid': strongOpacityMid,
       '--links-spark-strong-opacity-late': strongOpacityLate,
       '--links-spark-strong-opacity-end': strongOpacityEnd,
+      '--links-spark-soft-fade': `${Math.round(softFadeDuration)}ms`,
+      '--links-spark-strong-fade': `${Math.round(strongFadeDuration)}ms`,
     } as CSSProperties
   }, [controls])
 
