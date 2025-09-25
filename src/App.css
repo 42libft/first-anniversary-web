@@ -1499,6 +1499,173 @@
   pointer-events: none;
 }
 
+.media-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.media-stage__grid {
+  position: absolute;
+  inset: -12%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(110, 140, 220, 0.28) 0px,
+      rgba(110, 140, 220, 0.28) 1px,
+      transparent 1px,
+      transparent 42px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(140, 188, 255, 0.24) 0px,
+      rgba(140, 188, 255, 0.24) 1px,
+      transparent 1px,
+      transparent 36px
+    );
+  opacity: 0.18;
+  mix-blend-mode: screen;
+  animation: mediaGridPulse calc(var(--media-scan-duration, 3600ms) * 1.5)
+    ease-in-out infinite;
+}
+
+.media-sheet {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(clamp(78px, 16vw, 132px), 1fr));
+  gap: clamp(0.9rem, 3vw, 1.6rem);
+  padding:
+    clamp(1.1rem, 3.6vw, 2.4rem)
+    clamp(1.4rem, 4.2vw, 2.8rem)
+    clamp(1.6rem, 4.8vw, 3.1rem);
+  border-radius: clamp(1.6rem, 5vw, 2.6rem);
+  background:
+    linear-gradient(160deg, rgba(24, 28, 62, 0.88), rgba(12, 16, 42, 0.82));
+  box-shadow:
+    0 38px 120px rgba(6, 8, 26, 0.58),
+    inset 0 0 22px rgba(160, 190, 255, 0.12);
+  backdrop-filter: blur(26px);
+  transform: perspective(880px) rotateX(15deg);
+  pointer-events: none;
+}
+
+.media-frame {
+  position: relative;
+  width: clamp(74px, 15vw, 128px);
+  aspect-ratio: 2 / 3;
+  border-radius: 14px;
+  border: 1px solid rgba(178, 208, 255, 0.32);
+  overflow: hidden;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: translateY(calc(18px - var(--frame-order, 0) * 2.2px)) scale(0.94)
+    rotate(calc(var(--frame-tilt, 0) * 1deg));
+  filter: drop-shadow(0 14px 26px rgba(20, 36, 82, 0.32));
+  transition:
+    opacity calc(var(--media-frame-fade, 4600ms)) cubic-bezier(0.36, 0.05, 0.18, 1),
+    filter calc(var(--media-frame-fade, 4600ms)) ease-out;
+  animation: mediaFrameEnter 720ms cubic-bezier(0.28, 0.12, 0.14, 0.98)
+    forwards;
+}
+
+.media-frame.is-fading {
+  opacity: 0;
+  filter: drop-shadow(0 10px 20px rgba(10, 20, 60, 0.12));
+}
+
+.media-frame__inner {
+  position: absolute;
+  inset: 10%;
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      160deg,
+      rgba(248, 252, 255, 0.32),
+      rgba(164, 196, 255, 0.22) 46%,
+      rgba(32, 52, 102, 0.46)
+    );
+  opacity: calc((0.48 + var(--frame-tone, 0) * 0.52) * var(--media-glow-intensity, 1));
+  filter: hue-rotate(var(--frame-hue, 0deg)) saturate(1.4);
+  box-shadow:
+    inset 0 0 26px rgba(168, 198, 255, 0.28),
+    0 0 32px rgba(164, 210, 255, 0.22);
+  transition:
+    opacity calc(var(--media-frame-fade, 4600ms)) ease,
+    filter 820ms ease;
+}
+
+.media-frame.is-fading .media-frame__inner {
+  opacity: 0;
+  filter: hue-rotate(var(--frame-hue, 0deg)) saturate(0.6);
+}
+
+.media-frame__inner::before,
+.media-frame__inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.media-frame__inner::before {
+  background: radial-gradient(
+    circle at 22% 16%,
+    rgba(255, 255, 255, 0.42),
+    rgba(255, 255, 255, 0) 48%
+  );
+  opacity: 0.65;
+}
+
+.media-frame__inner::after {
+  background: radial-gradient(
+    circle at 78% 84%,
+    rgba(156, 206, 255, 0.28),
+    rgba(156, 206, 255, 0) 55%
+  );
+  opacity: 0.5;
+}
+
+.media-frame__scan {
+  position: absolute;
+  inset: -18%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(248, 255, 254, 0.16) 18%,
+    rgba(255, 255, 255, 0.75) 46%,
+    rgba(200, 230, 255, 0.2) 64%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateY(-78%);
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: mediaFrameScan var(--media-scan-duration, 3600ms)
+      cubic-bezier(0.24, 0.04, 0.16, 1) forwards,
+    mediaFrameTwinkle calc(var(--media-scan-duration, 3600ms) * 1.8)
+      ease-in-out infinite;
+}
+
+.media-frame.is-fading .media-frame__scan {
+  animation-play-state: paused;
+  opacity: 0;
+}
+
+.media-stage__grain {
+  position: absolute;
+  inset: -20%;
+  background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"%3E%3Cfilter id="n" x="0" y="0" width="100%25" height="100%25"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3"/%3E%3C/filter%3E%3Crect width="140" height="140" filter="url(%23n)" opacity="0.45"/%3E%3C/svg%3E');
+  background-size: cover;
+  opacity: calc(var(--media-grain-amount, 0.3));
+  mix-blend-mode: screen;
+  animation: mediaGrainShift 8200ms steps(2) infinite;
+}
+
 .media-count {
   position: absolute;
   top: 50%;
@@ -1570,6 +1737,113 @@
   text-transform: uppercase;
 }
 
+.media-control-panel {
+  position: absolute;
+  right: clamp(0.8rem, 4vw, 1.8rem);
+  bottom: clamp(0.8rem, 6vh, 1.8rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+  pointer-events: none;
+}
+
+.media-control-panel__toggle {
+  pointer-events: auto;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 186, 255, 0.38);
+  background: rgba(12, 18, 44, 0.78);
+  color: rgba(220, 232, 255, 0.86);
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(6, 8, 24, 0.4);
+}
+
+.media-control-panel__toggle:hover {
+  border-color: rgba(186, 206, 255, 0.6);
+}
+
+.media-control-panel__body {
+  width: clamp(220px, 26vw, 280px);
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(168, 186, 255, 0.34);
+  background: rgba(10, 16, 40, 0.86);
+  box-shadow: 0 18px 46px rgba(6, 8, 20, 0.5);
+  backdrop-filter: blur(18px);
+  display: grid;
+  gap: 0.7rem;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.media-control-panel.is-open .media-control-panel__body {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.media-control-panel:not(.is-open) .media-control-panel__body {
+  pointer-events: none;
+}
+
+.media-control {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: rgba(212, 224, 255, 0.72);
+}
+
+.media-control span {
+  font-weight: 500;
+}
+
+.media-control input {
+  width: 100%;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(120, 150, 240, 0.32);
+  outline: none;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.media-control input::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(206, 226, 255, 0.95);
+  border: 1px solid rgba(120, 144, 244, 0.8);
+  box-shadow: 0 0 0 4px rgba(160, 186, 255, 0.26);
+}
+
+.media-control input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(206, 226, 255, 0.95);
+  border: 1px solid rgba(120, 144, 244, 0.8);
+  box-shadow: 0 0 0 4px rgba(160, 186, 255, 0.26);
+}
+
+.media-control input:focus-visible {
+  outline: none;
+  background: rgba(150, 192, 255, 0.48);
+}
+
+.media-control__value {
+  font-weight: 600;
+  color: rgba(226, 236, 255, 0.86);
+  text-align: right;
+}
+
 @keyframes mediaAurora {
   0% {
     transform: rotate(0deg) scale(1);
@@ -1582,6 +1856,72 @@
   100% {
     transform: rotate(-2deg) scale(1.02);
     opacity: 0.6;
+  }
+}
+
+@keyframes mediaGridPulse {
+  0%,
+  100% {
+    opacity: 0.14;
+    transform: scale(1);
+  }
+  45% {
+    opacity: 0.26;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes mediaFrameEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(28px - var(--frame-order, 0) * 2.2px)) scale(0.86)
+      rotate(calc(var(--frame-tilt, 0) * 1deg));
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(calc(-6px - var(--frame-order, 0) * 1.2px)) scale(0.98)
+      rotate(calc((var(--frame-tilt, 0) + 0.6) * 1deg));
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(calc(0px - var(--frame-order, 0) * 0.8px)) scale(1)
+      rotate(calc(var(--frame-tilt, 0) * 1deg));
+  }
+}
+
+@keyframes mediaFrameScan {
+  0% {
+    opacity: 0;
+    transform: translateY(-78%);
+  }
+  20% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(78%);
+  }
+}
+
+@keyframes mediaFrameTwinkle {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes mediaGrainShift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.02);
+  }
+  100% {
+    transform: translate3d(-3%, 2%, 0) scale(1.04);
   }
 }
 
