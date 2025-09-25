@@ -17,9 +17,87 @@ const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 36))
 const MAX_SHARDS = 54
 const MIN_OFFSET_GAP = 0.18
 const COUNTER_PROTECTED_RADIUS = 0.22
+const SPAWN_RANGE_X = 0.92
+const SPAWN_RANGE_Y = 0.74
+const TAP_JITTER_X = 0.38
+const TAP_JITTER_Y = 0.44
+
+type Quadrant = 'TL' | 'TR' | 'BL' | 'BR'
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
+
+const clampToRange = (value: number, range: number) => clamp(value, -range, range)
+
+const quadrantAngles: Record<Quadrant, number> = {
+  TR: Math.PI / 4,
+  TL: (3 * Math.PI) / 4,
+  BL: (5 * Math.PI) / 4,
+  BR: (7 * Math.PI) / 4,
+}
+
+const pushOutsideProtectedZone = (x: number, y: number) => {
+  let nextX = clampToRange(x, SPAWN_RANGE_X)
+  let nextY = clampToRange(y, SPAWN_RANGE_Y)
+  const distance = Math.hypot(nextX, nextY)
+  if (distance >= COUNTER_PROTECTED_RADIUS || distance === 0) {
+    if (distance === 0) {
+      const angle = Math.random() * Math.PI * 2
+      nextX = Math.cos(angle) * COUNTER_PROTECTED_RADIUS
+      nextY = Math.sin(angle) * COUNTER_PROTECTED_RADIUS
+    }
+    return {
+      x: clampToRange(nextX, SPAWN_RANGE_X),
+      y: clampToRange(nextY, SPAWN_RANGE_Y),
+    }
+  }
+
+  const scale = (COUNTER_PROTECTED_RADIUS * 1.04) / distance
+  nextX = clampToRange(nextX * scale, SPAWN_RANGE_X)
+  nextY = clampToRange(nextY * scale, SPAWN_RANGE_Y)
+  return { x: nextX, y: nextY }
+}
+
+const getQuadrant = (x: number, y: number): Quadrant => {
+  const horizontal = x < 0 ? 'L' : 'R'
+  const vertical = y < 0 ? 'T' : 'B'
+  return `${vertical}${horizontal}` as Quadrant
+}
+
+const generateQuadrantCandidate = (quadrant: Quadrant) => {
+  const baseAngle = quadrantAngles[quadrant]
+  const angle = baseAngle + (Math.random() - 0.5) * (Math.PI / 2) * 0.68
+  const radius = 0.35 + Math.sqrt(Math.random()) * 0.65
+  const x = Math.cos(angle) * SPAWN_RANGE_X * radius
+  const y = Math.sin(angle) * SPAWN_RANGE_Y * radius
+  return pushOutsideProtectedZone(x, y)
+}
+
+const scoreCandidate = (candidate: { x: number; y: number }, shards: Shard[]) => {
+  const { x, y } = candidate
+  let minDistance = Number.POSITIVE_INFINITY
+  const recent = shards.slice(-32)
+  for (let index = 0; index < recent.length; index += 1) {
+    const shard = recent[index]
+    const dx = x - shard.x
+    const dy = y - shard.y
+    const distance = Math.hypot(dx, dy)
+    if (distance < minDistance) {
+      minDistance = distance
+    }
+  }
+
+  if (minDistance === Number.POSITIVE_INFINITY) {
+    minDistance = Math.hypot(x, y)
+  }
+
+  const edgeClearance = Math.min(
+    SPAWN_RANGE_X - Math.abs(x),
+    SPAWN_RANGE_Y - Math.abs(y)
+  )
+
+  return minDistance * 0.72 + edgeClearance * 0.52 + Math.hypot(x, y) * 0.36
+}
 
 type Shard = {
   id: number
@@ -180,30 +258,9 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     }
   }, [phase, shards, clearTimer, startShardFade, controls.fadeDuration])
 
-  const pickOffset = useCallback((range: number, minGap: number) => {
-    let fallback = 0
-    for (let attempt = 0; attempt < 10; attempt += 1) {
-      const candidate = (Math.random() * 2 - 1) * range
-      const gapOk = Math.abs(candidate) >= minGap
-      const protectedOk = Math.hypot(candidate, 0) >= COUNTER_PROTECTED_RADIUS
-      if (gapOk && protectedOk) {
-        return candidate
-      }
-      fallback = candidate
-    }
-    if (Math.abs(fallback) < minGap) {
-      const direction = fallback === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(fallback)
-      fallback = direction * minGap
-    }
-    return clamp(fallback, -range, range)
-  }, [])
-
   const handlePulse = (position?: { x: number; y: number }) => {
     if (phase !== 'play') return
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
-
-    const spawnRangeX = 0.85
-    const spawnRangeY = 0.68
 
     const resolveAxis = (
       coord: number,
@@ -218,24 +275,84 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         const direction = value === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(value)
         value = direction * gap
       }
-      return clamp(value, -range, range)
+      return clampToRange(value, range)
     }
 
     const withinProtectedZone = (coord?: { x: number; y: number }) => {
       if (!coord) return false
-      const offsetX = coord.x - 0.5
-      const offsetY = coord.y - 0.5
-      return Math.hypot(offsetX, offsetY) < 0.22
+      const offsetX = (coord.x - 0.5) * 2 * SPAWN_RANGE_X
+      const offsetY = (coord.y - 0.5) * 2 * SPAWN_RANGE_Y
+      return Math.hypot(offsetX, offsetY) < COUNTER_PROTECTED_RADIUS
     }
 
-    const useTap = position && !withinProtectedZone(position)
+    const existingShards = shards.slice(-MAX_SHARDS)
+    const quadrantCounts: Record<Quadrant, number> = {
+      TL: 0,
+      TR: 0,
+      BL: 0,
+      BR: 0,
+    }
+    existingShards.forEach((shard) => {
+      const quadrant = getQuadrant(shard.x, shard.y)
+      quadrantCounts[quadrant] += 1
+    })
+    const quadrantsByDensity = (Object.entries(quadrantCounts) as [Quadrant, number][])
+      .map(([quadrant, count]) => ({ quadrant, count, noise: Math.random() }))
+      .sort((a, b) => {
+        if (a.count !== b.count) return a.count - b.count
+        return a.noise - b.noise
+      })
+      .map((entry) => [entry.quadrant, entry.count] as [Quadrant, number])
 
-    const x = useTap
-      ? resolveAxis(position!.x, spawnRangeX, MIN_OFFSET_GAP, 0.28)
-      : pickOffset(spawnRangeX, MIN_OFFSET_GAP)
-    const y = useTap
-      ? resolveAxis(position!.y, spawnRangeY, MIN_OFFSET_GAP * 0.6, 0.32)
-      : pickOffset(spawnRangeY, MIN_OFFSET_GAP * 0.6)
+    const candidatePool: { x: number; y: number }[] = []
+    const tapUsable = position && !withinProtectedZone(position)
+
+    if (tapUsable) {
+      const base = {
+        x: resolveAxis(position!.x, SPAWN_RANGE_X, MIN_OFFSET_GAP, TAP_JITTER_X * 0.4),
+        y: resolveAxis(position!.y, SPAWN_RANGE_Y, MIN_OFFSET_GAP * 0.6, TAP_JITTER_Y * 0.4),
+      }
+      candidatePool.push(pushOutsideProtectedZone(base.x, base.y))
+
+      for (let index = 0; index < 3; index += 1) {
+        const jittered = {
+          x: base.x + (Math.random() - 0.5) * TAP_JITTER_X,
+          y: base.y + (Math.random() - 0.5) * TAP_JITTER_Y,
+        }
+        candidatePool.push(pushOutsideProtectedZone(jittered.x, jittered.y))
+      }
+
+      const lowestQuadrant = quadrantsByDensity[0]?.[0]
+      const baseQuadrant = getQuadrant(base.x, base.y)
+      if (lowestQuadrant && lowestQuadrant !== baseQuadrant) {
+        candidatePool.push(generateQuadrantCandidate(lowestQuadrant))
+      }
+    } else {
+      quadrantsByDensity.forEach(([quadrant], index) => {
+        const attempts = index === 0 ? 3 : index === 1 ? 2 : 1
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          candidatePool.push(generateQuadrantCandidate(quadrant))
+        }
+      })
+    }
+
+    if (candidatePool.length === 0) {
+      candidatePool.push(generateQuadrantCandidate('TR'))
+    }
+
+    const bestCandidate = candidatePool.reduce<{ x: number; y: number; score: number } | null>(
+      (best, candidate) => {
+        const candidateScore = scoreCandidate(candidate, existingShards)
+        if (!best || candidateScore > best.score) {
+          return { ...candidate, score: candidateScore }
+        }
+        return best
+      },
+      null
+    )
+
+    const x = bestCandidate?.x ?? 0
+    const y = bestCandidate?.y ?? 0
     const depth = -120 - Math.random() * 260
     const scale = 0.58 + Math.random() * 0.62
     const hue = Math.random()
