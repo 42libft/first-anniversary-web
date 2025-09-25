@@ -71,8 +71,6 @@ type Segment = {
   isStrong: boolean
   length: number
   isFading: boolean
-  opacity: number
-  baseOpacity: number
   fadeDuration: number
 }
 
@@ -99,7 +97,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const stageRef = useRef<HTMLDivElement | null>(null)
   const batchRef = useRef(0)
   const timersRef = useRef<number[]>([])
-  const fadeFramesRef = useRef<Map<number, number>>(new Map())
+  const fadeTimeoutsRef = useRef<Map<number, number>>(new Map())
 
   const registerTimer = useCallback((handler: () => void, delay: number) => {
     const timerId = window.setTimeout(() => {
@@ -110,45 +108,53 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     return timerId
   }, [])
 
-  const startSegmentFade = useCallback((segmentId: number, duration: number) => {
-    const existingFrame = fadeFramesRef.current.get(segmentId)
-    if (existingFrame !== undefined) {
-      window.cancelAnimationFrame(existingFrame)
-      fadeFramesRef.current.delete(segmentId)
-    }
-
-    const startTime = performance.now()
-
-    const step = (now: number) => {
-      const elapsed = now - startTime
-      const progress = Math.min(1, duration <= 0 ? 1 : elapsed / duration)
-
-      setSegments((prev) =>
-        prev
-          .map((segment) => {
-            if (segment.id !== segmentId) return segment
-            const nextOpacity = segment.baseOpacity * (1 - progress)
-            return {
-              ...segment,
-              opacity: Math.max(0, nextOpacity),
-              isFading: true,
-            }
-          })
-          .filter((segment) => segment.opacity > 0 || segment.id !== segmentId || progress < 1)
-      )
-
-      if (progress < 1) {
-        const frameId = window.requestAnimationFrame(step)
-        fadeFramesRef.current.set(segmentId, frameId)
-      } else {
-        fadeFramesRef.current.delete(segmentId)
-        setSegments((prev) => prev.filter((segment) => segment.id !== segmentId))
-      }
-    }
-
-    const frameId = window.requestAnimationFrame(step)
-    fadeFramesRef.current.set(segmentId, frameId)
+  const clearTimer = useCallback((timerId: number) => {
+    window.clearTimeout(timerId)
+    timersRef.current = timersRef.current.filter((id) => id !== timerId)
   }, [])
+
+  const startSegmentFade = useCallback(
+    (segmentId: number, duration: number) => {
+      const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 480
+      let shouldScheduleRemoval = false
+
+      setSegments((prev) => {
+        let didUpdate = false
+        const next = prev.map((segment) => {
+          if (segment.id !== segmentId) return segment
+          didUpdate = true
+          if (segment.isFading) return segment
+          shouldScheduleRemoval = true
+          return { ...segment, isFading: true }
+        })
+
+        if (!didUpdate || !shouldScheduleRemoval) {
+          return prev
+        }
+
+        return next
+      })
+
+      if (!shouldScheduleRemoval) {
+        return
+      }
+
+      const existingTimeout = fadeTimeoutsRef.current.get(segmentId)
+      if (existingTimeout !== undefined) {
+        clearTimer(existingTimeout)
+        fadeTimeoutsRef.current.delete(segmentId)
+      }
+
+      const removalDelay = safeDuration + 120
+      const removalTimer = registerTimer(() => {
+        fadeTimeoutsRef.current.delete(segmentId)
+        setSegments((prev) => prev.filter((segment) => segment.id !== segmentId))
+      }, removalDelay)
+
+      fadeTimeoutsRef.current.set(segmentId, removalTimer)
+    },
+    [clearTimer, registerTimer]
+  )
 
   const allNodes = useMemo<Node[]>(
     () => [...STATIC_NODES, ...dynamicNodes],
@@ -164,10 +170,10 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     return () => {
       timersRef.current.forEach((timer) => window.clearTimeout(timer))
       timersRef.current = []
-      fadeFramesRef.current.forEach((frameId) => window.cancelAnimationFrame(frameId))
-      fadeFramesRef.current.clear()
+      fadeTimeoutsRef.current.forEach((timerId) => clearTimer(timerId))
+      fadeTimeoutsRef.current.clear()
     }
-  }, [])
+  }, [clearTimer])
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -242,7 +248,6 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           { x: newNode.cx, y: newNode.cy },
           { x: target.cx, y: target.cy },
           isStrong,
-          fadeSpec.baseOpacity,
           fadeSpec.fadeDuration
         )
       )
@@ -420,7 +425,6 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
             const style = {
               animationDelay: `${segment.delay}ms`,
               '--spark-length': `${segment.length}`,
-              opacity: segment.opacity,
             } as CSSProperties
             return (
               <line
@@ -565,7 +569,6 @@ const createSegment = (
   start: { x: number; y: number },
   end: { x: number; y: number },
   isStrong: boolean,
-  baseOpacity: number,
   fadeDuration: number
 ): Segment => {
   const dx = end.x - start.x
@@ -581,8 +584,6 @@ const createSegment = (
     isStrong,
     length: Math.hypot(dx, dy),
     isFading: false,
-    opacity: baseOpacity,
-    baseOpacity,
     fadeDuration,
   }
 }
