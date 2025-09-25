@@ -1644,9 +1644,10 @@
   height: clamp(72px, 12vw, 164px);
   transform-origin: center;
   transform:
+    translate3d(-50%, -50%, 0)
     translate3d(
-      var(--fragment-translate-x, 0%),
-      var(--fragment-translate-y, 0%),
+      var(--fragment-translate-x, 0),
+      var(--fragment-translate-y, 0),
       var(--fragment-depth, -140px)
     )
     rotateX(var(--fragment-tilt-x, 0deg))
@@ -1732,9 +1733,10 @@
 .media-fragment.is-fading {
   opacity: 0;
   transform:
+    translate3d(-50%, -50%, 0)
     translate3d(
-      var(--fragment-translate-x, 0%),
-      calc(var(--fragment-translate-y, 0%) + 4%),
+      var(--fragment-translate-x, 0),
+      calc(var(--fragment-translate-y, 0) + 4vh),
       calc(var(--fragment-depth, -140px) - 44px)
     )
     rotateX(calc(var(--fragment-tilt-x, 0deg) * 0.58))
@@ -1758,9 +1760,10 @@
   0% {
     opacity: 0;
     transform:
+      translate3d(-50%, -50%, 0)
       translate3d(
-        var(--fragment-translate-x, 0%),
-        calc(var(--fragment-translate-y, 0%) + 12%),
+        var(--fragment-translate-x, 0),
+        calc(var(--fragment-translate-y, 0) + 12vh),
         calc(var(--fragment-depth, -140px) + 150px)
       )
       rotateX(calc(var(--fragment-tilt-x, 0deg) * 0.42))
@@ -1772,9 +1775,10 @@
   34% {
     opacity: 1;
     transform:
+      translate3d(-50%, -50%, 0)
       translate3d(
-        var(--fragment-translate-x, 0%),
-        calc(var(--fragment-translate-y, 0%) - 1.8%),
+        var(--fragment-translate-x, 0),
+        calc(var(--fragment-translate-y, 0) - 1.8vh),
         calc(var(--fragment-depth, -140px) - 26px)
       )
       rotateX(var(--fragment-tilt-x, 0deg))
@@ -1786,9 +1790,10 @@
   100% {
     opacity: 1;
     transform:
+      translate3d(-50%, -50%, 0)
       translate3d(
-        var(--fragment-translate-x, 0%),
-        var(--fragment-translate-y, 0%),
+        var(--fragment-translate-x, 0),
+        var(--fragment-translate-y, 0),
         var(--fragment-depth, -140px)
       )
       rotateX(var(--fragment-tilt-x, 0deg))

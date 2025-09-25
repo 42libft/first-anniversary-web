@@ -103,14 +103,12 @@ const generateScatterSlots = (count: number) => {
   const slots: ScatterSlot[] = []
   let minDistance = 0.26
   let attempts = 0
-  const maxAttempts = count * 60
+  const maxAttempts = count * 240
 
   while (slots.length < count && attempts < maxAttempts) {
     attempts += 1
-    const angle = Math.random() * Math.PI * 2
-    const radius = Math.pow(Math.random(), 0.6)
-    const rawX = Math.cos(angle) * CANVAS_RANGE_X * radius
-    const rawY = Math.sin(angle) * CANVAS_RANGE_Y * radius
+    const rawX = (Math.random() * 2 - 1) * CANVAS_RANGE_X
+    const rawY = (Math.random() * 2 - 1) * CANVAS_RANGE_Y
     const { x, y } = pushOutsideProtectedZone(rawX, rawY)
 
     const tooClose = slots.some((slot) => distanceNormalized(slot, { x, y }) < minDistance)
@@ -125,7 +123,12 @@ const generateScatterSlots = (count: number) => {
   }
 
   if (slots.length < count) {
-    return slots
+    while (slots.length < count) {
+      const rawX = (Math.random() * 2 - 1) * CANVAS_RANGE_X
+      const rawY = (Math.random() * 2 - 1) * CANVAS_RANGE_Y
+      const { x, y } = pushOutsideProtectedZone(rawX, rawY)
+      slots.push({ id: slots.length, x, y, weight: Math.random() })
+    }
   }
 
   return slots
@@ -449,8 +452,8 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
           <div className="media-canvas__sheen" />
           <div className="media-fragments">
             {[...visibleFragments].reverse().map((fragment, index) => {
-              const translateX = ((fragment.x / CANVAS_RANGE_X) * 46).toFixed(2)
-              const translateY = ((fragment.y / CANVAS_RANGE_Y) * 46).toFixed(2)
+              const translateX = ((fragment.x / CANVAS_RANGE_X) * 50).toFixed(2)
+              const translateY = ((fragment.y / CANVAS_RANGE_Y) * 50).toFixed(2)
               const depth = fragment.depth.toFixed(2)
               const scale = (fragment.scale + index * 0.004).toFixed(3)
               const tiltX = fragment.tiltX.toFixed(2)
@@ -468,8 +471,8 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
               const drift = fragment.drift.toFixed(3)
 
               const style = {
-                '--fragment-translate-x': `${translateX}%`,
-                '--fragment-translate-y': `${translateY}%`,
+                '--fragment-translate-x': `${translateX}vw`,
+                '--fragment-translate-y': `${translateY}vh`,
                 '--fragment-depth': `${depth}px`,
                 '--fragment-scale': scale,
                 '--fragment-tilt-x': `${tiltX}deg`,
