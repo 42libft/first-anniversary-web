@@ -29,11 +29,12 @@ const clamp = (value: number, min: number, max: number) =>
 
 const clampToRange = (value: number, range: number) => clamp(value, -range, range)
 
+// CSS座標系ではY正方向が下になるため、象限角度はそれに合わせて定義する
 const quadrantAngles: Record<Quadrant, number> = {
-  TR: Math.PI / 4,
-  TL: (3 * Math.PI) / 4,
-  BL: (5 * Math.PI) / 4,
-  BR: (7 * Math.PI) / 4,
+  TL: -(3 * Math.PI) / 4,
+  TR: -Math.PI / 4,
+  BL: (3 * Math.PI) / 4,
+  BR: Math.PI / 4,
 }
 
 const pushOutsideProtectedZone = (x: number, y: number) => {
@@ -66,7 +67,8 @@ const getQuadrant = (x: number, y: number): Quadrant => {
 
 const generateQuadrantCandidate = (quadrant: Quadrant) => {
   const baseAngle = quadrantAngles[quadrant]
-  const angle = baseAngle + (Math.random() - 0.5) * (Math.PI / 2) * 0.68
+  const angleOffset = (Math.random() - 0.5) * (Math.PI / 2) * 0.68
+  const angle = baseAngle + angleOffset
   const radius = 0.35 + Math.sqrt(Math.random()) * 0.65
   const x = Math.cos(angle) * SPAWN_RANGE_X * radius
   const y = Math.sin(angle) * SPAWN_RANGE_Y * radius
