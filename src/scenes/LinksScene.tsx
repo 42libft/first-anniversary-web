@@ -14,9 +14,9 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const FINAL_TARGET = totalLinks
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
-const STRONG_SEGMENT_LIFETIME = 5200
+const STRONG_SEGMENT_LIFETIME = 5600
 const SOFT_SEGMENT_LIFETIME = 1400
-const STRONG_FADE_DELAY = 3800
+const STRONG_FADE_DELAY = 3200
 const SOFT_FADE_DELAY = 720
 const MAX_SEGMENTS = 32
 
@@ -237,7 +237,9 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         : SOFT_SEGMENT_LIFETIME
       const fadeDelay = segment.isStrong ? STRONG_FADE_DELAY : SOFT_FADE_DELAY
 
-      const fadeBuffer = segment.isStrong ? 1400 : 420
+      const fadeBuffer = segment.isStrong
+        ? Math.min(2600, Math.round(controls.strongDuration * 3.6))
+        : 600
       const fadeStart = Math.max(
         200,
         Math.min(fadeDelay, Math.max(0, lifetime - fadeBuffer))
@@ -275,16 +277,16 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
     const softOpacityMid = clamp(0.55 * controls.intensity, 0.04, 0.9)
     const softOpacityLate = clamp(0.34 * controls.intensity, 0.03, 0.7)
-    const softOpacityEnd = 0
-    const softBase = clamp(0.52 * controls.intensity, 0.24, 0.8)
+    const softOpacityEnd = clamp(0.28 * controls.intensity, 0.06, 0.58)
+    const softBase = softOpacityEnd
     const strongOpacityStart = clamp(0.78 * controls.intensity, 0.08, 1)
     const strongOpacityMid = clamp(0.66 * controls.intensity, 0.06, 0.95)
     const strongOpacityLate = clamp(0.48 * controls.intensity, 0.1, 0.9)
-    const strongOpacityEnd = clamp(0.42 * controls.intensity, 0.14, 0.84)
-    const strongBase = clamp(0.82 * controls.intensity, 0.38, 1)
+    const strongOpacityEnd = clamp(0.44 * controls.intensity, 0.18, 0.88)
+    const strongBase = strongOpacityEnd
     const strongThickness = clamp(controls.thickness * 1.22, 0.3, 1.4)
-    const softFadeDuration = Math.max(420, controls.softDuration * 1.2)
-    const strongFadeDuration = Math.max(1100, controls.strongDuration * 2.3)
+    const softFadeDuration = Math.max(540, controls.softDuration * 1.6)
+    const strongFadeDuration = Math.max(2400, controls.strongDuration * 4)
 
     const stage = {
       '--links-spark-soft-duration': `${controls.softDuration}ms`,
