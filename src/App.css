@@ -1227,7 +1227,7 @@
   stroke-linecap: round;
   stroke-dasharray: var(--spark-length, 22);
   stroke-dashoffset: var(--spark-length, 22);
-  opacity: 0;
+  opacity: var(--links-spark-soft-opacity-base, 0.52);
   mix-blend-mode: lighten;
   will-change: stroke-dashoffset, opacity;
   transition:
@@ -1242,6 +1242,7 @@
 .links-sparkline--strong {
   stroke: url(#links-spark-strong);
   stroke-width: var(--links-spark-strong-width, 0.52);
+  opacity: var(--links-spark-strong-opacity-base, 0.82);
   transition:
     opacity var(--links-spark-strong-fade, 720ms) cubic-bezier(0.2, 0.02, 0.08, 0.98),
     filter var(--links-spark-strong-fade, 720ms) ease-out;

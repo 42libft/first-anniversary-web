@@ -269,7 +269,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       }))
     }
 
-  const { stageStyle, softBaseOpacity, strongBaseOpacity } = useMemo(() => {
+  const stageStyle = useMemo(() => {
     const clamp = (value: number, min: number, max: number) =>
       Math.min(max, Math.max(min, value))
     const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
@@ -303,13 +303,9 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       '--links-spark-strong-opacity-base': `${strongBase}`,
       '--links-spark-soft-fade': `${Math.round(softFadeDuration)}ms`,
       '--links-spark-strong-fade': `${Math.round(strongFadeDuration)}ms`,
-    } as CSSProperties
+    } satisfies Record<string, string>
 
-    return {
-      stageStyle: stage,
-      softBaseOpacity: softBase,
-      strongBaseOpacity: strongBase,
-    }
+    return stage as CSSProperties
   }, [controls])
 
   return (
@@ -371,13 +367,9 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
             />
           ))}
           {segments.map((segment) => {
-            const baseOpacity = segment.isStrong
-              ? strongBaseOpacity
-              : softBaseOpacity
             const style = {
               animationDelay: `${segment.delay}ms`,
               '--spark-length': `${segment.length}`,
-              opacity: segment.isFading ? 0 : baseOpacity,
             } as CSSProperties
             return (
               <line
