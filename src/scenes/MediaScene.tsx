@@ -14,25 +14,30 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const FINAL_TARGET = totalMedia
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 36))
-const MAX_RINGS = 48
+const MAX_SHARDS = 54
 
-type Ring = {
+type Shard = {
   id: number
-  hue: number
-  spin: 1 | -1
+  x: number
+  y: number
+  depth: number
   scale: number
+  hue: number
   tone: number
-  offset: number
+  tiltX: number
+  tiltY: number
+  rotateZ: number
   drift: number
   delay: number
+  flight: number
   isFading: boolean
 }
 
 type ControlState = {
-  rotationSpeed: number
-  ringFade: number
+  flightDuration: number
+  fadeDuration: number
   glowIntensity: number
-  paletteShift: number
+  hueSpread: number
   driftStrength: number
 }
 
@@ -44,13 +49,13 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     FINAL_TARGET > 0 ? 'play' : 'announce'
   )
   const [ctaVisible, setCtaVisible] = useState(false)
-  const [rings, setRings] = useState<Ring[]>([])
+  const [shards, setShards] = useState<Shard[]>([])
   const [controls, setControls] = useState<ControlState>({
-    rotationSpeed: 4200,
-    ringFade: 5200,
-    glowIntensity: 0.88,
-    paletteShift: 32,
-    driftStrength: 0.72,
+    flightDuration: 3600,
+    fadeDuration: 5400,
+    glowIntensity: 0.9,
+    hueSpread: 36,
+    driftStrength: 0.7,
   })
   const [panelOpen, setPanelOpen] = useState(false)
   const timersRef = useRef<number[]>([])
@@ -71,21 +76,21 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     timersRef.current = timersRef.current.filter((id) => id !== timerId)
   }, [])
 
-  const removeRing = useCallback((ringId: number) => {
-    setRings((prev) => prev.filter((ring) => ring.id !== ringId))
+  const removeShard = useCallback((shardId: number) => {
+    setShards((prev) => prev.filter((shard) => shard.id !== shardId))
   }, [])
 
-  const startRingFade = useCallback(
-    (ringId: number, fadeDuration: number) => {
+  const startShardFade = useCallback(
+    (shardId: number, fadeDuration: number) => {
       let shouldScheduleRemoval = false
-      setRings((prev) => {
+      setShards((prev) => {
         let didChange = false
-        const next = prev.map((ring) => {
-          if (ring.id !== ringId) return ring
-          if (ring.isFading) return ring
+        const next = prev.map((shard) => {
+          if (shard.id !== shardId) return shard
+          if (shard.isFading) return shard
           didChange = true
           shouldScheduleRemoval = true
-          return { ...ring, isFading: true }
+          return { ...shard, isFading: true }
         })
         if (!didChange) return prev
         return next
@@ -95,33 +100,36 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         return
       }
 
-      const existingRemoval = removalTimersRef.current.get(ringId)
+      const existingRemoval = removalTimersRef.current.get(shardId)
       if (existingRemoval !== undefined) {
         clearTimer(existingRemoval)
       }
-      const removalDelay = Math.max(480, fadeDuration) + 200
+      const removalDelay = Math.max(520, fadeDuration) + 220
       const removalTimer = registerTimer(() => {
-        removalTimersRef.current.delete(ringId)
-        removeRing(ringId)
+        removalTimersRef.current.delete(shardId)
+        removeShard(shardId)
       }, removalDelay)
-      removalTimersRef.current.set(ringId, removalTimer)
+      removalTimersRef.current.set(shardId, removalTimer)
     },
-    [clearTimer, registerTimer, removeRing]
+    [clearTimer, registerTimer, removeShard]
   )
 
   const stageStyle = useMemo(
     () =>
       ({
-        '--media-rotation-speed': `${controls.rotationSpeed}ms`,
-        '--media-ring-fade': `${controls.ringFade}ms`,
-        '--media-glow-intensity': `${controls.glowIntensity}`,
-        '--media-palette-shift': `${controls.paletteShift}deg`,
+        '--media-flight-duration': `${controls.flightDuration}ms`,
+        '--media-shard-fade': `${controls.fadeDuration}ms`,
+        '--media-shard-glow': `${controls.glowIntensity}`,
+        '--media-hue-spread': `${controls.hueSpread}deg`,
         '--media-drift-strength': `${controls.driftStrength}`,
       }) as CSSProperties,
     [controls]
   )
 
-  const visibleRings = useMemo(() => rings.slice(-MAX_RINGS), [rings])
+  const visibleShards = useMemo(
+    () => shards.slice(-MAX_SHARDS),
+    [shards]
+  )
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -154,76 +162,85 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   }, [])
 
   useEffect(() => {
-    if (rings.length === 0) return
+    if (shards.length === 0) return
     if (phase !== 'play') {
-      rings.forEach((ring) => {
-        const fadeTimer = fadeStartTimersRef.current.get(ring.id)
+      shards.forEach((shard) => {
+        const fadeTimer = fadeStartTimersRef.current.get(shard.id)
         if (fadeTimer !== undefined) {
           clearTimer(fadeTimer)
-          fadeStartTimersRef.current.delete(ring.id)
+          fadeStartTimersRef.current.delete(shard.id)
         }
-        startRingFade(ring.id, controls.ringFade)
+        startShardFade(shard.id, controls.fadeDuration)
       })
     }
-  }, [phase, rings, clearTimer, startRingFade, controls.ringFade])
+  }, [phase, shards, clearTimer, startShardFade, controls.fadeDuration])
 
   const handlePulse = () => {
     if (phase !== 'play') return
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
 
+    const x = (Math.random() - 0.5) * 0.8
+    const y = Math.random() * 0.45 - 0.12
+    const depth = -90 - Math.random() * 240
+    const scale = 0.62 + Math.random() * 0.75
     const hue = Math.random()
-    const spin: 1 | -1 = Math.random() > 0.5 ? 1 : -1
-    const scale = 0.62 + Math.random() * 0.68
     const tone = Math.random()
-    const offset = Math.random() * 360
+    const tiltX = (Math.random() - 0.5) * 28
+    const tiltY = (Math.random() - 0.5) * 36
+    const rotateZ = Math.random() * 360
     const drift = Math.random()
-    const delay = Math.floor(Math.random() * 140)
-    const ringId = Date.now() + Math.floor(Math.random() * 1000)
-    const newRing: Ring = {
-      id: ringId,
-      hue,
-      spin,
+    const delay = Math.floor(Math.random() * 120)
+    const flightDuration = Math.max(
+      1600,
+      Math.round(controls.flightDuration * (0.85 + drift * controls.driftStrength))
+    )
+    const shardId = Date.now() + Math.floor(Math.random() * 1000)
+
+    const newShard: Shard = {
+      id: shardId,
+      x,
+      y,
+      depth,
       scale,
+      hue,
       tone,
-      offset,
+      tiltX,
+      tiltY,
+      rotateZ,
       drift,
       delay,
+      flight: flightDuration,
       isFading: false,
     }
 
-    setRings((prev) => {
-      const next = [...prev, newRing]
-      const overflow = next.length - MAX_RINGS
+    setShards((prev) => {
+      const next = [...prev, newShard]
+      const overflow = next.length - MAX_SHARDS
       if (overflow <= 0) return next
 
       const trimmed = next.slice(overflow)
       const removed = next.slice(0, overflow)
-      removed.forEach((ring) => {
-        const fadeTimer = fadeStartTimersRef.current.get(ring.id)
+      removed.forEach((shard) => {
+        const fadeTimer = fadeStartTimersRef.current.get(shard.id)
         if (fadeTimer !== undefined) {
           clearTimer(fadeTimer)
-          fadeStartTimersRef.current.delete(ring.id)
+          fadeStartTimersRef.current.delete(shard.id)
         }
-        const removalTimer = removalTimersRef.current.get(ring.id)
+        const removalTimer = removalTimersRef.current.get(shard.id)
         if (removalTimer !== undefined) {
           clearTimer(removalTimer)
-          removalTimersRef.current.delete(ring.id)
+          removalTimersRef.current.delete(shard.id)
         }
       })
       return trimmed
     })
 
-    const holdDuration = Math.max(
-      1600,
-      Math.round(
-        controls.ringFade * (0.9 + drift * controls.driftStrength * 0.8)
-      )
-    )
+    const holdDuration = flightDuration
     const fadeTimer = registerTimer(() => {
-      fadeStartTimersRef.current.delete(ringId)
-      startRingFade(ringId, controls.ringFade)
+      fadeStartTimersRef.current.delete(shardId)
+      startShardFade(shardId, controls.fadeDuration)
     }, holdDuration)
-    fadeStartTimersRef.current.set(ringId, fadeTimer)
+    fadeStartTimersRef.current.set(shardId, fadeTimer)
   }
 
   const handleControlChange = (key: keyof ControlState) =>
@@ -243,46 +260,51 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     >
       <div className="media-stage" style={stageStyle} aria-hidden>
         <div className="media-stage__grid" />
-        <div className="media-stage__halo" />
-        <div className="media-rings">
-          {[...visibleRings].reverse().map((ring, index) => {
-            const hueShift = ((ring.hue - 0.5) * controls.paletteShift * 2).toFixed(2)
-            const alpha = (0.54 + ring.tone * 0.4).toFixed(3)
-            const scale = (ring.scale + index * 0.004).toFixed(3)
-            const orbitDuration = Math.max(
-              controls.rotationSpeed * (0.72 + ring.drift * 0.9),
-              1600
-            )
-            const driftFactor = (ring.drift * controls.driftStrength).toFixed(3)
+        <div className="media-stage__light" />
+        <div className="media-shards">
+          {[...visibleShards].reverse().map((shard, index) => {
+            const hueShift = (
+              (shard.hue - 0.5) * controls.hueSpread * 2
+            ).toFixed(2)
+            const translateX = (shard.x * 36).toFixed(2)
+            const translateY = (shard.y * 32).toFixed(2)
+            const depth = shard.depth.toFixed(2)
+            const scale = (shard.scale + index * 0.003).toFixed(3)
+            const tiltX = shard.tiltX.toFixed(2)
+            const tiltY = shard.tiltY.toFixed(2)
+            const rotateZ = shard.rotateZ.toFixed(2)
+            const alpha = (0.5 + shard.tone * 0.46).toFixed(3)
+            const driftFactor = shard.drift.toFixed(3)
 
-            const ringStyle = {
-              '--ring-scale': scale,
-              '--ring-hue': `${hueShift}deg`,
-              '--ring-alpha': alpha,
-              '--ring-offset': `${ring.offset.toFixed(1)}deg`,
-              '--ring-drift': driftFactor,
-              animationDelay: `${ring.delay}ms`,
-            } as CSSProperties
-
-            const haloStyle = {
-              '--ring-orbit-duration': `${orbitDuration.toFixed(0)}ms`,
-              '--ring-direction': ring.spin === -1 ? 'reverse' : 'normal',
+            const style = {
+              '--shard-translate-x': `${translateX}%`,
+              '--shard-translate-y': `${translateY}%`,
+              '--shard-depth': `${depth}px`,
+              '--shard-scale': scale,
+              '--shard-tilt-x': `${tiltX}deg`,
+              '--shard-tilt-y': `${tiltY}deg`,
+              '--shard-rotate-z': `${rotateZ}deg`,
+              '--shard-hue': `${hueShift}deg`,
+              '--shard-alpha': alpha,
+              '--shard-drift': driftFactor,
+              '--shard-flight': `${shard.flight}ms`,
+              animationDelay: `${shard.delay}ms`,
             } as CSSProperties
 
             return (
               <div
-                key={ring.id}
-                className={`media-ring${ring.isFading ? ' is-fading' : ''}`}
-                style={ringStyle}
+                key={shard.id}
+                className={`media-shard${shard.isFading ? ' is-fading' : ''}`}
+                style={style}
               >
-                <div className="media-ring__halo" style={haloStyle} />
-                <div className="media-ring__glow" />
+                <div className="media-shard__plane" />
+                <div className="media-shard__flare" />
               </div>
             )
           })}
         </div>
         <div className="media-stage__core" />
-        <div className="media-stage__dust" />
+        <div className="media-stage__particles" />
       </div>
       <TapRippleField
         disabled={phase !== 'play'}
@@ -301,8 +323,8 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
 
       {phase !== 'play' && (
         <div className="media-caption" role="status">
-          <p>光の層に並んだ記録が、外周へと重なっていく。</p>
-          <p>ふたりで残したメディアの数だけ、輪が広がりました。</p>
+          <p>光の欠片が奥へと漂い、記録の層が増えていく。</p>
+          <p>ふたりで共有したメディアの数だけ、残光が積もります。</p>
         </div>
       )}
 
@@ -327,28 +349,28 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         </button>
         <div className="media-control-panel__body">
           <label className="media-control">
-            <span>Rotation speed (ms)</span>
+            <span>Flight duration (ms)</span>
             <input
               type="range"
-              min={2600}
+              min={2400}
               max={8200}
               step={100}
-              value={controls.rotationSpeed}
-              onChange={handleControlChange('rotationSpeed')}
+              value={controls.flightDuration}
+              onChange={handleControlChange('flightDuration')}
             />
-            <span className="media-control__value">{controls.rotationSpeed}</span>
+            <span className="media-control__value">{controls.flightDuration}</span>
           </label>
           <label className="media-control">
-            <span>Ring fade (ms)</span>
+            <span>Trail fade (ms)</span>
             <input
               type="range"
-              min={2200}
-              max={8800}
+              min={2400}
+              max={9200}
               step={100}
-              value={controls.ringFade}
-              onChange={handleControlChange('ringFade')}
+              value={controls.fadeDuration}
+              onChange={handleControlChange('fadeDuration')}
             />
-            <span className="media-control__value">{controls.ringFade}</span>
+            <span className="media-control__value">{controls.fadeDuration}</span>
           </label>
           <label className="media-control">
             <span>Glow intensity</span>
@@ -365,16 +387,16 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
             </span>
           </label>
           <label className="media-control">
-            <span>Palette shift (deg)</span>
+            <span>Hue spread (deg)</span>
             <input
               type="range"
               min={0}
-              max={60}
+              max={72}
               step={1}
-              value={controls.paletteShift}
-              onChange={handleControlChange('paletteShift')}
+              value={controls.hueSpread}
+              onChange={handleControlChange('hueSpread')}
             />
-            <span className="media-control__value">{controls.paletteShift}</span>
+            <span className="media-control__value">{controls.hueSpread}</span>
           </label>
           <label className="media-control">
             <span>Drift strength</span>
