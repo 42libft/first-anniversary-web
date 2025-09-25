@@ -13,10 +13,11 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const FINAL_TARGET = totalLinks
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
-const SEGMENT_LIFETIME = 3800
-const MAX_SEGMENTS = 24
-const STRONG_FADE_WINDOW = 640
-const SOFT_FADE_WINDOW = 480
+const STRONG_SEGMENT_LIFETIME = 4200
+const SOFT_SEGMENT_LIFETIME = 1400
+const STRONG_FADE_DELAY = 3000
+const SOFT_FADE_DELAY = 720
+const MAX_SEGMENTS = 32
 
 type ControlState = {
   intensity: number
@@ -93,6 +94,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const networkRef = useRef<SVGSVGElement | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
   const batchRef = useRef(0)
+  const timersRef = useRef<number[]>([])
 
   const allNodes = useMemo<Node[]>(
     () => [...STATIC_NODES, ...dynamicNodes],
@@ -103,6 +105,13 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     () => [...STATIC_EDGES, ...dynamicEdges],
     [dynamicEdges]
   )
+
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((timer) => window.clearTimeout(timer))
+      timersRef.current = []
+    }
+  }, [])
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -213,22 +222,25 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     })
 
     newSegments.forEach((segment) => {
-      const fadeDelay = Math.max(
-        160,
-        SEGMENT_LIFETIME - (segment.isStrong ? STRONG_FADE_WINDOW : SOFT_FADE_WINDOW)
-      )
-      window.setTimeout(() => {
+      const lifetime = segment.isStrong
+        ? STRONG_SEGMENT_LIFETIME
+        : SOFT_SEGMENT_LIFETIME
+      const fadeDelay = segment.isStrong ? STRONG_FADE_DELAY : SOFT_FADE_DELAY
+
+      const fadeTimer = window.setTimeout(() => {
         setSegments((prev) =>
           prev.map((item) =>
             item.id === segment.id ? { ...item, isFading: true } : item
           )
         )
-      }, fadeDelay)
-    })
+      }, Math.max(120, Math.min(fadeDelay, Math.max(0, lifetime - 180))))
 
-    window.setTimeout(() => {
-      setSegments((prev) => prev.filter((segment) => segment.batch !== batchId))
-    }, SEGMENT_LIFETIME)
+      const removalTimer = window.setTimeout(() => {
+        setSegments((prev) => prev.filter((item) => item.id !== segment.id))
+      }, lifetime)
+
+      timersRef.current.push(fadeTimer, removalTimer)
+    })
 
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
     event.preventDefault()
@@ -249,11 +261,11 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
     const softOpacityMid = clamp(0.55 * controls.intensity, 0.04, 0.9)
     const softOpacityLate = clamp(0.34 * controls.intensity, 0.03, 0.7)
-    const softOpacityEnd = clamp(0.26 * controls.intensity, 0.05, 0.62)
+    const softOpacityEnd = 0
     const strongOpacityStart = clamp(0.74 * controls.intensity, 0.05, 1)
     const strongOpacityMid = clamp(0.62 * controls.intensity, 0.05, 0.95)
-    const strongOpacityLate = clamp(0.42 * controls.intensity, 0.04, 0.8)
-    const strongOpacityEnd = clamp(0.38 * controls.intensity, 0.06, 0.82)
+    const strongOpacityLate = clamp(0.48 * controls.intensity, 0.08, 0.92)
+    const strongOpacityEnd = clamp(0.42 * controls.intensity, 0.12, 0.88)
     const strongThickness = clamp(controls.thickness * 1.22, 0.3, 1.4)
 
     return {
