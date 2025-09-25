@@ -80,11 +80,11 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const [segments, setSegments] = useState<Segment[]>([])
   const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set())
   const [controls, setControls] = useState<ControlState>({
-    intensity: 1,
-    softDuration: 1180,
-    strongDuration: 1380,
-    nodeRadius: 0.82,
-    thickness: 0.52,
+    intensity: 1.6,
+    softDuration: 600,
+    strongDuration: 600,
+    nodeRadius: 0.5,
+    thickness: 0.9,
   })
   const [panelOpen, setPanelOpen] = useState(false)
   const networkRef = useRef<SVGSVGElement | null>(null)
@@ -231,7 +231,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
     const softOpacityMid = clamp(0.55 * controls.intensity, 0.04, 0.9)
     const softOpacityLate = clamp(0.34 * controls.intensity, 0.03, 0.7)
-    const softOpacityEnd = clamp(0.16 * controls.intensity, 0.02, 0.5)
+    const softOpacityEnd = 0
     const strongOpacityStart = clamp(0.74 * controls.intensity, 0.05, 1)
     const strongOpacityMid = clamp(0.62 * controls.intensity, 0.05, 0.95)
     const strongOpacityLate = clamp(0.42 * controls.intensity, 0.04, 0.8)
@@ -410,7 +410,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
             <span>Strong spark speed (ms)</span>
             <input
               type="range"
-              min={800}
+              min={600}
               max={2600}
               step={20}
               value={controls.strongDuration}
