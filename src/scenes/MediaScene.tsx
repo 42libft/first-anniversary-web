@@ -14,37 +14,21 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const FINAL_TARGET = totalMedia
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 36))
-const MAX_SHARDS = 54
-const MIN_OFFSET_GAP = 0.18
-const COUNTER_PROTECTED_RADIUS = 0.22
-const SPAWN_RANGE_X = 0.92
-const SPAWN_RANGE_Y = 0.74
+const NODE_COUNT = 96
+const SPARKS_PER_PULSE = 14
+const MAX_ACTIVE_SPARKS = 120
+const CANVAS_RANGE_X = 0.94
+const CANVAS_RANGE_Y = 0.82
+const PROTECTED_RADIUS = 0.24
+
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
 
 const clampToRange = (value: number, range: number) => clamp(value, -range, range)
 
-const pushOutsideProtectedZone = (x: number, y: number) => {
-  let nextX = clampToRange(x, SPAWN_RANGE_X)
-  let nextY = clampToRange(y, SPAWN_RANGE_Y)
-  const distance = Math.hypot(nextX, nextY)
-  if (distance >= COUNTER_PROTECTED_RADIUS || distance === 0) {
-    if (distance === 0) {
-      const angle = Math.random() * Math.PI * 2
-      nextX = Math.cos(angle) * COUNTER_PROTECTED_RADIUS
-      nextY = Math.sin(angle) * COUNTER_PROTECTED_RADIUS
-    }
-    return {
-      x: clampToRange(nextX, SPAWN_RANGE_X),
-      y: clampToRange(nextY, SPAWN_RANGE_Y),
-    }
-  }
+const lerp = (start: number, end: number, amount: number) => start + (end - start) * amount
 
-  const scale = (COUNTER_PROTECTED_RADIUS * 1.04) / distance
-  nextX = clampToRange(nextX * scale, SPAWN_RANGE_X)
-  nextY = clampToRange(nextY * scale, SPAWN_RANGE_Y)
-  return { x: nextX, y: nextY }
-}
+const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
 const halton = (index: number, base: number) => {
   let result = 0
@@ -60,47 +44,47 @@ const halton = (index: number, base: number) => {
   return result
 }
 
-const sampleScatterPoint = (index: number) => {
-  const baseIndex = index + 1
-  const haltonX = halton(baseIndex, 2)
-  const haltonY = halton(baseIndex, 3)
-
-  const baseX = (haltonX * 2 - 1) * SPAWN_RANGE_X
-  const baseY = (haltonY * 2 - 1) * SPAWN_RANGE_Y
-
-  const jitterAngle = Math.random() * Math.PI * 2
-  const jitterRadius = Math.pow(Math.random(), 0.72) * 0.3
-  const jitterX = Math.cos(jitterAngle) * SPAWN_RANGE_X * jitterRadius
-  const jitterY = Math.sin(jitterAngle) * SPAWN_RANGE_Y * jitterRadius
-
-  return pushOutsideProtectedZone(baseX + jitterX, baseY + jitterY)
-}
-
-const ensureGap = (value: number, gap: number) => {
-  if (Math.abs(value) >= gap) {
-    return value
+const pushOutsideProtectedZone = (x: number, y: number) => {
+  const distance = Math.hypot(x, y)
+  if (distance === 0) {
+    const angle = Math.random() * Math.PI * 2
+    return pushOutsideProtectedZone(Math.cos(angle) * PROTECTED_RADIUS, Math.sin(angle) * PROTECTED_RADIUS)
   }
-  const direction = value === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(value)
-  return direction * gap
+
+  if (distance < PROTECTED_RADIUS) {
+    const scale = (PROTECTED_RADIUS + 0.04) / distance
+    const scaledX = clampToRange(x * scale, CANVAS_RANGE_X)
+    const scaledY = clampToRange(y * scale, CANVAS_RANGE_Y)
+    return { x: scaledX, y: scaledY }
+  }
+
+  return {
+    x: clampToRange(x, CANVAS_RANGE_X),
+    y: clampToRange(y, CANVAS_RANGE_Y),
+  }
 }
 
-const lerp = (start: number, end: number, amount: number) => start + (end - start) * amount
-
-type Shard = {
+type NodeSample = {
   id: number
   x: number
   y: number
   depth: number
-  scale: number
+  size: number
   hue: number
-  tone: number
-  tiltX: number
-  tiltY: number
-  rotateZ: number
-  drift: number
+  twinkle: number
+  orbit: number
   delay: number
-  flight: number
-  isFading: boolean
+}
+
+type Spark = {
+  id: number
+  x: number
+  y: number
+  depth: number
+  size: number
+  hue: number
+  life: number
+  delay: number
 }
 
 type ControlState = {
@@ -111,7 +95,69 @@ type ControlState = {
   driftStrength: number
 }
 
-const formatNumber = (value: number) => value.toLocaleString('ja-JP')
+const createNodes = (count: number) => {
+  const nodes: NodeSample[] = []
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5))
+
+  for (let index = 0; index < count; index += 1) {
+    const t = index + 1
+    const radius = Math.pow(t / count, 0.6)
+    const angle = index * goldenAngle
+    const offsetX = Math.cos(angle) * CANVAS_RANGE_X * lerp(0.68, 1, Math.random()) * radius
+    const offsetY = Math.sin(angle) * CANVAS_RANGE_Y * lerp(0.68, 1, Math.random()) * radius
+    const { x, y } = pushOutsideProtectedZone(offsetX, offsetY)
+    const depth = -140 - Math.random() * 160
+    const size = 0.54 + Math.random() * 0.92
+    const hue = halton(index + 11, 7)
+    const twinkle = 0.5 + Math.random() * 0.9
+    const orbit = 0.35 + Math.random() * 0.65
+    const delay = Math.floor(Math.random() * 3600)
+
+    nodes.push({ id: index, x, y, depth, size, hue, twinkle, orbit, delay })
+  }
+
+  return nodes
+}
+
+const selectNodesForPulse = (
+  nodes: NodeSample[],
+  anchor: { x: number; y: number } | undefined,
+  count: number
+) => {
+  const scored = nodes.map((node) => {
+    const dx = anchor ? node.x - anchor.x : node.x * 0.54
+    const dy = anchor ? node.y - anchor.y : node.y * 0.42
+    const normalizedDx = dx / CANVAS_RANGE_X
+    const normalizedDy = dy / CANVAS_RANGE_Y
+    const distance = Math.hypot(normalizedDx, normalizedDy)
+    const proximity = Math.exp(-(distance * (anchor ? 2.6 : 1.4)))
+    const edgeDistance = Math.min(1, Math.hypot(node.x / CANVAS_RANGE_X, node.y / CANVAS_RANGE_Y))
+    const edge = 0.28 + Math.pow(1 - edgeDistance, 1.8) * 0.62
+    const noise = 0.28 + Math.random() * 0.44
+    const score = Math.max(proximity * 0.72 + edge * 0.18 + noise * 0.1, 0.0001)
+    return { node, score }
+  })
+
+  const pool = [...scored]
+  const selected: NodeSample[] = []
+
+  while (selected.length < count && pool.length > 0) {
+    const total = pool.reduce((sum, entry) => sum + entry.score, 0)
+    let target = Math.random() * total
+    let chosenIndex = 0
+    for (let index = 0; index < pool.length; index += 1) {
+      target -= pool[index]?.score ?? 0
+      if (target <= 0) {
+        chosenIndex = index
+        break
+      }
+    }
+    const [entry] = pool.splice(chosenIndex, 1)
+    selected.push(entry.node)
+  }
+
+  return selected
+}
 
 export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   const [count, setCount] = useState(() => Math.min(18, FINAL_TARGET))
@@ -119,7 +165,6 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     FINAL_TARGET > 0 ? 'play' : 'announce'
   )
   const [ctaVisible, setCtaVisible] = useState(false)
-  const [shards, setShards] = useState<Shard[]>([])
   const [controls, setControls] = useState<ControlState>({
     flightDuration: 3600,
     fadeDuration: 5400,
@@ -128,10 +173,11 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     driftStrength: 0.7,
   })
   const [panelOpen, setPanelOpen] = useState(false)
+  const nodes = useMemo(() => createNodes(NODE_COUNT), [])
+  const [sparks, setSparks] = useState<Spark[]>([])
+  const [waveSeed, setWaveSeed] = useState(() => Math.random())
   const timersRef = useRef<number[]>([])
-  const fadeStartTimersRef = useRef<Map<number, number>>(new Map())
-  const removalTimersRef = useRef<Map<number, number>>(new Map())
-  const scatterIndexRef = useRef(Math.floor(Math.random() * 2048))
+  const sparkRemovalTimersRef = useRef<Map<number, number>>(new Map())
 
   const registerTimer = useCallback((handler: () => void, delay: number) => {
     const timerId = window.setTimeout(() => {
@@ -147,60 +193,14 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     timersRef.current = timersRef.current.filter((id) => id !== timerId)
   }, [])
 
-  const removeShard = useCallback((shardId: number) => {
-    setShards((prev) => prev.filter((shard) => shard.id !== shardId))
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((timer) => window.clearTimeout(timer))
+      timersRef.current = []
+      sparkRemovalTimersRef.current.forEach((timerId) => window.clearTimeout(timerId))
+      sparkRemovalTimersRef.current.clear()
+    }
   }, [])
-
-  const startShardFade = useCallback(
-    (shardId: number, fadeDuration: number) => {
-      let shouldScheduleRemoval = false
-      setShards((prev) => {
-        let didChange = false
-        const next = prev.map((shard) => {
-          if (shard.id !== shardId) return shard
-          if (shard.isFading) return shard
-          didChange = true
-          shouldScheduleRemoval = true
-          return { ...shard, isFading: true }
-        })
-        if (!didChange) return prev
-        return next
-      })
-
-      if (!shouldScheduleRemoval) {
-        return
-      }
-
-      const existingRemoval = removalTimersRef.current.get(shardId)
-      if (existingRemoval !== undefined) {
-        clearTimer(existingRemoval)
-      }
-      const removalDelay = Math.max(520, fadeDuration) + 220
-      const removalTimer = registerTimer(() => {
-        removalTimersRef.current.delete(shardId)
-        removeShard(shardId)
-      }, removalDelay)
-      removalTimersRef.current.set(shardId, removalTimer)
-    },
-    [clearTimer, registerTimer, removeShard]
-  )
-
-  const stageStyle = useMemo(
-    () =>
-      ({
-        '--media-flight-duration': `${controls.flightDuration}ms`,
-        '--media-shard-fade': `${controls.fadeDuration}ms`,
-        '--media-shard-glow': `${controls.glowIntensity}`,
-        '--media-hue-spread': `${controls.hueSpread}deg`,
-        '--media-drift-strength': `${controls.driftStrength}`,
-      }) as CSSProperties,
-    [controls]
-  )
-
-  const visibleShards = useMemo(
-    () => shards.slice(-MAX_SHARDS),
-    [shards]
-  )
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -222,131 +222,87 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   }, [phase])
 
   useEffect(() => {
-    return () => {
-      timersRef.current.forEach((timer) => window.clearTimeout(timer))
-      timersRef.current = []
-      fadeStartTimersRef.current.forEach((timerId) => window.clearTimeout(timerId))
-      fadeStartTimersRef.current.clear()
-      removalTimersRef.current.forEach((timerId) => window.clearTimeout(timerId))
-      removalTimersRef.current.clear()
-    }
-  }, [])
+    if (phase === 'play') return
+    if (sparks.length === 0) return
+    sparkRemovalTimersRef.current.forEach((timerId) => {
+      clearTimer(timerId)
+    })
+    sparkRemovalTimersRef.current.clear()
+    setSparks([])
+  }, [phase, sparks.length, clearTimer])
 
-  useEffect(() => {
-    if (shards.length === 0) return
-    if (phase !== 'play') {
-      shards.forEach((shard) => {
-        const fadeTimer = fadeStartTimersRef.current.get(shard.id)
-        if (fadeTimer !== undefined) {
-          clearTimer(fadeTimer)
-          fadeStartTimersRef.current.delete(shard.id)
-        }
-        startShardFade(shard.id, controls.fadeDuration)
-      })
-    }
-  }, [phase, shards, clearTimer, startShardFade, controls.fadeDuration])
+  const stageStyle = useMemo(
+    () =>
+      ({
+        '--media-wave-cycle': `${controls.flightDuration}ms`,
+        '--media-spark-fade': `${controls.fadeDuration}ms`,
+        '--media-glow-strength': controls.glowIntensity.toFixed(2),
+        '--media-hue-spread': `${controls.hueSpread}deg`,
+        '--media-drift-strength': controls.driftStrength.toFixed(2),
+        '--media-wave-seed': waveSeed.toFixed(4),
+      }) as CSSProperties,
+    [controls, waveSeed]
+  )
 
   const handlePulse = (position?: { x: number; y: number }) => {
     if (phase !== 'play') return
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
 
-    const projectTapAxis = (coord: number, range: number, gap: number) => {
-      const centered = (coord - 0.5) * 2 * range
-      const noise = (Math.random() - 0.5) * gap * 0.22
-      const adjusted = ensureGap(centered + noise, gap)
-      return clampToRange(adjusted, range)
-    }
-
-    const withinProtectedZone = (coord?: { x: number; y: number }) => {
-      if (!coord) return false
-      const offsetX = (coord.x - 0.5) * 2 * SPAWN_RANGE_X
-      const offsetY = (coord.y - 0.5) * 2 * SPAWN_RANGE_Y
-      return Math.hypot(offsetX, offsetY) < COUNTER_PROTECTED_RADIUS
-    }
-
-    const tapUsable = position && !withinProtectedZone(position)
-
-    const tapAnchor = tapUsable
-      ? pushOutsideProtectedZone(
-          projectTapAxis(position!.x, SPAWN_RANGE_X, MIN_OFFSET_GAP),
-          projectTapAxis(position!.y, SPAWN_RANGE_Y, MIN_OFFSET_GAP * 0.6)
-        )
-      : undefined
-
-    const scatterIndex = scatterIndexRef.current
-    scatterIndexRef.current += 1
-
-    const scatterPoint = sampleScatterPoint(scatterIndex)
-
-    let candidateX = scatterPoint.x
-    let candidateY = scatterPoint.y
-
-    if (tapAnchor) {
-      candidateX = lerp(candidateX, tapAnchor.x, 0.42)
-      candidateY = lerp(candidateY, tapAnchor.y, 0.42)
-    }
-
-    const { x, y } = pushOutsideProtectedZone(candidateX, candidateY)
-    const depth = -120 - Math.random() * 260
-    const scale = 0.58 + Math.random() * 0.62
-    const hue = Math.random()
-    const tone = Math.random()
-    const tiltX = (Math.random() - 0.5) * 28
-    const tiltY = (Math.random() - 0.5) * 36
-    const rotateZ = Math.random() * 360
-    const drift = Math.random()
-    const delay = Math.floor(Math.random() * 120)
-    const flightDuration = Math.max(
-      1600,
-      Math.round(controls.flightDuration * (0.85 + drift * controls.driftStrength))
-    )
-    const shardId = Date.now() + Math.floor(Math.random() * 1000)
-
-    const newShard: Shard = {
-      id: shardId,
-      x,
-      y,
-      depth,
-      scale,
-      hue,
-      tone,
-      tiltX,
-      tiltY,
-      rotateZ,
-      drift,
-      delay,
-      flight: flightDuration,
-      isFading: false,
-    }
-
-    setShards((prev) => {
-      const next = [...prev, newShard]
-      const overflow = next.length - MAX_SHARDS
-      if (overflow <= 0) return next
-
-      const trimmed = next.slice(overflow)
-      const removed = next.slice(0, overflow)
-      removed.forEach((shard) => {
-        const fadeTimer = fadeStartTimersRef.current.get(shard.id)
-        if (fadeTimer !== undefined) {
-          clearTimer(fadeTimer)
-          fadeStartTimersRef.current.delete(shard.id)
+    const anchorCandidate = position
+      ? {
+          x: (position.x - 0.5) * 2 * CANVAS_RANGE_X,
+          y: (position.y - 0.5) * 2 * CANVAS_RANGE_Y,
         }
-        const removalTimer = removalTimersRef.current.get(shard.id)
-        if (removalTimer !== undefined) {
-          clearTimer(removalTimer)
-          removalTimersRef.current.delete(shard.id)
+      : undefined
+    const anchorDistance = anchorCandidate ? Math.hypot(anchorCandidate.x, anchorCandidate.y) : Infinity
+    const anchor = anchorDistance > PROTECTED_RADIUS + 0.02 ? anchorCandidate : undefined
+
+    const selectedNodes = selectNodesForPulse(nodes, anchor, SPARKS_PER_PULSE)
+    const now = Date.now()
+
+    const additions = selectedNodes.map((node, index) => {
+      const scaleJitter = 0.9 + Math.random() * 0.8
+      const life = Math.round(Math.max(2000, controls.fadeDuration * (0.74 + Math.random() * 0.48)))
+      const delay = Math.floor(Math.random() * 160)
+      return {
+        id: now + index + Math.floor(Math.random() * 1000),
+        x: clampToRange(node.x * (0.86 + Math.random() * 0.22), CANVAS_RANGE_X),
+        y: clampToRange(node.y * (0.86 + Math.random() * 0.22), CANVAS_RANGE_Y),
+        depth: node.depth + Math.random() * 120 - 60,
+        size: node.size * scaleJitter,
+        hue: node.hue + (Math.random() - 0.5) * 0.18,
+        life,
+        delay,
+      }
+    })
+
+    setSparks((prev) => {
+      const merged = [...prev, ...additions]
+      if (merged.length <= MAX_ACTIVE_SPARKS) {
+        return merged
+      }
+      const overflow = merged.length - MAX_ACTIVE_SPARKS
+      const trimmed = merged.slice(overflow)
+      const removed = merged.slice(0, overflow)
+      removed.forEach((spark) => {
+        const timerId = sparkRemovalTimersRef.current.get(spark.id)
+        if (timerId !== undefined) {
+          clearTimer(timerId)
+          sparkRemovalTimersRef.current.delete(spark.id)
         }
       })
       return trimmed
     })
 
-    const holdDuration = flightDuration
-    const fadeTimer = registerTimer(() => {
-      fadeStartTimersRef.current.delete(shardId)
-      startShardFade(shardId, controls.fadeDuration)
-    }, holdDuration)
-    fadeStartTimersRef.current.set(shardId, fadeTimer)
+    additions.forEach((spark) => {
+      const timer = registerTimer(() => {
+        setSparks((current) => current.filter((item) => item.id !== spark.id))
+        sparkRemovalTimersRef.current.delete(spark.id)
+      }, spark.life + spark.delay)
+      sparkRemovalTimersRef.current.set(spark.id, timer)
+    })
+
+    setWaveSeed((prev) => prev + 0.35)
   }
 
   const handleControlChange = (key: keyof ControlState) =>
@@ -364,55 +320,66 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
       role="presentation"
       aria-label="共有したメディアの記録を光の層で味わう"
     >
-      <div className="media-stage" style={stageStyle} aria-hidden>
-        <div className="media-stage__grid" />
-        <div className="media-stage__light" />
-        <div className="media-shards">
-          {[...visibleShards].reverse().map((shard, index) => {
-            const hueShift = (
-              (shard.hue - 0.5) * controls.hueSpread * 2
-            ).toFixed(2)
-            const translateX = (shard.x * 36).toFixed(2)
-            const translateY = (shard.y * 32).toFixed(2)
-            const depth = shard.depth.toFixed(2)
-            const scale = (shard.scale + index * 0.003).toFixed(3)
-            const tiltX = shard.tiltX.toFixed(2)
-            const tiltY = shard.tiltY.toFixed(2)
-            const rotateZ = shard.rotateZ.toFixed(2)
-            const distanceFromCenter = Math.hypot(shard.x * 0.8, shard.y * 1.1)
-            const visibilityScale = clamp(1 - Math.max(0, 0.28 - distanceFromCenter) / 0.28, 0.32, 1)
-            const alpha = ( (0.38 + shard.tone * 0.38) * visibilityScale ).toFixed(3)
-            const driftFactor = shard.drift.toFixed(3)
+      <div
+        className={`media-stage${phase !== 'play' ? ' is-paused' : ''}`}
+        style={stageStyle}
+        aria-hidden
+      >
+        <div className="media-canvas">
+          <div className="media-canvas__halo" />
+          <div className="media-canvas__mesh" />
+          <div className="media-canvas__sheen" />
+          <div className="media-nodes">
+            {nodes.map((node) => {
+              const translateX = ((node.x / CANVAS_RANGE_X) * 46).toFixed(2)
+              const translateY = ((node.y / CANVAS_RANGE_Y) * 46).toFixed(2)
+              const nodeStyle = {
+                '--node-translate-x': `${translateX}%`,
+                '--node-translate-y': `${translateY}%`,
+                '--node-depth': `${node.depth.toFixed(2)}px`,
+                '--node-scale': node.size.toFixed(3),
+                '--node-hue': `${((node.hue - 0.5) * controls.hueSpread * 2).toFixed(2)}deg`,
+                '--node-twinkle': node.twinkle.toFixed(2),
+                '--node-orbit': node.orbit.toFixed(2),
+              } as CSSProperties
+              const nodeAnimationDelay = `${node.delay}ms, ${Math.floor(node.delay * 0.6)}ms`
+              const pulseDelay = `${Math.floor(node.delay * 0.45)}ms`
 
-            const style = {
-              '--shard-translate-x': `${translateX}%`,
-              '--shard-translate-y': `${translateY}%`,
-              '--shard-depth': `${depth}px`,
-              '--shard-scale': scale,
-              '--shard-tilt-x': `${tiltX}deg`,
-              '--shard-tilt-y': `${tiltY}deg`,
-              '--shard-rotate-z': `${rotateZ}deg`,
-              '--shard-hue': `${hueShift}deg`,
-              '--shard-alpha': alpha,
-              '--shard-drift': driftFactor,
-              '--shard-flight': `${shard.flight}ms`,
-              animationDelay: `${shard.delay}ms`,
-            } as CSSProperties
+              return (
+                <div
+                  key={node.id}
+                  className="media-node"
+                  style={{ ...nodeStyle, animationDelay: nodeAnimationDelay }}
+                >
+                  <span className="media-node__pulse" style={{ animationDelay: pulseDelay }} />
+                  <span className="media-node__core" />
+                </div>
+              )
+            })}
+          </div>
+          <div className="media-sparks">
+            {sparks.map((spark) => {
+              const translateX = ((spark.x / CANVAS_RANGE_X) * 46).toFixed(2)
+              const translateY = ((spark.y / CANVAS_RANGE_Y) * 46).toFixed(2)
+              const sparkStyle = {
+                '--spark-translate-x': `${translateX}%`,
+                '--spark-translate-y': `${translateY}%`,
+                '--spark-depth': `${spark.depth.toFixed(2)}px`,
+                '--spark-scale': spark.size.toFixed(3),
+                '--spark-hue': `${((spark.hue - 0.5) * controls.hueSpread * 2).toFixed(2)}deg`,
+                animationDuration: `${spark.life}ms`,
+                animationDelay: `${spark.delay}ms`,
+              } as CSSProperties
 
-            return (
-              <div
-                key={shard.id}
-                className={`media-shard${shard.isFading ? ' is-fading' : ''}`}
-                style={style}
-              >
-                <div className="media-shard__plane" />
-                <div className="media-shard__flare" />
-              </div>
-            )
-          })}
+              return (
+                <div key={spark.id} className="media-spark" style={sparkStyle}>
+                  <span className="media-spark__flare" />
+                </div>
+              )
+            })}
+          </div>
+          <div className="media-canvas__ring" />
         </div>
-        <div className="media-stage__core" />
-        <div className="media-stage__particles" />
       </div>
       <TapRippleField
         disabled={phase !== 'play'}
@@ -432,8 +399,8 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
 
       {phase !== 'play' && (
         <div className="media-caption" role="status">
-          <p>光の欠片が奥へと漂い、記録の層が増えていく。</p>
-          <p>ふたりで共有したメディアの数だけ、残光が積もります。</p>
+          <p>光のレイヤーが奥へと折り重なり、記録の余韻が広がる。</p>
+          <p>ふたりで共有したメディアが、星の記憶として残ります。</p>
         </div>
       )}
 
@@ -458,10 +425,10 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         </button>
         <div className="media-control-panel__body">
           <label className="media-control">
-            <span>Flight duration (ms)</span>
+            <span>Wave cycle (ms)</span>
             <input
               type="range"
-              min={2400}
+              min={2600}
               max={8200}
               step={100}
               value={controls.flightDuration}
@@ -470,10 +437,10 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
             <span className="media-control__value">{controls.flightDuration}</span>
           </label>
           <label className="media-control">
-            <span>Trail fade (ms)</span>
+            <span>Spark fade (ms)</span>
             <input
               type="range"
-              min={2400}
+              min={2200}
               max={9200}
               step={100}
               value={controls.fadeDuration}
