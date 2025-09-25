@@ -239,7 +239,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
 
       const fadeBuffer = segment.isStrong
         ? Math.min(2600, Math.round(controls.strongDuration * 3.6))
-        : 600
+        : Math.min(900, Math.round(controls.softDuration * 1.5))
       const fadeStart = Math.max(
         200,
         Math.min(fadeDelay, Math.max(0, lifetime - fadeBuffer))
@@ -271,19 +271,19 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       }))
     }
 
-  const stageStyle = useMemo(() => {
+  const { stageStyle, softOpacityBase, strongOpacityBase } = useMemo(() => {
     const clamp = (value: number, min: number, max: number) =>
       Math.min(max, Math.max(min, value))
     const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
     const softOpacityMid = clamp(0.55 * controls.intensity, 0.04, 0.9)
     const softOpacityLate = clamp(0.34 * controls.intensity, 0.03, 0.7)
-    const softOpacityEnd = clamp(0.28 * controls.intensity, 0.06, 0.58)
-    const softBase = softOpacityEnd
+    const softOpacityEnd = clamp(0.24 * controls.intensity, 0.05, 0.48)
+    const softBase = clamp(0.64 * controls.intensity, 0.28, 0.9)
     const strongOpacityStart = clamp(0.78 * controls.intensity, 0.08, 1)
     const strongOpacityMid = clamp(0.66 * controls.intensity, 0.06, 0.95)
     const strongOpacityLate = clamp(0.48 * controls.intensity, 0.1, 0.9)
-    const strongOpacityEnd = clamp(0.44 * controls.intensity, 0.18, 0.88)
-    const strongBase = strongOpacityEnd
+    const strongOpacityEnd = clamp(0.38 * controls.intensity, 0.12, 0.74)
+    const strongBase = clamp(0.94 * controls.intensity, 0.46, 1)
     const strongThickness = clamp(controls.thickness * 1.22, 0.3, 1.4)
     const softFadeDuration = Math.max(540, controls.softDuration * 1.6)
     const strongFadeDuration = Math.max(2400, controls.strongDuration * 4)
@@ -307,7 +307,11 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       '--links-spark-strong-fade': `${Math.round(strongFadeDuration)}ms`,
     } satisfies Record<string, string>
 
-    return stage as CSSProperties
+    return {
+      stageStyle: stage as CSSProperties,
+      softOpacityBase: softBase,
+      strongOpacityBase: strongBase,
+    }
   }, [controls])
 
   return (
@@ -369,9 +373,13 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
             />
           ))}
           {segments.map((segment) => {
+            const baseOpacity = segment.isStrong
+              ? strongOpacityBase
+              : softOpacityBase
             const style = {
               animationDelay: `${segment.delay}ms`,
               '--spark-length': `${segment.length}`,
+              opacity: segment.isFading ? 0 : baseOpacity,
             } as CSSProperties
             return (
               <line
