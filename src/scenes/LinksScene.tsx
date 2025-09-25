@@ -2,6 +2,7 @@ import {
   type CSSProperties,
   type PointerEvent,
   type ChangeEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -96,6 +97,15 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const batchRef = useRef(0)
   const timersRef = useRef<number[]>([])
 
+  const registerTimer = useCallback((handler: () => void, delay: number) => {
+    const timerId = window.setTimeout(() => {
+      handler()
+      timersRef.current = timersRef.current.filter((id) => id !== timerId)
+    }, delay)
+    timersRef.current.push(timerId)
+    return timerId
+  }, [])
+
   const allNodes = useMemo<Node[]>(
     () => [...STATIC_NODES, ...dynamicNodes],
     [dynamicNodes]
@@ -177,7 +187,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     nearestIndices.forEach((entry, idx) => {
       const target = allNodes[entry.index]
       if (!target) return
-      const isStrong = idx === 0
+      const isStrong = true
       newSegments.push(
         createSegment(
           batchId,
@@ -227,7 +237,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         : SOFT_SEGMENT_LIFETIME
       const fadeDelay = segment.isStrong ? STRONG_FADE_DELAY : SOFT_FADE_DELAY
 
-      const fadeTimer = window.setTimeout(() => {
+      registerTimer(() => {
         setSegments((prev) =>
           prev.map((item) =>
             item.id === segment.id ? { ...item, isFading: true } : item
@@ -235,11 +245,9 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         )
       }, Math.max(120, Math.min(fadeDelay, Math.max(0, lifetime - 180))))
 
-      const removalTimer = window.setTimeout(() => {
+      registerTimer(() => {
         setSegments((prev) => prev.filter((item) => item.id !== segment.id))
       }, lifetime)
-
-      timersRef.current.push(fadeTimer, removalTimer)
     })
 
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
