@@ -215,6 +215,11 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               <stop offset="80%" stopColor="rgba(140, 220, 255, 0.78)" />
               <stop offset="100%" stopColor="rgba(64, 168, 240, 0.12)" />
             </linearGradient>
+            <linearGradient id="links-spark-soft" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(180, 234, 255, 0.65)" />
+              <stop offset="75%" stopColor="rgba(90, 188, 245, 0.42)" />
+              <stop offset="100%" stopColor="rgba(60, 142, 220, 0)" />
+            </linearGradient>
           </defs>
           {edges.map(([fromIndex, toIndex], index) => {
             const from = allNodes[fromIndex]
@@ -252,10 +257,14 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
                 y1={segment.startY}
                 x2={segment.endX}
                 y2={segment.endY}
-                className={`links-sparkline${
-                  segment.isStrong ? ' links-sparkline--strong' : ''
-                }`}
-                stroke={segment.isStrong ? 'url(#links-spark-strong)' : undefined}
+              className={`links-sparkline${
+                segment.isStrong ? ' links-sparkline--strong' : ''
+              }`}
+              stroke={
+                segment.isStrong
+                  ? 'url(#links-spark-strong)'
+                  : 'url(#links-spark-soft)'
+              }
                 style={style}
               />
             )

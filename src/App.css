@@ -1215,7 +1215,7 @@
 
 .links-sparkline {
   fill: none;
-  stroke: rgba(190, 240, 255, 0.65);
+  stroke: url(#links-spark-soft);
   stroke-width: 0.6;
   stroke-linecap: round;
   stroke-dasharray: 24;
@@ -1282,20 +1282,6 @@
   100% {
     stroke-dashoffset: 0;
     opacity: 0.45;
-  }
-}
-
-@keyframes linksSparkSegment {
-  0% {
-    opacity: 0.85;
-    transform: rotate(var(--spark-rotate, 0deg)) translateY(-50%) scaleX(0);
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: rotate(var(--spark-rotate, 0deg)) translateY(-50%) scaleX(1);
   }
 }
 
