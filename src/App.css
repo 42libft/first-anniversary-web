@@ -1227,6 +1227,7 @@
   stroke-linecap: round;
   stroke-dasharray: var(--spark-length, 22);
   stroke-dashoffset: var(--spark-length, 22);
+  opacity: var(--links-spark-soft-opacity-base, 0.56);
   mix-blend-mode: lighten;
   will-change: stroke-dashoffset, opacity;
   transition:
@@ -1242,6 +1243,7 @@
 .links-sparkline--strong {
   stroke: url(#links-spark-strong);
   stroke-width: var(--links-spark-strong-width, 0.52);
+  opacity: var(--links-spark-strong-opacity-base, 0.9);
   transition:
     opacity var(--links-spark-strong-fade, 2400ms) cubic-bezier(0.2, 0.02, 0.08, 0.98),
     filter var(--links-spark-strong-fade, 2400ms) ease-out;
@@ -1254,12 +1256,14 @@
 }
 
 .links-sparkline.is-fading {
+  opacity: 0;
   filter:
     drop-shadow(0 0 2px rgba(52, 150, 210, 0.22))
     drop-shadow(0 0 6px rgba(32, 110, 180, 0.12));
 }
 
 .links-sparkline--strong.is-fading {
+  opacity: 0;
   filter:
     drop-shadow(0 0 4px rgba(158, 230, 255, 0.4))
     drop-shadow(0 0 12px rgba(100, 198, 255, 0.28));
