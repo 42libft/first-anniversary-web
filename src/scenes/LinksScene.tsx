@@ -237,13 +237,19 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         : SOFT_SEGMENT_LIFETIME
       const fadeDelay = segment.isStrong ? STRONG_FADE_DELAY : SOFT_FADE_DELAY
 
+      const fadeBuffer = segment.isStrong ? 1400 : 420
+      const fadeStart = Math.max(
+        200,
+        Math.min(fadeDelay, Math.max(0, lifetime - fadeBuffer))
+      )
+
       registerTimer(() => {
         setSegments((prev) =>
           prev.map((item) =>
             item.id === segment.id ? { ...item, isFading: true } : item
           )
         )
-      }, Math.max(160, Math.min(fadeDelay, Math.max(0, lifetime - 420))))
+      }, fadeStart)
 
       registerTimer(() => {
         setSegments((prev) => prev.filter((item) => item.id !== segment.id))
@@ -263,37 +269,47 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       }))
     }
 
-  const stageStyle = useMemo(() => {
+  const { stageStyle, softBaseOpacity, strongBaseOpacity } = useMemo(() => {
     const clamp = (value: number, min: number, max: number) =>
       Math.min(max, Math.max(min, value))
     const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
     const softOpacityMid = clamp(0.55 * controls.intensity, 0.04, 0.9)
     const softOpacityLate = clamp(0.34 * controls.intensity, 0.03, 0.7)
     const softOpacityEnd = 0
-    const strongOpacityStart = clamp(0.74 * controls.intensity, 0.05, 1)
-    const strongOpacityMid = clamp(0.62 * controls.intensity, 0.05, 0.95)
-    const strongOpacityLate = clamp(0.48 * controls.intensity, 0.08, 0.92)
-    const strongOpacityEnd = clamp(0.42 * controls.intensity, 0.12, 0.88)
+    const softBase = clamp(0.52 * controls.intensity, 0.24, 0.8)
+    const strongOpacityStart = clamp(0.78 * controls.intensity, 0.08, 1)
+    const strongOpacityMid = clamp(0.66 * controls.intensity, 0.06, 0.95)
+    const strongOpacityLate = clamp(0.48 * controls.intensity, 0.1, 0.9)
+    const strongOpacityEnd = clamp(0.42 * controls.intensity, 0.14, 0.84)
+    const strongBase = clamp(0.82 * controls.intensity, 0.38, 1)
     const strongThickness = clamp(controls.thickness * 1.22, 0.3, 1.4)
-    const softFadeDuration = Math.max(320, controls.softDuration * 0.9)
-    const strongFadeDuration = Math.max(680, controls.strongDuration * 1.85)
+    const softFadeDuration = Math.max(420, controls.softDuration * 1.2)
+    const strongFadeDuration = Math.max(1100, controls.strongDuration * 2.3)
 
-    return {
+    const stage = {
       '--links-spark-soft-duration': `${controls.softDuration}ms`,
       '--links-spark-strong-duration': `${controls.strongDuration}ms`,
-      '--links-spark-soft-width': controls.thickness,
-      '--links-spark-strong-width': Number(strongThickness.toFixed(2)),
-      '--links-spark-soft-opacity-start': softOpacityStart,
-      '--links-spark-soft-opacity-mid': softOpacityMid,
-      '--links-spark-soft-opacity-late': softOpacityLate,
-      '--links-spark-soft-opacity-end': softOpacityEnd,
-      '--links-spark-strong-opacity-start': strongOpacityStart,
-      '--links-spark-strong-opacity-mid': strongOpacityMid,
-      '--links-spark-strong-opacity-late': strongOpacityLate,
-      '--links-spark-strong-opacity-end': strongOpacityEnd,
+      '--links-spark-soft-width': `${controls.thickness}`,
+      '--links-spark-strong-width': `${Number(strongThickness.toFixed(2))}`,
+      '--links-spark-soft-opacity-start': `${softOpacityStart}`,
+      '--links-spark-soft-opacity-mid': `${softOpacityMid}`,
+      '--links-spark-soft-opacity-late': `${softOpacityLate}`,
+      '--links-spark-soft-opacity-end': `${softOpacityEnd}`,
+      '--links-spark-soft-opacity-base': `${softBase}`,
+      '--links-spark-strong-opacity-start': `${strongOpacityStart}`,
+      '--links-spark-strong-opacity-mid': `${strongOpacityMid}`,
+      '--links-spark-strong-opacity-late': `${strongOpacityLate}`,
+      '--links-spark-strong-opacity-end': `${strongOpacityEnd}`,
+      '--links-spark-strong-opacity-base': `${strongBase}`,
       '--links-spark-soft-fade': `${Math.round(softFadeDuration)}ms`,
       '--links-spark-strong-fade': `${Math.round(strongFadeDuration)}ms`,
     } as CSSProperties
+
+    return {
+      stageStyle: stage,
+      softBaseOpacity: softBase,
+      strongBaseOpacity: strongBase,
+    }
   }, [controls])
 
   return (
@@ -355,9 +371,13 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
             />
           ))}
           {segments.map((segment) => {
+            const baseOpacity = segment.isStrong
+              ? strongBaseOpacity
+              : softBaseOpacity
             const style = {
               animationDelay: `${segment.delay}ms`,
               '--spark-length': `${segment.length}`,
+              opacity: segment.isFading ? 0 : baseOpacity,
             } as CSSProperties
             return (
               <line
