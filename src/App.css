@@ -3541,12 +3541,12 @@
   border-radius: 2.1rem;
   padding: clamp(1.4rem, 4vw, 2.8rem);
   background:
-    radial-gradient(circle at 50% 0%, rgba(255, 239, 210, 0.42), rgba(255, 255, 255, 0) 58%),
-    radial-gradient(circle at 50% 100%, rgba(221, 232, 255, 0.25), rgba(255, 255, 255, 0) 60%),
-    linear-gradient(180deg, rgba(254, 254, 255, 0.92), rgba(230, 238, 255, 0.9));
-  border: 1px solid rgba(176, 188, 255, 0.42);
-  box-shadow: 0 26px 60px rgba(10, 12, 32, 0.55);
-  color: rgba(22, 26, 52, 0.9);
+    radial-gradient(74% 88% at 22% 12%, rgba(88, 208, 255, 0.32), rgba(88, 208, 255, 0) 70%),
+    radial-gradient(78% 86% at 78% 88%, rgba(176, 148, 255, 0.28), rgba(176, 148, 255, 0) 74%),
+    linear-gradient(196deg, rgba(6, 18, 48, 0.96), rgba(18, 24, 68, 0.94));
+  border: 1px solid rgba(134, 204, 255, 0.42);
+  box-shadow: 0 28px 64px rgba(6, 10, 34, 0.6), 0 0 18px rgba(104, 198, 255, 0.18);
+  color: rgba(222, 236, 255, 0.94);
   backdrop-filter: blur(16px);
 }
 
