@@ -69,6 +69,38 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 
+type PointerMode = 'mouse' | 'touch' | 'pen' | 'unknown'
+
+const resolvePointerMode = (pointerType?: string): PointerMode => {
+  switch (pointerType) {
+    case 'mouse':
+      return 'mouse'
+    case 'touch':
+      return 'touch'
+    case 'pen':
+      return 'pen'
+    default:
+      return 'unknown'
+  }
+}
+
+const computeTearDistanceForMode = (mode: PointerMode, stage: InteractionStage, width: number) => {
+  const baseWidth = width > 0 ? width : TEAR_DISTANCE
+  const isPrimed = stage === 'primed'
+  const multiplier = (() => {
+    if (mode === 'touch') {
+      return isPrimed ? 0.6 : 0.54
+    }
+    if (mode === 'pen') {
+      return isPrimed ? 0.7 : 0.64
+    }
+    return isPrimed ? 0.78 : 0.7
+  })()
+  const minimum = mode === 'touch' ? 110 : 150
+  const maximum = baseWidth * (isPrimed ? 0.92 : 0.86)
+  return clamp(baseWidth * multiplier, minimum, Math.max(minimum, maximum))
+}
+
 const computeWavePoints = (tearProgress: number, stage: InteractionStage): WavePoint[] => {
   if (stage === 'burst' || stage === 'revealed') {
     return [
@@ -182,6 +214,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const alignTimeoutRef = useRef<number | null>(null)
   const hasBurstRef = useRef(false)
   const tearDistanceRef = useRef(TEAR_DISTANCE)
+  const pointerModeRef = useRef<PointerMode>('mouse')
 
   const floatingCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const floatingCtxRef = useRef<CanvasRenderingContext2D | null>(null)
@@ -220,6 +253,13 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         vy: (Math.random() - 0.5) * 0.006,
         base: 0.35 + Math.random() * 0.55,
       }))
+    },
+    []
+  )
+
+  const updateTearDistance = useCallback(
+    (mode: PointerMode, stageContext: InteractionStage, elementWidth: number) => {
+      tearDistanceRef.current = computeTearDistanceForMode(mode, stageContext, elementWidth)
     },
     []
   )
@@ -623,10 +663,24 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const base = tearStartRef.current
       const deltaX = native.clientX - base.x
       const deltaY = native.clientY - base.y
+      const pointerMode = pointerModeRef.current
       const horizontal = Math.max(deltaX, 0)
-      const vertical = Math.max(Math.abs(deltaY) - 6, 0) * 0.12
+      const verticalPositive = Math.max(deltaY, 0)
+      const verticalMagnitude = Math.max(Math.abs(deltaY) - 4, 0)
+      let travel = horizontal
+
+      if (pointerMode === 'touch') {
+        const verticalAssist = Math.max(verticalPositive - 2, 0) * 0.55
+        const diagonalBoost = Math.min(horizontal, verticalPositive) * 0.25
+        travel += verticalAssist + diagonalBoost
+      } else if (pointerMode === 'pen') {
+        travel += Math.max(verticalPositive - 2, 0) * 0.35
+      } else {
+        travel += verticalMagnitude * 0.18
+      }
+
       const dynamicDistance = tearDistanceRef.current || TEAR_DISTANCE
-      const rawProgress = base.progress + (horizontal + vertical) / dynamicDistance
+      const rawProgress = base.progress + travel / dynamicDistance
       const nextProgress = clamp(rawProgress, 0, 1)
 
       const now = performance.now()
@@ -684,13 +738,15 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       element.setPointerCapture?.(event.pointerId)
       pointerIdRef.current = event.pointerId
 
-      const referenceWidth = element.getBoundingClientRect().width || TEAR_DISTANCE
-      tearDistanceRef.current = Math.max(160, referenceWidth * (stage === 'primed' ? 0.78 : 0.7))
+      const mode = resolvePointerMode(event.pointerType)
+      pointerModeRef.current = mode
+      const referenceWidth = element.getBoundingClientRect().width
+      updateTearDistance(mode, stage, referenceWidth)
 
       const baseProgress = stage === 'primed' ? tearProgress : 0
       startTear(event.nativeEvent, baseProgress)
     },
-    [promptAlignStage, stage, startTear, tearProgress]
+    [promptAlignStage, stage, startTear, tearProgress, updateTearDistance]
   )
 
   const handlePointerMove = useCallback(
@@ -705,8 +761,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         if (isWithinStartZone(element, event.clientX, event.clientY)) {
           element.setPointerCapture?.(event.pointerId)
           pointerIdRef.current = event.pointerId
-          const referenceWidth = element.getBoundingClientRect().width || TEAR_DISTANCE
-          tearDistanceRef.current = Math.max(160, referenceWidth * 0.7)
+          const mode = resolvePointerMode(event.pointerType)
+          pointerModeRef.current = mode
+          const referenceWidth = element.getBoundingClientRect().width
+          updateTearDistance(mode, 'tearing', referenceWidth)
           startTear(event.nativeEvent, 0)
         }
         return
@@ -721,8 +779,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         if (!tearStartRef.current) {
           element.setPointerCapture?.(event.pointerId)
           pointerIdRef.current = event.pointerId
-          const referenceWidth = element.getBoundingClientRect().width || TEAR_DISTANCE
-          tearDistanceRef.current = Math.max(160, referenceWidth * 0.78)
+          const mode = resolvePointerMode(event.pointerType)
+          pointerModeRef.current = mode
+          const referenceWidth = element.getBoundingClientRect().width
+          updateTearDistance(mode, 'primed', referenceWidth)
           startTear(event.nativeEvent, tearProgress)
         }
 
@@ -731,7 +791,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         }
       }
     },
-    [stage, startTear, tearProgress, updateTear]
+    [stage, startTear, tearProgress, updateTear, updateTearDistance]
   )
 
   const handlePointerUp = useCallback(
