@@ -32,6 +32,12 @@ const AUTO_BURST_THRESHOLD = 0.82
 const START_ZONE_X = 0.32
 const START_ZONE_Y = 0.36
 const START_ZONE_LEEWAY = 0.08
+const START_ZONE_EXTRA_TOUCH_X = 0.16
+const START_ZONE_EXTRA_TOUCH_Y = 0.12
+const START_ZONE_EXTRA_PEN_X = 0.1
+const START_ZONE_EXTRA_PEN_Y = 0.08
+const START_ZONE_EXTRA_MOUSE_X = 0.05
+const START_ZONE_EXTRA_MOUSE_Y = 0.05
 const CUTLINE_BAND_EXTENSION = 0.18
 const PARTICLE_COUNT = 365
 const MIN_HORIZONTAL_MARGIN = 0.018
@@ -189,13 +195,47 @@ const getRelativePosition = (element: HTMLElement, clientX: number, clientY: num
   }
 }
 
-const isWithinStartZone = (element: HTMLElement, clientX: number, clientY: number) => {
+const isWithinStartZone = (
+  element: HTMLElement,
+  clientX: number,
+  clientY: number,
+  mode: PointerMode
+) => {
   const { x, y } = getRelativePosition(element, clientX, clientY)
+  const horizontalExtension = (() => {
+    switch (mode) {
+      case 'touch':
+        return START_ZONE_EXTRA_TOUCH_X
+      case 'pen':
+        return START_ZONE_EXTRA_PEN_X
+      case 'mouse':
+        return START_ZONE_EXTRA_MOUSE_X
+      default:
+        return START_ZONE_EXTRA_MOUSE_X
+    }
+  })()
+
+  const verticalExtension = (() => {
+    switch (mode) {
+      case 'touch':
+        return START_ZONE_EXTRA_TOUCH_Y
+      case 'pen':
+        return START_ZONE_EXTRA_PEN_Y
+      case 'mouse':
+        return START_ZONE_EXTRA_MOUSE_Y
+      default:
+        return START_ZONE_EXTRA_MOUSE_Y
+    }
+  })()
+
+  const maxX = Math.min(1, START_ZONE_X + START_ZONE_LEEWAY + horizontalExtension)
+  const maxY = Math.min(1, START_ZONE_Y + START_ZONE_LEEWAY + verticalExtension)
+
   return (
     x >= -START_ZONE_LEEWAY &&
-    x <= START_ZONE_X + START_ZONE_LEEWAY &&
+    x <= maxX &&
     y >= -START_ZONE_LEEWAY &&
-    y <= START_ZONE_Y + START_ZONE_LEEWAY
+    y <= maxY
   )
 }
 
@@ -842,10 +882,12 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const element = event.currentTarget
       element.focus({ preventScroll: true })
 
+      const mode = resolvePointerMode(event.pointerType)
+
       const allowStart =
         stage === 'primed'
           ? isWithinCutlineBand(element, event.clientX, event.clientY)
-          : isWithinStartZone(element, event.clientX, event.clientY)
+          : isWithinStartZone(element, event.clientX, event.clientY, mode)
 
       if (!allowStart) {
         promptAlignStage()
@@ -857,7 +899,6 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       element.setPointerCapture?.(event.pointerId)
       pointerIdRef.current = event.pointerId
 
-      const mode = resolvePointerMode(event.pointerType)
       pointerModeRef.current = mode
       const referenceWidth = element.getBoundingClientRect().width
       updateTearDistance(mode, stage, referenceWidth)
@@ -877,10 +918,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
       if (stage === 'aligning') {
         const element = event.currentTarget
-        if (isWithinStartZone(element, event.clientX, event.clientY)) {
+        const mode = resolvePointerMode(event.pointerType)
+        if (isWithinStartZone(element, event.clientX, event.clientY, mode)) {
           element.setPointerCapture?.(event.pointerId)
           pointerIdRef.current = event.pointerId
-          const mode = resolvePointerMode(event.pointerType)
           pointerModeRef.current = mode
           const referenceWidth = element.getBoundingClientRect().width
           updateTearDistance(mode, 'tearing', referenceWidth)
