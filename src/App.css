@@ -1481,9 +1481,10 @@
   width: 100%;
   min-height: 100%;
   background:
-    radial-gradient(64% 82% at 18% 18%, rgba(94, 142, 214, 0.28), transparent 68%),
-    radial-gradient(58% 74% at 84% 76%, rgba(104, 126, 214, 0.22), transparent 70%),
-    linear-gradient(176deg, rgba(8, 12, 26, 0.96), rgba(12, 16, 38, 0.98));
+    radial-gradient(70% 90% at 20% 16%, rgba(74, 176, 255, 0.32), transparent 72%),
+    radial-gradient(58% 78% at 82% 74%, rgba(176, 144, 255, 0.28), transparent 74%),
+    radial-gradient(120% 120% at 48% 112%, rgba(16, 56, 132, 0.35), transparent 68%),
+    linear-gradient(192deg, rgba(4, 10, 28, 0.98), rgba(16, 14, 56, 0.96));
   overflow: hidden;
 }
 
