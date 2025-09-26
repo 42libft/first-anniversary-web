@@ -101,6 +101,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   })
   const alignTimeoutRef = useRef<number | null>(null)
   const hasBurstRef = useRef(false)
+  const tearDistanceRef = useRef(TEAR_DISTANCE)
 
   const floatingCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const floatingCtxRef = useRef<CanvasRenderingContext2D | null>(null)
@@ -288,6 +289,36 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         context.fill()
       })
 
+      context.globalCompositeOperation = 'destination-in'
+      const tearBase = 8 + config.tearProgress * 40
+      const polygonPoints: Array<[number, number]> = [
+        [0, tearBase + 2],
+        [12, tearBase - 1.6],
+        [28, tearBase + 1.8],
+        [46, tearBase - 1.2],
+        [68, tearBase + 1.6],
+        [88, tearBase - 1.4],
+        [100, tearBase + 1.6],
+      ]
+
+      context.beginPath()
+      polygonPoints.forEach(([xPercent, yPercent], index) => {
+        const x = (xPercent / 100) * width
+        const y = (yPercent / 100) * height
+        if (index === 0) {
+          context.moveTo(x, y)
+        } else {
+          context.lineTo(x, y)
+        }
+      })
+      context.lineTo(width, height)
+      context.lineTo(0, height)
+      context.closePath()
+      context.fillStyle = '#000'
+      context.fill()
+
+      context.globalCompositeOperation = 'source-over'
+
       context.restore()
 
       floatingAnimationRef.current = requestAnimationFrame(drawFrame)
@@ -366,7 +397,8 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const deltaY = native.clientY - base.y
       const horizontal = Math.max(deltaX, 0)
       const vertical = Math.max(Math.abs(deltaY) - 6, 0) * 0.12
-      const rawProgress = base.progress + (horizontal + vertical) / TEAR_DISTANCE
+      const dynamicDistance = tearDistanceRef.current || TEAR_DISTANCE
+      const rawProgress = base.progress + (horizontal + vertical) / dynamicDistance
       const nextProgress = clamp(rawProgress, 0, 1)
 
       const now = performance.now()
@@ -424,6 +456,9 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       element.setPointerCapture?.(event.pointerId)
       pointerIdRef.current = event.pointerId
 
+      const referenceWidth = element.getBoundingClientRect().width || TEAR_DISTANCE
+      tearDistanceRef.current = Math.max(160, referenceWidth * (stage === 'primed' ? 0.78 : 0.7))
+
       const baseProgress = stage === 'primed' ? tearProgress : 0
       startTear(event.nativeEvent, baseProgress)
     },
@@ -442,6 +477,8 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         if (isWithinStartZone(element, event.clientX, event.clientY)) {
           element.setPointerCapture?.(event.pointerId)
           pointerIdRef.current = event.pointerId
+          const referenceWidth = element.getBoundingClientRect().width || TEAR_DISTANCE
+          tearDistanceRef.current = Math.max(160, referenceWidth * 0.7)
           startTear(event.nativeEvent, 0)
         }
         return
@@ -456,6 +493,8 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         if (!tearStartRef.current) {
           element.setPointerCapture?.(event.pointerId)
           pointerIdRef.current = event.pointerId
+          const referenceWidth = element.getBoundingClientRect().width || TEAR_DISTANCE
+          tearDistanceRef.current = Math.max(160, referenceWidth * 0.78)
           startTear(event.nativeEvent, tearProgress)
         }
 
@@ -487,6 +526,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           setStage('primed')
         }
         setTearSpeed('idle')
+        tearDistanceRef.current = TEAR_DISTANCE
         return
       }
 
@@ -494,6 +534,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         clearAlignTimeout()
         setStage('idle')
         setTearProgress(0)
+        tearDistanceRef.current = TEAR_DISTANCE
         return
       }
     },
@@ -519,6 +560,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           setStage('primed')
         }
         setTearSpeed('idle')
+        tearDistanceRef.current = TEAR_DISTANCE
         return
       }
 
@@ -526,6 +568,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         clearAlignTimeout()
         setStage('idle')
         setTearProgress(0)
+        tearDistanceRef.current = TEAR_DISTANCE
       }
     },
     [clearAlignTimeout, stage, tearProgress, triggerBurst]
@@ -542,6 +585,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         clearAlignTimeout()
         setStage('idle')
         setTearProgress(0)
+        tearDistanceRef.current = TEAR_DISTANCE
       }
     },
     [clearAlignTimeout, handlePointerUp, stage]
