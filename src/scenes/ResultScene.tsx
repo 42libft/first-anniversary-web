@@ -323,6 +323,7 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
           aria-label="勝利バナー"
         >
           <div className="result-banner__surface" aria-hidden="true" />
+          <div className="result-banner__streak" aria-hidden="true" />
           <p className="result-banner__title">{viewData.resultTitle}</p>
           <div className="result-banner__stats">
             <div className="result-banner__panel">
