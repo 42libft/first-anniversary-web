@@ -69,7 +69,13 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 
-const computeWavePoints = (tearProgress: number): WavePoint[] => {
+const computeWavePoints = (tearProgress: number, stage: InteractionStage): WavePoint[] => {
+  if (stage === 'burst' || stage === 'revealed') {
+    return [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+    ]
+  }
   const tearDepth = 8 + tearProgress * 40
   return WAVE_SEGMENTS.map(({ x, offset }) => ({
     x: x / 100,
@@ -161,6 +167,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   
 
   const interactionRef = useRef<HTMLDivElement>(null)
+  const letterRef = useRef<HTMLDivElement | null>(null)
   const tearStartRef = useRef<{
     x: number
     y: number
@@ -184,15 +191,15 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const floatingConfigRef = useRef<{ stage: InteractionStage; tearProgress: number; tearSpeed: TearSpeed }>(
     { stage: 'intro', tearProgress: 0, tearSpeed: 'idle' }
   )
-  const floatingResizeObserverRef = useRef<ResizeObserver | null>(null)
   const floatingWasBurstRef = useRef(false)
   const clipMetricsRef = useRef<{ radiusX: number; radiusY: number }>({ radiusX: 0.06, radiusY: 0.06 })
   const particleFadeRef = useRef(1)
   const particlesDissipatingRef = useRef(false)
+  const floatingOffsetRef = useRef<{ left: number; top: number }>({ left: 0, top: 0 })
 
   const seedParticles = useCallback(
-    (progress: number = 0) => {
-      const wavePoints = computeWavePoints(progress)
+    (progress: number = 0, stageOverride: InteractionStage = floatingConfigRef.current.stage) => {
+      const wavePoints = computeWavePoints(progress, stageOverride)
       const topWave = wavePoints.reduce((min, point) => Math.min(min, point.y), 1)
       const { radiusX, radiusY } = clipMetricsRef.current
       const horizontalPadding = Math.max(MIN_HORIZONTAL_MARGIN, radiusX * 0.75)
@@ -216,6 +223,95 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     },
     []
   )
+
+  const syncCanvasMetrics = useCallback(() => {
+    const canvas = floatingCanvasRef.current
+    const context = floatingCtxRef.current
+    const container = interactionRef.current
+    const letterElement = letterRef.current
+
+    if (!canvas || !context || !container || !letterElement) {
+      floatingSizeRef.current = { width: 0, height: 0 }
+      return false
+    }
+
+    const containerRect = container.getBoundingClientRect()
+    const letterRect = letterElement.getBoundingClientRect()
+    const width = letterRect.width
+    const height = letterRect.height
+
+    if (width <= 0 || height <= 0) {
+      floatingSizeRef.current = { width: 0, height: 0 }
+      return false
+    }
+
+    const dpr = window.devicePixelRatio || 1
+    const pixelWidth = Math.max(1, Math.round(width * dpr))
+    const pixelHeight = Math.max(1, Math.round(height * dpr))
+
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth
+      canvas.height = pixelHeight
+    }
+
+    const offsetLeft = Math.round((letterRect.left - containerRect.left) * 100) / 100
+    const offsetTop = Math.round((letterRect.top - containerRect.top) * 100) / 100
+
+    if (
+      Math.abs(floatingOffsetRef.current.left - offsetLeft) > 0.1 ||
+      Math.abs(floatingOffsetRef.current.top - offsetTop) > 0.1
+    ) {
+      canvas.style.left = `${offsetLeft}px`
+      canvas.style.top = `${offsetTop}px`
+      floatingOffsetRef.current = { left: offsetLeft, top: offsetTop }
+    }
+
+    canvas.style.right = 'auto'
+    canvas.style.bottom = 'auto'
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
+
+    if (typeof context.resetTransform === 'function') {
+      context.resetTransform()
+    } else {
+      context.setTransform(1, 0, 0, 1, 0, 0)
+    }
+
+    context.scale(dpr, dpr)
+    floatingSizeRef.current = { width, height }
+
+    let radiusNormalizedX = clipMetricsRef.current.radiusX
+    let radiusNormalizedY = clipMetricsRef.current.radiusY
+    const computedStyle = window.getComputedStyle(letterElement)
+    const parseRadiusValue = (value: string) => {
+      if (!value) {
+        return 0
+      }
+      const slashIndex = value.indexOf('/')
+      const horizontalValue = slashIndex >= 0 ? value.slice(0, slashIndex) : value
+      const numeric = parseFloat(horizontalValue)
+      return Number.isNaN(numeric) ? 0 : numeric
+    }
+
+    const topLeftRadius = parseRadiusValue(computedStyle.borderTopLeftRadius)
+    if (topLeftRadius > 0) {
+      radiusNormalizedX = clamp01(topLeftRadius / width)
+      radiusNormalizedY = clamp01(topLeftRadius / height)
+    }
+
+    if (radiusNormalizedX <= 0 || radiusNormalizedY <= 0) {
+      const fallbackRadius = Math.min(width, height) * 0.08
+      radiusNormalizedX = clamp01(fallbackRadius / (width || 1))
+      radiusNormalizedY = clamp01(fallbackRadius / (height || 1))
+    }
+
+    clipMetricsRef.current = {
+      radiusX: radiusNormalizedX,
+      radiusY: radiusNormalizedY,
+    }
+
+    return true
+  }, [])
 
   const clearAlignTimeout = useCallback(() => {
     if (alignTimeoutRef.current !== null) {
@@ -275,7 +371,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       particlesDissipatingRef.current = false
       particleFadeRef.current = 1
       if (floatingParticlesRef.current.length === 0) {
-        seedParticles(tearProgress)
+        seedParticles(tearProgress, stage)
       }
     }
   }, [seedParticles, stage, tearProgress])
@@ -293,63 +389,22 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
     floatingCtxRef.current = ctx
 
-    const updateCanvasSize = () => {
-      const rect = canvas.getBoundingClientRect()
-      const dpr = window.devicePixelRatio || 1
-      canvas.width = rect.width * dpr
-      canvas.height = rect.height * dpr
-      canvas.style.width = `${rect.width}px`
-      canvas.style.height = `${rect.height}px`
-      if (typeof ctx.resetTransform === 'function') {
-        ctx.resetTransform()
-      } else {
-        ctx.setTransform(1, 0, 0, 1, 0, 0)
-      }
-      ctx.scale(dpr, dpr)
-      floatingSizeRef.current = { width: rect.width, height: rect.height }
-
-      const letterElement = interactionRef.current?.querySelector<HTMLElement>('.letter-pack__letter')
-      let radiusNormalizedX = clipMetricsRef.current.radiusX
-      let radiusNormalizedY = clipMetricsRef.current.radiusY
-
-      if (letterElement) {
-        const letterRect = letterElement.getBoundingClientRect()
-        const computedStyle = window.getComputedStyle(letterElement)
-        const topRadius = parseFloat(computedStyle.borderTopLeftRadius) || 0
-        if (letterRect.width > 0 && letterRect.height > 0 && !Number.isNaN(topRadius)) {
-          radiusNormalizedX = clamp01(topRadius / letterRect.width)
-          radiusNormalizedY = clamp01(topRadius / letterRect.height)
-        }
-      }
-
-      if (radiusNormalizedX <= 0 || radiusNormalizedY <= 0) {
-        const fallbackRadius = Math.min(rect.width, rect.height) * 0.08
-        radiusNormalizedX = clamp01(fallbackRadius / (rect.width || 1))
-        radiusNormalizedY = clamp01(fallbackRadius / (rect.height || 1))
-      }
-
-      clipMetricsRef.current = {
-        radiusX: radiusNormalizedX,
-        radiusY: radiusNormalizedY,
-      }
-    }
-
-    updateCanvasSize()
-    seedParticles()
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateCanvasSize()
-    })
-    resizeObserver.observe(canvas)
-    floatingResizeObserverRef.current = resizeObserver
+    syncCanvasMetrics()
+    seedParticles(floatingConfigRef.current.tearProgress, floatingConfigRef.current.stage)
 
     let lastTime = performance.now()
 
     const drawFrame = (timestamp: number) => {
       const context = floatingCtxRef.current
+
+      if (!context || !syncCanvasMetrics()) {
+        floatingAnimationRef.current = requestAnimationFrame(drawFrame)
+        return
+      }
+
       const { width, height } = floatingSizeRef.current
 
-      if (!context || width === 0 || height === 0) {
+      if (width === 0 || height === 0) {
         floatingAnimationRef.current = requestAnimationFrame(drawFrame)
         return
       }
@@ -359,7 +414,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
       const config = floatingConfigRef.current
       const particles = floatingParticlesRef.current
-      const wavePoints = computeWavePoints(config.tearProgress)
+      const wavePoints = computeWavePoints(config.tearProgress, config.stage)
       const speedBoost = config.tearSpeed === 'fast' ? 0.28 : config.tearSpeed === 'slow' ? 0.12 : 0
       const driftFactor = 0.12 + config.tearProgress * 0.9 + speedBoost
       const movementScale = delta * 60
@@ -505,12 +560,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         floatingAnimationRef.current = null
       }
 
-      floatingResizeObserverRef.current?.disconnect()
-      floatingResizeObserverRef.current = null
       floatingParticlesRef.current = []
       floatingCtxRef.current = null
     }
-  }, [prefersReducedMotion, seedParticles])
+  }, [prefersReducedMotion, seedParticles, syncCanvasMetrics])
 
   const triggerBurst = useCallback(() => {
     if (hasBurstRef.current) {
@@ -914,7 +967,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
             <div className="letter-pack__tear-edge" aria-hidden="true" />
           </div>
           <canvas className="letter-pack__lights" ref={floatingCanvasRef} aria-hidden="true" />
-          <div className="letter-pack__letter" aria-hidden={!letterImage}>
+          <div className="letter-pack__letter" ref={letterRef} aria-hidden={!letterImage}>
             {letterImage ? (
               <img src={letterImage.src} alt={letterImage.alt ?? 'スキャンした手紙'} />
             ) : (
