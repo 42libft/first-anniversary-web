@@ -9,14 +9,7 @@ import {
 
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion'
 
-interface LetterExperienceProps {
-  letterImage?: {
-    src: string
-    alt?: string
-  }
-}
-
-type InteractionStage =
+export type InteractionStage =
   | 'intro'
   | 'idle'
   | 'aligning'
@@ -24,6 +17,14 @@ type InteractionStage =
   | 'primed'
   | 'burst'
   | 'revealed'
+
+interface LetterExperienceProps {
+  letterImage?: {
+    src: string
+    alt?: string
+  }
+  onStageChange?: (stage: InteractionStage) => void
+}
 
 type TearSpeed = 'idle' | 'slow' | 'fast'
 
@@ -249,7 +250,7 @@ const isWithinCutlineBand = (element: HTMLElement, clientX: number, clientY: num
   )
 }
 
-export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
+export const LetterExperience = ({ letterImage, onStageChange }: LetterExperienceProps) => {
   const prefersReducedMotion = usePrefersReducedMotion()
 
   const [stage, setStage] = useState<InteractionStage>('intro')
@@ -470,6 +471,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       })
     }
   }, [stage, tearProgress, tearSpeed])
+
+  useEffect(() => {
+    onStageChange?.(stage)
+  }, [onStageChange, stage])
 
   useEffect(() => {
     if (stage !== 'burst' && stage !== 'revealed') {

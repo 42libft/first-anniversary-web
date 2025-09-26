@@ -1,18 +1,25 @@
-import { LetterExperience } from '../components/LetterExperience'
+import { useCallback, useState } from 'react'
+
+import { LetterExperience, type InteractionStage } from '../components/LetterExperience'
 import { SceneLayout } from '../components/SceneLayout'
 import type { SceneComponentProps } from '../types/scenes'
 
 export const LetterScene = ({ onAdvance }: SceneComponentProps) => {
+  const [canAdvance, setCanAdvance] = useState(false)
+
+  const handleStageChange = useCallback((stage: InteractionStage) => {
+    setCanAdvance(stage === 'revealed')
+  }, [])
+
+  const advanceHandler = canAdvance ? onAdvance : undefined
+
   return (
     <SceneLayout
       hideHeader
-      onAdvance={onAdvance}
+      onAdvance={advanceHandler}
       advanceLabel="Resultへ"
     >
-      <LetterExperience />
-      <p className="scene-note">
-        手紙のスキャン画像は最終稿で差し替え予定。現在はダミーのレターペーパーで演出のみ確認できます。
-      </p>
+      <LetterExperience onStageChange={handleStageChange} />
     </SceneLayout>
   )
 }
