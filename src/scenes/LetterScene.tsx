@@ -5,9 +5,7 @@ import type { SceneComponentProps } from '../types/scenes'
 export const LetterScene = ({ onAdvance }: SceneComponentProps) => {
   return (
     <SceneLayout
-      eyebrow="Letter"
-      title="パックとメッセージ"
-      description="ポケポケのトレーディングカード開封をオマージュし、長押しから横方向の破り操作でスキャンした手紙へ誘うシーン。"
+      hideHeader
       onAdvance={onAdvance}
       advanceLabel="Resultへ"
     >

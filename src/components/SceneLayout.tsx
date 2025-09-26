@@ -2,11 +2,12 @@ import type { ReactNode } from 'react'
 
 interface SceneLayoutProps {
   eyebrow?: string
-  title: string
+  title?: string
   description?: string
   children?: ReactNode
   onAdvance?: () => void
   advanceLabel?: string
+  hideHeader?: boolean
 }
 
 export const SceneLayout = ({
@@ -16,13 +17,18 @@ export const SceneLayout = ({
   children,
   onAdvance,
   advanceLabel = '次へ',
+  hideHeader = false,
 }: SceneLayoutProps) => {
+  const showEyebrow = !hideHeader && Boolean(eyebrow)
+  const showTitle = !hideHeader && Boolean(title)
+  const showDescription = !hideHeader && Boolean(description)
+
   return (
     <section className="scene-layout" role="presentation">
       <div className="scene-layout__content">
-        {eyebrow ? <p className="scene-layout__eyebrow">{eyebrow}</p> : null}
-        <h1 className="scene-layout__title">{title}</h1>
-        {description ? (
+        {showEyebrow ? <p className="scene-layout__eyebrow">{eyebrow}</p> : null}
+        {showTitle ? <h1 className="scene-layout__title">{title}</h1> : null}
+        {showDescription ? (
           <p className="scene-layout__description">{description}</p>
         ) : null}
         {children ? <div className="scene-layout__body">{children}</div> : null}
