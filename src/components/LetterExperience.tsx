@@ -220,8 +220,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     y: number
     progress: number
     time: number
-    normalizedX: number
-    normalizedY: number
+    startNormalizedX: number
+    startNormalizedY: number
+    lastNormalizedX: number
+    lastNormalizedY: number
     anchorX: number
     anchorY: number
   } | null>(null)
@@ -656,6 +658,23 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     }, delay)
   }, [clearAlignTimeout, prefersReducedMotion])
 
+  const resetTear = useCallback(
+    (nextStage: InteractionStage = 'idle') => {
+      tearStartRef.current = null
+      tearVelocityRef.current = { progress: 0, time: performance.now() }
+      tearDistanceRef.current = TEAR_DISTANCE
+      hasBurstRef.current = false
+      tearDebugRef.current.lastMoveLog = 0
+      setTearSpeed('idle')
+      setTearProgress(0)
+      setStage((prev) => (prev === 'burst' || prev === 'revealed' ? prev : nextStage))
+      if (isDevEnvironment) {
+        console.info('[LetterExperience] tear-reset', { stage: nextStage })
+      }
+    },
+    []
+  )
+
   const startTear = useCallback(
     (native: PointerEvent, baseProgress: number) => {
       const now = performance.now()
@@ -678,8 +697,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         y: native.clientY,
         progress: baseProgress,
         time: now,
-        normalizedX,
-        normalizedY,
+        startNormalizedX: normalizedX,
+        startNormalizedY: normalizedY,
+        lastNormalizedX: normalizedX,
+        lastNormalizedY: normalizedY,
         anchorX: anchor.x,
         anchorY: anchor.y,
       }
@@ -706,7 +727,8 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
   const updateTear = useCallback(
     (native: PointerEvent) => {
-      if (!tearStartRef.current) {
+      const base = tearStartRef.current
+      if (!base) {
         return
       }
 
@@ -730,7 +752,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const anchor = computeTearAnchor(previousProgress)
       const remainingSpan = computeRemainingFrontSpan(anchor.x)
 
-      const rawHorizontalProgress = clamp01(
+      const pointerRatio = clamp01(
         (pointerNormalizedX - TEAR_FRONT_BASE_X) / TEAR_FRONT_SPAN_X
       )
 
@@ -740,47 +762,92 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           ? clamp01(previousProgress + (forwardDelta / remainingSpan) * (1 - previousProgress))
           : previousProgress
 
-      const verticalOffset = pointerNormalizedY - anchor.y
-      const verticalAssist = clamp(
-        pointerMode === 'touch'
-          ? verticalOffset * 0.95
-          : pointerMode === 'pen'
-            ? verticalOffset * 0.65
-            : verticalOffset * 0.55,
-        -0.16,
-        pointerMode === 'touch' ? 0.34 : 0.26
+      const horizontalFromStart = Math.max(pointerNormalizedX - base.startNormalizedX, 0)
+      const normalizedAdvanceDenominator = Math.max(0.18, 1 - base.startNormalizedX)
+      const baselineProgress = clamp01(
+        base.progress + (horizontalFromStart / normalizedAdvanceDenominator) * (1 - base.progress)
       )
 
-      let pointerDrivenProgress = clamp01(
-        Math.max(anchorDrivenProgress, rawHorizontalProgress + verticalAssist)
+      const verticalFromStart = Math.max(pointerNormalizedY - base.startNormalizedY, 0)
+      const verticalAssistFromStart = Math.min(
+        pointerMode === 'touch'
+          ? verticalFromStart * 0.6
+          : pointerMode === 'pen'
+            ? verticalFromStart * 0.48
+            : verticalFromStart * 0.4,
+        0.38
+      )
+
+      const verticalOffset = pointerNormalizedY - anchor.y
+      const alignedVerticalAssist = clamp(
+        pointerMode === 'touch'
+          ? verticalOffset * 0.9
+          : pointerMode === 'pen'
+            ? verticalOffset * 0.62
+            : verticalOffset * 0.5,
+        -0.18,
+        pointerMode === 'touch' ? 0.32 : 0.26
+      )
+
+      let targetProgress = clamp01(
+        Math.max(
+          anchorDrivenProgress,
+          pointerRatio + alignedVerticalAssist,
+          baselineProgress + verticalAssistFromStart
+        )
       )
 
       const backwardAllowance =
-        pointerMode === 'touch' ? 0.075 : pointerMode === 'pen' ? 0.09 : 0.12
+        pointerMode === 'touch' ? 0.015 : pointerMode === 'pen' ? 0.02 : 0.04
       const progressFloor = Math.max(previousProgress - backwardAllowance, 0)
 
-      const forwardBoostBase =
-        pointerMode === 'touch' ? 0.24 : pointerMode === 'pen' ? 0.2 : 0.18
-      const forwardBoost =
-        forwardBoostBase +
-        Math.max(verticalOffset, 0) * 0.18 +
-        Math.max(pointerNormalizedX - anchor.x, 0) * (pointerMode === 'touch' ? 0.62 : 0.48)
-      const progressCeil = Math.min(previousProgress + forwardBoost, 1)
-      pointerDrivenProgress = clamp(pointerDrivenProgress, progressFloor, progressCeil)
+      const reachAssist =
+        pointerMode === 'touch'
+          ? Math.max(pointerNormalizedX - anchor.x, 0) * 0.72
+          : Math.max(pointerNormalizedX - anchor.x, 0) * 0.55
+      const verticalBonus =
+        pointerMode === 'touch'
+          ? Math.max(verticalOffset, 0) * 0.22
+          : Math.max(verticalOffset, 0) * 0.18
+      const baseHeadroom = pointerMode === 'touch' ? 0.18 : pointerMode === 'pen' ? 0.16 : 0.14
+      const pointerCeil = clamp01(pointerRatio + Math.max(verticalOffset, 0) * 0.22 + 0.18)
+      const progressCeil = Math.min(
+        1,
+        Math.max(previousProgress + baseHeadroom + reachAssist + verticalBonus, pointerCeil)
+      )
 
-      const smoothing = pointerMode === 'touch' ? 0.92 : pointerMode === 'pen' ? 0.85 : 0.7
-      const nextProgress =
-        previousProgress + (pointerDrivenProgress - previousProgress) * smoothing
+      targetProgress = clamp(targetProgress, progressFloor, progressCeil)
+
+      const smoothing = pointerMode === 'touch' ? 0.9 : pointerMode === 'pen' ? 0.85 : 0.72
+      let nextProgress =
+        previousProgress + (targetProgress - previousProgress) * smoothing
+
+      nextProgress = Number(clamp01(nextProgress).toFixed(4))
+
+      const minimalDelta = 0.0018
+      const now = performance.now()
+      if (Math.abs(nextProgress - previousProgress) < minimalDelta && nextProgress < 0.999) {
+        tearVelocityRef.current = { progress: previousProgress, time: now }
+        tearStartRef.current = {
+          ...base,
+          progress: previousProgress,
+          time: now,
+          lastNormalizedX: pointerNormalizedX,
+          lastNormalizedY: pointerNormalizedY,
+          anchorX: anchor.x,
+          anchorY: anchor.y,
+        }
+        return
+      }
 
       setTearProgress(nextProgress)
 
-      const now = performance.now()
       const deltaTime = (now - previousVelocity.time) / 1000
       if (deltaTime > 0) {
         const velocity = (nextProgress - previousVelocity.progress) / deltaTime
         if (velocity > 0.9) {
           setTearSpeed('fast')
-        } else if (velocity > 0.22) {
+        } else if (velocity > 0.2) {
           setTearSpeed('slow')
         } else {
           setTearSpeed('idle')
@@ -791,12 +858,11 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
       const updatedAnchor = computeTearAnchor(nextProgress)
       tearStartRef.current = {
-        x: native.clientX,
-        y: native.clientY,
+        ...base,
         progress: nextProgress,
         time: now,
-        normalizedX: pointerNormalizedX,
-        normalizedY: pointerNormalizedY,
+        lastNormalizedX: pointerNormalizedX,
+        lastNormalizedY: pointerNormalizedY,
         anchorX: updatedAnchor.x,
         anchorY: updatedAnchor.y,
       }
@@ -918,31 +984,30 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       }
 
       if (stage === 'tearing') {
-        tearStartRef.current = null
-        if (tearProgress >= AUTO_BURST_THRESHOLD) {
+        const currentProgress = tearProgress
+        if (currentProgress >= AUTO_BURST_THRESHOLD) {
           triggerBurst()
           return
         }
-        if (tearProgress <= 0.02) {
-          setTearProgress(0)
-          setStage('idle')
-        } else {
-          setStage('primed')
+        resetTear('idle')
+        if (currentProgress > 0.18) {
+          promptAlignStage()
         }
-        setTearSpeed('idle')
-        tearDistanceRef.current = TEAR_DISTANCE
         return
       }
 
       if (stage === 'aligning') {
         clearAlignTimeout()
-        setStage('idle')
-        setTearProgress(0)
-        tearDistanceRef.current = TEAR_DISTANCE
+        resetTear('idle')
         return
       }
+
+      if (stage === 'primed') {
+        resetTear('idle')
+        promptAlignStage()
+      }
     },
-    [clearAlignTimeout, stage, tearProgress, triggerBurst]
+    [clearAlignTimeout, promptAlignStage, resetTear, stage, tearProgress, triggerBurst]
   )
 
   const handlePointerCancel = useCallback(
@@ -952,30 +1017,25 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         pointerIdRef.current = null
       }
 
-      tearStartRef.current = null
-
       if (stage === 'tearing' || stage === 'primed') {
-        if (tearProgress >= AUTO_BURST_THRESHOLD) {
+        const currentProgress = tearProgress
+        if (currentProgress >= AUTO_BURST_THRESHOLD) {
           triggerBurst()
         } else if (tearProgress <= 0.02) {
-          setTearProgress(0)
-          setStage('idle')
+          resetTear('idle')
         } else {
-          setStage('primed')
+          resetTear('idle')
+          promptAlignStage()
         }
-        setTearSpeed('idle')
-        tearDistanceRef.current = TEAR_DISTANCE
         return
       }
 
       if (stage === 'aligning') {
         clearAlignTimeout()
-        setStage('idle')
-        setTearProgress(0)
-        tearDistanceRef.current = TEAR_DISTANCE
+        resetTear('idle')
       }
     },
-    [clearAlignTimeout, stage, tearProgress, triggerBurst]
+    [clearAlignTimeout, promptAlignStage, resetTear, stage, tearProgress, triggerBurst]
   )
 
   const handlePointerLeave = useCallback(
@@ -987,12 +1047,15 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
       if (stage === 'aligning') {
         clearAlignTimeout()
-        setStage('idle')
-        setTearProgress(0)
-        tearDistanceRef.current = TEAR_DISTANCE
+        resetTear('idle')
+        return
+      }
+      if (stage === 'primed') {
+        resetTear('idle')
+        promptAlignStage()
       }
     },
-    [clearAlignTimeout, handlePointerUp, stage]
+    [clearAlignTimeout, handlePointerUp, promptAlignStage, resetTear, stage]
   )
 
   const handleKeyDown = useCallback(
@@ -1036,20 +1099,19 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         return
       }
 
-      if (tearProgress >= AUTO_BURST_THRESHOLD) {
+      const currentProgress = tearProgress
+
+      if (currentProgress >= AUTO_BURST_THRESHOLD) {
         triggerBurst()
         return
       }
 
-      if (tearProgress <= 0.02) {
-        setTearProgress(0)
-        setStage('idle')
-      } else {
-        setStage('primed')
+      resetTear('idle')
+      if (currentProgress > 0.18) {
+        promptAlignStage()
       }
-      setTearSpeed('idle')
     },
-    [stage, tearProgress, triggerBurst]
+    [promptAlignStage, resetTear, stage, tearProgress, triggerBurst]
   )
 
   const tearPercent = Math.round(tearProgress * 100)
