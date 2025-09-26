@@ -3933,6 +3933,18 @@
   transform: translateY(-3px);
 }
 
+.letter-pack[data-stage='tearing'] .letter-pack__tear-edge {
+  transition: opacity 0.12s linear, transform 0.12s linear;
+}
+
+.letter-pack[data-stage='tearing'] .letter-pack__cutline {
+  transition: opacity 0.12s linear, transform 0.12s linear;
+}
+
+.letter-pack[data-stage='tearing'] .letter-pack__letter {
+  transition: clip-path 0.12s linear, opacity 0.12s linear, transform 0.12s linear;
+}
+
 .letter-pack[data-stage='tearing'] .letter-pack__seal {
   transform: translateY(var(--letter-tear-shift));
   filter: brightness(1.1);
