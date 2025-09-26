@@ -657,9 +657,9 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       case 'intro':
         return 'パックが姿を現しました'
       case 'idle':
-        return '切り取り線の左端を押さえてください'
+        return 'パックが静かに開封の瞬間を待っています'
       case 'aligning':
-        return '左端に触れてから右へ滑らせてください'
+        return '左上で揺らめく光がスタートの合図です'
       case 'tearing':
         return '指でそのまま右へ破り進めましょう'
       case 'primed':
@@ -676,7 +676,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const secondaryHint = useMemo(() => {
     switch (stage) {
       case 'aligning':
-        return '左上の丸い印が開始位置です'
+        return '輝く切り取り線から右へ滑らせると破りやすいです'
       case 'tearing':
         return `破り進行 ${tearPercent}%`
       case 'primed':
@@ -686,7 +686,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       case 'revealed':
         return 'いつでも読めるようにスキャンデータをここに保管しています'
       case 'idle':
-        return '開始位置を長押しすると破り始められます'
+        return 'そっと触れて右へ滑らせると破り始められます'
       default:
         return ''
     }
