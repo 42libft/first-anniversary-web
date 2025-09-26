@@ -51,9 +51,13 @@ const computeTearAnchor = (progress: number) => {
   return { x, y }
 }
 
-const computeRemainingFrontSpan = (anchorX: number) => Math.max(0.12, TEAR_FRONT_MAX_X - anchorX)
-
 const isDevEnvironment = import.meta.env.DEV
+
+const TEAR_VECTOR_X = 1
+const TEAR_VECTOR_Y = 0.34
+const TEAR_VECTOR_LENGTH = Math.hypot(TEAR_VECTOR_X, TEAR_VECTOR_Y)
+const TEAR_DIRECTION_X = TEAR_VECTOR_LENGTH > 0 ? TEAR_VECTOR_X / TEAR_VECTOR_LENGTH : 1
+const TEAR_DIRECTION_Y = TEAR_VECTOR_LENGTH > 0 ? TEAR_VECTOR_Y / TEAR_VECTOR_LENGTH : 0
 
 type WavePoint = {
   x: number
@@ -216,14 +220,15 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const interactionRef = useRef<HTMLDivElement>(null)
   const letterRef = useRef<HTMLDivElement | null>(null)
   const tearStartRef = useRef<{
-    x: number
-    y: number
+    originX: number
+    originY: number
     progress: number
     time: number
     normalizedX: number
     normalizedY: number
     anchorX: number
     anchorY: number
+    baseDistance: number
   } | null>(null)
   const pointerIdRef = useRef<number | null>(null)
   const tearVelocityRef = useRef<{ progress: number; time: number }>({
@@ -689,16 +694,19 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       }
 
       const anchor = computeTearAnchor(baseProgress)
+      const tearDistance = Math.max(tearDistanceRef.current, 40)
+      const baseDistance = clamp(tearDistance * baseProgress, 0, tearDistance)
 
       tearStartRef.current = {
-        x: native.clientX,
-        y: native.clientY,
+        originX: native.clientX,
+        originY: native.clientY,
         progress: baseProgress,
         time: now,
         normalizedX,
         normalizedY,
         anchorX: anchor.x,
         anchorY: anchor.y,
+        baseDistance,
       }
       tearVelocityRef.current = { progress: baseProgress, time: now }
       hasBurstRef.current = false
@@ -707,14 +715,17 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       setTearSpeed('slow')
       setTearProgress(baseProgress)
 
-      if (isDevEnvironment && pointerModeRef.current === 'touch') {
+      if (isDevEnvironment) {
         tearDebugRef.current.lastMoveLog = now
         console.info('[LetterExperience] tear-start', {
+          mode: pointerModeRef.current,
           progress: Number(baseProgress.toFixed(3)),
           pointerX: Number(normalizedX.toFixed(3)),
           pointerY: Number(normalizedY.toFixed(3)),
           anchorX: Number(anchor.x.toFixed(3)),
           anchorY: Number(anchor.y.toFixed(3)),
+          distancePx: Number(baseDistance.toFixed(1)),
+          requiredPx: Number(tearDistance.toFixed(1)),
         })
       }
     },
@@ -723,7 +734,8 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
   const updateTear = useCallback(
     (native: PointerEvent) => {
-      if (!tearStartRef.current) {
+      const startState = tearStartRef.current
+      if (!startState) {
         return
       }
 
@@ -742,60 +754,26 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const pointerNormalizedX = clamp01((native.clientX - rect.left) / rect.width)
       const pointerNormalizedY = clamp01((native.clientY - rect.top) / rect.height)
 
-      const previousVelocity = tearVelocityRef.current
-      const previousProgress = clamp01(previousVelocity.progress)
-      const anchor = computeTearAnchor(previousProgress)
-      const remainingSpan = computeRemainingFrontSpan(anchor.x)
+      const tearDistance = Math.max(tearDistanceRef.current, 40)
+      const deltaX = native.clientX - startState.originX
+      const deltaY = native.clientY - startState.originY
 
-      const rawHorizontalProgress = clamp01(
-        (pointerNormalizedX - TEAR_FRONT_BASE_X) / TEAR_FRONT_SPAN_X
-      )
+      let projected = deltaX * TEAR_DIRECTION_X + deltaY * TEAR_DIRECTION_Y
+      if (!Number.isFinite(projected)) {
+        projected = 0
+      }
 
-      const forwardDelta = Math.max(pointerNormalizedX - anchor.x, 0)
-      const anchorDrivenProgress =
-        remainingSpan > 0
-          ? clamp01(previousProgress + (forwardDelta / remainingSpan) * (1 - previousProgress))
-          : previousProgress
+      if (projected < 0) {
+        const backtrackLimit = tearDistance * (pointerMode === 'touch' ? 0.28 : pointerMode === 'pen' ? 0.3 : 0.34)
+        projected = Math.max(projected, -backtrackLimit)
+      }
 
-      const verticalOffset = pointerNormalizedY - anchor.y
-      const verticalAssist = clamp(
-        pointerMode === 'touch'
-          ? verticalOffset * 0.95
-          : pointerMode === 'pen'
-            ? verticalOffset * 0.65
-            : verticalOffset * 0.55,
-        -0.16,
-        pointerMode === 'touch' ? 0.34 : 0.26
-      )
-
-      let pointerDrivenProgress = clamp01(
-        Math.max(anchorDrivenProgress, rawHorizontalProgress + verticalAssist)
-      )
-
-      const backwardAllowance =
-        pointerMode === 'touch' ? 0.06 : pointerMode === 'pen' ? 0.07 : 0.1
-      const progressFloor = Math.max(previousProgress - backwardAllowance, 0)
-
-      const forwardBoostBase =
-        pointerMode === 'touch' ? 0.28 : pointerMode === 'pen' ? 0.23 : 0.2
-      const forwardBoost =
-        forwardBoostBase +
-        Math.max(verticalOffset, 0) * 0.2 +
-        Math.max(pointerNormalizedX - anchor.x, 0) * (pointerMode === 'touch' ? 0.7 : 0.5)
-      const pointerCeil = clamp01(rawHorizontalProgress + Math.max(verticalOffset, 0) * 0.18 + 0.15)
-      const progressCeil = Math.min(1, Math.max(previousProgress + forwardBoost, pointerCeil))
-      pointerDrivenProgress = clamp(pointerDrivenProgress, progressFloor, progressCeil)
-
-      const smoothing = pointerMode === 'touch' ? 0.88 : pointerMode === 'pen' ? 0.82 : 0.68
-      const nextProgressRaw =
-        previousProgress + (pointerDrivenProgress - previousProgress) * smoothing
-      const pointerBound = Math.max(rawHorizontalProgress * 0.97, anchorDrivenProgress * 0.94)
-      const nextProgress = Number(
-        clamp01(Math.max(nextProgressRaw, pointerBound)).toFixed(3)
-      )
+      const nextDistance = clamp(startState.baseDistance + projected, 0, tearDistance)
+      const nextProgress = Number((nextDistance / tearDistance).toFixed(3))
 
       setTearProgress(nextProgress)
 
+      const previousVelocity = tearVelocityRef.current
       const now = performance.now()
       const deltaTime = (now - previousVelocity.time) / 1000
       if (deltaTime > 0) {
@@ -813,8 +791,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
       const updatedAnchor = computeTearAnchor(nextProgress)
       tearStartRef.current = {
-        x: native.clientX,
-        y: native.clientY,
+        ...startState,
         progress: nextProgress,
         time: now,
         normalizedX: pointerNormalizedX,
@@ -823,15 +800,19 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         anchorY: updatedAnchor.y,
       }
 
-      if (isDevEnvironment && pointerMode === 'touch') {
+      if (isDevEnvironment) {
         const lastLog = tearDebugRef.current.lastMoveLog
         if (now - lastLog > 120) {
           tearDebugRef.current.lastMoveLog = now
           const deltaTimeSafe = Math.max(deltaTime, 0.0001)
           console.info('[LetterExperience] tear-move', {
+            mode: pointerMode,
             progress: Number(nextProgress.toFixed(3)),
             pointerX: Number(pointerNormalizedX.toFixed(3)),
             pointerY: Number(pointerNormalizedY.toFixed(3)),
+            deltaX: Number(deltaX.toFixed(1)),
+            deltaY: Number(deltaY.toFixed(1)),
+            distancePx: Number(nextDistance.toFixed(1)),
             anchorX: Number(updatedAnchor.x.toFixed(3)),
             anchorY: Number(updatedAnchor.y.toFixed(3)),
             velocity: Number(
