@@ -1,3 +1,4 @@
+import { LetterExperience } from '../components/LetterExperience'
 import { SceneLayout } from '../components/SceneLayout'
 import type { SceneComponentProps } from '../types/scenes'
 
@@ -6,12 +7,13 @@ export const LetterScene = ({ onAdvance }: SceneComponentProps) => {
     <SceneLayout
       eyebrow="Letter"
       title="封筒とメッセージ"
-      description="デジタルの封筒をタップで開き、実物の手紙に誘導する静かなシーン。"
+      description="ポケポケの開封演出をオマージュした封筒を長押しで破り、スキャンした手紙へ誘うシーン。"
       onAdvance={onAdvance}
       advanceLabel="Resultへ"
     >
+      <LetterExperience />
       <p className="scene-note">
-        封筒の開閉アニメーションと柔らかな音の演出はM8で調整予定。それまではダミーで進めます。
+        手紙のスキャン画像は最終稿で差し替え予定。現在はダミーのレターペーパーで演出のみ確認できます。
       </p>
     </SceneLayout>
   )
