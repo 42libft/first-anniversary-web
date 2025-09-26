@@ -278,8 +278,9 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         const alpha = Math.min(1, 0.15 + particle.base * 0.55 + intensity * 0.55)
 
         const gradient = context.createRadialGradient(px, py, 0, px, py, radius * 1.8)
-        gradient.addColorStop(0, `rgba(255, 226, 170, ${alpha})`)
-        gradient.addColorStop(1, 'rgba(255, 226, 170, 0)')
+        gradient.addColorStop(0, `rgba(142, 229, 255, ${alpha})`)
+        gradient.addColorStop(0.55, `rgba(206, 174, 255, ${alpha * 0.65})`)
+        gradient.addColorStop(1, 'rgba(142, 229, 255, 0)')
 
         context.fillStyle = gradient
         context.beginPath()
