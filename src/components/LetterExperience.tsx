@@ -20,25 +20,23 @@ type InteractionStage =
   | 'intro'
   | 'idle'
   | 'aligning'
-  | 'charging'
-  | 'charged'
-  | 'primed'
   | 'tearing'
+  | 'primed'
   | 'burst'
   | 'revealed'
 
 type TearSpeed = 'idle' | 'slow' | 'fast'
 
-const CHARGE_DURATION = 1700
-const TEAR_DISTANCE = 260
-const AUTO_BURST_THRESHOLD = 0.72
-const CHARGE_CIRCUMFERENCE = 2 * Math.PI * 74
-const START_ZONE_X = 0.26
-const START_ZONE_Y = 0.34
-const CUTLINE_BAND_EXTENSION = 0.12
-const START_ZONE_LEEWAY = 0.06
+const TEAR_DISTANCE = 280
+const AUTO_BURST_THRESHOLD = 0.82
+const START_ZONE_X = 0.32
+const START_ZONE_Y = 0.36
+const START_ZONE_LEEWAY = 0.08
+const CUTLINE_BAND_EXTENSION = 0.18
 
 const supportsVibration = () => typeof navigator !== 'undefined' && 'vibrate' in navigator
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
 
 const getRelativePosition = (element: HTMLElement, clientX: number, clientY: number) => {
   const rect = element.getBoundingClientRect()
@@ -62,26 +60,25 @@ const isWithinStartZone = (element: HTMLElement, clientX: number, clientY: numbe
   )
 }
 
-const isNearCutlineBand = (element: HTMLElement, clientX: number, clientY: number) => {
+const isWithinCutlineBand = (element: HTMLElement, clientX: number, clientY: number) => {
   const { x, y } = getRelativePosition(element, clientX, clientY)
-  const withinY = y >= -START_ZONE_LEEWAY && y <= START_ZONE_Y + CUTLINE_BAND_EXTENSION
-  const withinX = x >= -START_ZONE_LEEWAY && x <= START_ZONE_X + 0.18
-  return withinX && withinY
+  return (
+    x >= -START_ZONE_LEEWAY &&
+    x <= START_ZONE_X + CUTLINE_BAND_EXTENSION &&
+    y >= -START_ZONE_LEEWAY &&
+    y <= START_ZONE_Y + CUTLINE_BAND_EXTENSION
+  )
 }
 
 export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const prefersReducedMotion = usePrefersReducedMotion()
 
   const [stage, setStage] = useState<InteractionStage>('intro')
-  const [chargeProgress, setChargeProgress] = useState(0)
   const [tearProgress, setTearProgress] = useState(0)
   const [tearSpeed, setTearSpeed] = useState<TearSpeed>('idle')
   const [isKeyboardActive, setIsKeyboardActive] = useState(false)
 
   const interactionRef = useRef<HTMLDivElement>(null)
-  const chargeStartRef = useRef(0)
-  const chargeRafRef = useRef<number | null>(null)
-  const isChargingRef = useRef(false)
   const tearStartRef = useRef<{
     x: number
     y: number
@@ -93,220 +90,40 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     progress: 0,
     time: 0,
   })
-  const vibrationStageRef = useRef(0)
+  const alignTimeoutRef = useRef<number | null>(null)
   const hasBurstRef = useRef(false)
 
-  const audioContextRef = useRef<AudioContext | null>(null)
-  const oscillatorRef = useRef<OscillatorNode | null>(null)
-  const gainRef = useRef<GainNode | null>(null)
+  const clearAlignTimeout = useCallback(() => {
+    if (alignTimeoutRef.current !== null) {
+      window.clearTimeout(alignTimeoutRef.current)
+      alignTimeoutRef.current = null
+    }
+  }, [])
+
+  const promptAlignStage = useCallback(() => {
+    clearAlignTimeout()
+    setStage((prev) => (prev === 'burst' || prev === 'revealed' ? prev : 'aligning'))
+    alignTimeoutRef.current = window.setTimeout(() => {
+      setStage((prevStage) => (prevStage === 'aligning' ? 'idle' : prevStage))
+      alignTimeoutRef.current = null
+    }, 1100)
+  }, [clearAlignTimeout])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setStage('idle')
     }, 320)
 
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+    }
   }, [])
 
   useEffect(() => {
     return () => {
-      if (chargeRafRef.current !== null) {
-        cancelAnimationFrame(chargeRafRef.current)
-        chargeRafRef.current = null
-      }
-
-      if (oscillatorRef.current) {
-        try {
-          oscillatorRef.current.stop()
-        } catch {
-          // ignore
-        }
-      }
+      clearAlignTimeout()
     }
-  }, [])
-
-  const stopChargeTone = useCallback((immediate = false) => {
-    const oscillator = oscillatorRef.current
-    const gain = gainRef.current
-    const audioContext = audioContextRef.current
-
-    if (!audioContext || !gain || !oscillator) {
-      return
-    }
-
-    const now = audioContext.currentTime
-    gain.gain.cancelScheduledValues(now)
-    if (immediate) {
-      gain.gain.setValueAtTime(0, now)
-    } else {
-      gain.gain.setTargetAtTime(0, now, 0.08)
-    }
-
-    window.setTimeout(() => {
-      try {
-        oscillator.stop()
-      } catch {
-        // ignore stop errors
-      }
-      oscillator.disconnect()
-      gain.disconnect()
-      oscillatorRef.current = null
-      gainRef.current = null
-    }, immediate ? 0 : 160)
-  }, [])
-
-  const startChargeTone = useCallback(async () => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    try {
-      let audioContext = audioContextRef.current
-      if (!audioContext) {
-        const AudioContextClass =
-          window.AudioContext ||
-          (window as typeof window & {
-            webkitAudioContext?: typeof AudioContext
-          }).webkitAudioContext
-
-        if (!AudioContextClass) {
-          return
-        }
-
-        audioContext = new AudioContextClass()
-        audioContextRef.current = audioContext
-      }
-
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume()
-      }
-
-      const oscillator = audioContext.createOscillator()
-      const gain = audioContext.createGain()
-      gain.gain.setValueAtTime(0, audioContext.currentTime)
-
-      oscillator.type = 'sine'
-      oscillator.frequency.setValueAtTime(210, audioContext.currentTime)
-
-      oscillator.connect(gain)
-      gain.connect(audioContext.destination)
-
-      oscillator.start()
-      gain.gain.linearRampToValueAtTime(0.08, audioContext.currentTime + 0.12)
-
-      oscillatorRef.current = oscillator
-      gainRef.current = gain
-    } catch {
-      // ignore audio failures (likely due to autoplay policy)
-    }
-  }, [])
-
-  const scheduleChargeTick = useCallback(() => {
-    const tick = (timestamp: number) => {
-      if (!isChargingRef.current) {
-        chargeRafRef.current = null
-        return
-      }
-
-      const elapsed = timestamp - chargeStartRef.current
-      const nextProgress = Math.min(elapsed / CHARGE_DURATION, 1)
-
-      setChargeProgress(nextProgress)
-
-      const audioContext = audioContextRef.current
-      const oscillator = oscillatorRef.current
-      const gain = gainRef.current
-      if (audioContext && oscillator) {
-        oscillator.frequency.setTargetAtTime(200 + nextProgress * 240, audioContext.currentTime, 0.08)
-      }
-      if (audioContext && gain) {
-        gain.gain.setTargetAtTime(0.08 + nextProgress * 0.07, audioContext.currentTime, 0.1)
-      }
-
-      if (!prefersReducedMotion) {
-        if (nextProgress > 0.75 && vibrationStageRef.current < 2 && supportsVibration()) {
-          navigator.vibrate?.(28)
-          vibrationStageRef.current = 2
-        } else if (nextProgress > 0.4 && vibrationStageRef.current < 1 && supportsVibration()) {
-          navigator.vibrate?.(16)
-          vibrationStageRef.current = 1
-        }
-      }
-
-      if (nextProgress >= 1) {
-        isChargingRef.current = false
-        vibrationStageRef.current = 2
-        stopChargeTone(false)
-        if (!prefersReducedMotion && supportsVibration()) {
-          navigator.vibrate?.(30)
-        }
-        setStage((prev) => {
-          if (prev === 'burst' || prev === 'revealed') {
-            return prev
-          }
-          return 'charged'
-        })
-        chargeRafRef.current = null
-        return
-      }
-
-      chargeRafRef.current = requestAnimationFrame(tick)
-    }
-
-    chargeRafRef.current = requestAnimationFrame(tick)
-  }, [prefersReducedMotion, stopChargeTone])
-
-  const beginCharge = useCallback(async () => {
-    if (isChargingRef.current) {
-      return
-    }
-
-    if (stage === 'primed' || stage === 'tearing' || stage === 'burst' || stage === 'revealed') {
-      return
-    }
-
-    const resumeProgress = stage === 'charging' ? chargeProgress : 0
-    chargeStartRef.current = performance.now() - resumeProgress * CHARGE_DURATION
-    isChargingRef.current = true
-    vibrationStageRef.current = 0
-    setStage('charging')
-    setChargeProgress(resumeProgress)
-    await startChargeTone()
-    scheduleChargeTick()
-  }, [chargeProgress, scheduleChargeTick, stage, startChargeTone])
-
-  const finishCharge = useCallback(
-    (succeeded: boolean) => {
-      if (chargeRafRef.current !== null) {
-        cancelAnimationFrame(chargeRafRef.current)
-        chargeRafRef.current = null
-      }
-
-      if (!isChargingRef.current && stage !== 'charging' && stage !== 'charged') {
-        return
-      }
-
-      isChargingRef.current = false
-      vibrationStageRef.current = 0
-      stopChargeTone(!succeeded)
-
-      if (succeeded) {
-        setChargeProgress(1)
-        setStage((prev) => {
-          if (prev === 'burst' || prev === 'revealed') {
-            return prev
-          }
-          return 'primed'
-        })
-      } else {
-        setStage((prev) => (prev === 'charging' || prev === 'charged' ? 'idle' : prev))
-        window.setTimeout(() => {
-          setChargeProgress(0)
-        }, 220)
-      }
-    },
-    [stage, stopChargeTone]
-  )
+  }, [clearAlignTimeout])
 
   const triggerBurst = useCallback(() => {
     if (hasBurstRef.current) {
@@ -314,51 +131,31 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     }
 
     hasBurstRef.current = true
-    setTearProgress(1)
-    setChargeProgress(1)
+    clearAlignTimeout()
     setStage('burst')
+    setTearProgress(1)
     setTearSpeed('fast')
-    stopChargeTone(true)
 
     if (supportsVibration()) {
       navigator.vibrate?.([0, prefersReducedMotion ? 24 : 42])
     }
 
-    if (interactionRef.current && pointerIdRef.current !== null) {
-      interactionRef.current.releasePointerCapture(pointerIdRef.current)
-      pointerIdRef.current = null
+    const element = interactionRef.current
+    if (element && pointerIdRef.current !== null && element.hasPointerCapture(pointerIdRef.current)) {
+      element.releasePointerCapture(pointerIdRef.current)
     }
+    pointerIdRef.current = null
     tearStartRef.current = null
 
-    const timeout = prefersReducedMotion ? 320 : 520
+    const delay = prefersReducedMotion ? 280 : 460
     window.setTimeout(() => {
       setStage('revealed')
-    }, timeout)
-  }, [prefersReducedMotion, stopChargeTone])
+    }, delay)
+  }, [clearAlignTimeout, prefersReducedMotion])
 
   const startTear = useCallback(
-    (native: PointerEvent) => {
-      if (stage !== 'primed' && stage !== 'tearing' && stage !== 'charged') {
-        return
-      }
-
-      const element = interactionRef.current
-      if (!element) {
-        return
-      }
-
-      if (stage !== 'tearing' && !isNearCutlineBand(element, native.clientX, native.clientY)) {
-        setStage((prev) => {
-          if (prev === 'burst' || prev === 'revealed') {
-            return prev
-          }
-          return 'aligning'
-        })
-        return
-      }
-
+    (native: PointerEvent, baseProgress: number) => {
       const now = performance.now()
-      const baseProgress = stage === 'charged' ? 0 : tearProgress
       tearStartRef.current = {
         x: native.clientX,
         y: native.clientY,
@@ -366,10 +163,13 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         time: now,
       }
       tearVelocityRef.current = { progress: baseProgress, time: now }
+      hasBurstRef.current = false
+      clearAlignTimeout()
       setStage('tearing')
       setTearSpeed('slow')
+      setTearProgress(baseProgress)
     },
-    [stage, tearProgress]
+    [clearAlignTimeout]
   )
 
   const updateTear = useCallback(
@@ -382,12 +182,9 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const deltaX = native.clientX - base.x
       const deltaY = native.clientY - base.y
       const horizontal = Math.max(deltaX, 0)
-      const vertical = Math.max(deltaY, 0)
-      const distance = horizontal + vertical * 0.35
-      const nextProgress = Math.max(
-        Math.min(base.progress + distance / TEAR_DISTANCE, 1),
-        0
-      )
+      const vertical = Math.max(Math.abs(deltaY) - 6, 0) * 0.12
+      const rawProgress = base.progress + (horizontal + vertical) / TEAR_DISTANCE
+      const nextProgress = clamp(rawProgress, 0, 1)
 
       const now = performance.now()
       const last = tearVelocityRef.current
@@ -417,7 +214,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   )
 
   const handlePointerDown = useCallback(
-    async (event: React.PointerEvent<HTMLDivElement>) => {
+    (event: React.PointerEvent<HTMLDivElement>) => {
       if (stage === 'burst' || stage === 'revealed') {
         return
       }
@@ -429,32 +226,25 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const element = event.currentTarget
       element.focus({ preventScroll: true })
 
-      if (stage === 'primed' || stage === 'tearing' || stage === 'charged') {
-        element.setPointerCapture?.(event.pointerId)
-        pointerIdRef.current = event.pointerId
-        startTear(event.nativeEvent)
-        return
-      }
+      const allowStart =
+        stage === 'primed'
+          ? isWithinCutlineBand(element, event.clientX, event.clientY)
+          : isWithinStartZone(element, event.clientX, event.clientY)
 
-      if (!isWithinStartZone(element, event.clientX, event.clientY)) {
-        setStage((prev) => {
-          if (prev === 'burst' || prev === 'revealed') {
-            return prev
-          }
-          return 'aligning'
-        })
+      if (!allowStart) {
+        promptAlignStage()
+        tearStartRef.current = null
+        setTearSpeed('idle')
         return
       }
 
       element.setPointerCapture?.(event.pointerId)
       pointerIdRef.current = event.pointerId
-      tearStartRef.current = null
-      tearVelocityRef.current = { progress: 0, time: performance.now() }
-      hasBurstRef.current = false
-      setTearProgress(0)
-      await beginCharge()
+
+      const baseProgress = stage === 'primed' ? tearProgress : 0
+      startTear(event.nativeEvent, baseProgress)
     },
-    [beginCharge, stage, startTear]
+    [promptAlignStage, stage, startTear, tearProgress]
   )
 
   const handlePointerMove = useCallback(
@@ -464,14 +254,34 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         return
       }
 
-      if (stage === 'charged' || stage === 'primed') {
-        startTear(event.nativeEvent)
+      if (stage === 'aligning') {
+        const element = event.currentTarget
+        if (isWithinStartZone(element, event.clientX, event.clientY)) {
+          element.setPointerCapture?.(event.pointerId)
+          pointerIdRef.current = event.pointerId
+          startTear(event.nativeEvent, 0)
+        }
+        return
+      }
+
+      if (stage === 'primed') {
+        const element = event.currentTarget
+        if (!isWithinCutlineBand(element, event.clientX, event.clientY)) {
+          return
+        }
+
+        if (!tearStartRef.current) {
+          element.setPointerCapture?.(event.pointerId)
+          pointerIdRef.current = event.pointerId
+          startTear(event.nativeEvent, tearProgress)
+        }
+
         if (tearStartRef.current) {
           updateTear(event.nativeEvent)
         }
       }
     },
-    [stage, startTear, updateTear]
+    [stage, startTear, tearProgress, updateTear]
   )
 
   const handlePointerUp = useCallback(
@@ -485,30 +295,26 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         tearStartRef.current = null
         if (tearProgress >= AUTO_BURST_THRESHOLD) {
           triggerBurst()
+          return
+        }
+        if (tearProgress <= 0.02) {
+          setTearProgress(0)
+          setStage('idle')
         } else {
           setStage('primed')
-          setTearSpeed('idle')
         }
+        setTearSpeed('idle')
         return
       }
 
       if (stage === 'aligning') {
+        clearAlignTimeout()
         setStage('idle')
+        setTearProgress(0)
         return
       }
-
-      if (stage === 'primed') {
-        return
-      }
-
-      if (stage === 'burst' || stage === 'revealed') {
-        return
-      }
-
-      const succeeded = chargeProgress >= 0.999 || stage === 'charged'
-      finishCharge(succeeded)
     },
-    [chargeProgress, finishCharge, stage, tearProgress, triggerBurst]
+    [clearAlignTimeout, stage, tearProgress, triggerBurst]
   )
 
   const handlePointerCancel = useCallback(
@@ -518,48 +324,49 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         pointerIdRef.current = null
       }
 
-      if (stage === 'tearing') {
-        tearStartRef.current = null
-        setStage('primed')
+      tearStartRef.current = null
+
+      if (stage === 'tearing' || stage === 'primed') {
+        if (tearProgress >= AUTO_BURST_THRESHOLD) {
+          triggerBurst()
+        } else if (tearProgress <= 0.02) {
+          setTearProgress(0)
+          setStage('idle')
+        } else {
+          setStage('primed')
+        }
         setTearSpeed('idle')
         return
       }
 
       if (stage === 'aligning') {
+        clearAlignTimeout()
         setStage('idle')
-        return
+        setTearProgress(0)
       }
-
-      if (stage === 'burst' || stage === 'revealed') {
-        return
-      }
-
-      finishCharge(false)
     },
-    [finishCharge, stage]
+    [clearAlignTimeout, stage, tearProgress, triggerBurst]
   )
 
   const handlePointerLeave = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      if (stage !== 'tearing') {
-        if (stage === 'aligning') {
-          setStage('idle')
-        }
+      if (stage === 'tearing') {
+        handlePointerUp(event)
         return
       }
-      handlePointerUp(event)
+
+      if (stage === 'aligning') {
+        clearAlignTimeout()
+        setStage('idle')
+        setTearProgress(0)
+      }
     },
-    [handlePointerUp, stage]
+    [clearAlignTimeout, handlePointerUp, stage]
   )
 
   const handleKeyDown = useCallback(
-    async (event: React.KeyboardEvent<HTMLDivElement>) => {
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key !== ' ' && event.key !== 'Enter') {
-        return
-      }
-
-      if (event.repeat) {
-        event.preventDefault()
         return
       }
 
@@ -569,37 +376,22 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         return
       }
 
-      if (stage === 'primed') {
-        setStage('tearing')
-        setTearProgress((prev) => {
-          const next = Math.min(prev + 0.35, 1)
-          if (next >= 1) {
-            window.setTimeout(() => {
-              triggerBurst()
-            }, 0)
-          }
-          return next
-        })
-        return
-      }
-
-      if (stage === 'tearing') {
-        setTearProgress((prev) => {
-          const next = Math.min(prev + 0.35, 1)
-          if (next >= 1) {
-            window.setTimeout(() => {
-              triggerBurst()
-            }, 0)
-          }
-          return next
-        })
-        return
-      }
-
       setIsKeyboardActive(true)
-      await beginCharge()
+      setStage('tearing')
+      setTearSpeed('slow')
+
+      const increment = event.repeat ? 0.12 : 0.24
+      setTearProgress((prev) => {
+        const next = clamp(prev + increment, 0, 1)
+        if (next >= 1) {
+          window.setTimeout(() => {
+            triggerBurst()
+          }, 0)
+        }
+        return next
+      })
     },
-    [beginCharge, stage, triggerBurst]
+    [stage, triggerBurst]
   )
 
   const handleKeyUp = useCallback(
@@ -611,47 +403,91 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       event.preventDefault()
       setIsKeyboardActive(false)
 
-      if (stage === 'tearing') {
-        if (tearProgress >= AUTO_BURST_THRESHOLD) {
-          triggerBurst()
-        } else {
-          setStage('primed')
-          setTearSpeed('idle')
-        }
-        return
-      }
-
-      if (stage === 'primed') {
-        triggerBurst()
-        return
-      }
-
       if (stage === 'burst' || stage === 'revealed') {
         return
       }
 
-      if (isChargingRef.current || stage === 'charging' || stage === 'charged') {
-        const succeeded = chargeProgress >= 0.999 || stage === 'charged'
-        finishCharge(succeeded)
+      if (tearProgress >= AUTO_BURST_THRESHOLD) {
+        triggerBurst()
+        return
       }
+
+      if (tearProgress <= 0.02) {
+        setTearProgress(0)
+        setStage('idle')
+      } else {
+        setStage('primed')
+      }
+      setTearSpeed('idle')
     },
-    [chargeProgress, finishCharge, stage, tearProgress, triggerBurst]
+    [stage, tearProgress, triggerBurst]
   )
 
-  const chargeDashOffset = useMemo(
-    () => CHARGE_CIRCUMFERENCE - CHARGE_CIRCUMFERENCE * Math.min(chargeProgress, 1),
-    [chargeProgress]
-  )
+  const tearPercent = Math.round(tearProgress * 100)
+
+  const primaryHint = useMemo(() => {
+    switch (stage) {
+      case 'intro':
+        return 'パックが姿を現しました'
+      case 'idle':
+        return '切り取り線の左端を押さえてください'
+      case 'aligning':
+        return '左端に触れてから右へ滑らせてください'
+      case 'tearing':
+        return '指でそのまま右へ破り進めましょう'
+      case 'primed':
+        return '途中まで破れています。続きは右へ滑らせてください'
+      case 'burst':
+        return 'パックが弾けて中身が飛び出します'
+      case 'revealed':
+        return 'スキャンして保存した手紙を表示しました'
+      default:
+        return ''
+    }
+  }, [stage])
+
+  const secondaryHint = useMemo(() => {
+    switch (stage) {
+      case 'aligning':
+        return '左上の丸い印が開始位置です'
+      case 'tearing':
+        return `破り進行 ${tearPercent}%`
+      case 'primed':
+        return '切り取り線に沿ってもう一度スライドできます'
+      case 'burst':
+        return '紙片が舞い散り、カード束が現れます'
+      case 'revealed':
+        return 'いつでも読めるようにスキャンデータをここに保管しています'
+      case 'idle':
+        return '開始位置を長押しすると破り始められます'
+      default:
+        return ''
+    }
+  }, [stage, tearPercent])
+
+  const liveStatus = useMemo(() => {
+    switch (stage) {
+      case 'aligning':
+        return '開始位置を探しています'
+      case 'tearing':
+        return `破り ${tearPercent}%`
+      case 'burst':
+        return '破り切りました'
+      case 'revealed':
+        return '開封が完了しました'
+      default:
+        return ''
+    }
+  }, [stage, tearPercent])
 
   const visualStyle = useMemo(() => {
-    const tearDepth = (6 + tearProgress * 38).toFixed(2)
+    const tearDepth = (8 + tearProgress * 40).toFixed(2)
     const tearScale = (0.08 + tearProgress * 0.92).toFixed(3)
-    const letterReveal = Math.min(tearProgress * 1.12, 1).toFixed(3)
-    const tearFray = `${(tearProgress * 22).toFixed(2)}px`
-    const tearShift = `${(tearProgress * 6).toFixed(2)}px`
+    const letterReveal = clamp(tearProgress * 1.12, 0, 1).toFixed(3)
+    const tearFray = `${(tearProgress * 18).toFixed(2)}px`
+    const tearShift = `${(tearProgress * 8).toFixed(2)}px`
 
     return {
-      '--letter-charge-progress': chargeProgress.toFixed(3),
       '--letter-tear-progress': tearProgress.toFixed(3),
       '--letter-tear-depth': `${tearDepth}%`,
       '--letter-tear-scale': tearScale,
@@ -659,7 +495,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       '--letter-tear-fray': tearFray,
       '--letter-tear-shift': tearShift,
     } as CSSProperties
-  }, [chargeProgress, tearProgress])
+  }, [tearProgress])
 
   const packClassName = useMemo(() => {
     const classes = ['letter-pack', `letter-pack--${stage}`]
@@ -679,76 +515,6 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     }
     return classes.join(' ')
   }, [stage])
-
-  const chargePercent = Math.round(chargeProgress * 100)
-  const tearPercent = Math.round(tearProgress * 100)
-
-  const primaryHint = useMemo(() => {
-    switch (stage) {
-      case 'intro':
-        return 'パックが姿を現しました'
-      case 'idle':
-        return 'パック左上の切り取り線を長押しして力を集めましょう'
-      case 'aligning':
-        return '切り取り線の左端に指を合わせてください'
-      case 'charging':
-        return '左上の切り取り線を押さえ続けてください'
-      case 'charged':
-        return 'チャージ完了。指をそのまま右へ滑らせましょう'
-      case 'primed':
-        return '裂けた上辺から指で横へ破り進めてください'
-      case 'tearing':
-        return '切り取り線に沿って横へ破りましょう'
-      case 'burst':
-        return 'パックが弾けて中身が飛び出します'
-      case 'revealed':
-        return 'スキャンして保存した手紙を表示しました'
-      default:
-        return ''
-    }
-  }, [stage])
-
-  const secondaryHint = useMemo(() => {
-    switch (stage) {
-      case 'charging':
-        return `チャージ ${chargePercent}%`
-      case 'aligning':
-        return '切り取り線の左端に指を置くとチャージできます'
-      case 'charged':
-        return '封の縁が脈打ち破りの準備が整いました'
-      case 'primed':
-        return '再度タップまたは横方向のドラッグで続きが破れます'
-      case 'tearing':
-        return `破り進行 ${tearPercent}%`
-      case 'burst':
-        return '紙片が舞い散り、カード束が現れます'
-      case 'revealed':
-        return 'いつでも読めるようにスキャンデータをここに保管しています'
-      case 'idle':
-        return '左上の切り取り線に触れるとチャージが始まります'
-      default:
-        return ''
-    }
-  }, [chargePercent, stage, tearPercent])
-
-  const liveStatus = useMemo(() => {
-    switch (stage) {
-      case 'charging':
-        return `チャージ ${chargePercent}%`
-      case 'charged':
-        return 'チャージが満ちました'
-      case 'aligning':
-        return '開始位置を調整しています'
-      case 'tearing':
-        return `破り ${tearPercent}%`
-      case 'burst':
-        return '破り切りました'
-      case 'revealed':
-        return '開封が完了しました'
-      default:
-        return ''
-    }
-  }, [chargePercent, stage, tearPercent])
 
   const particles = useMemo(
     () =>
@@ -787,19 +553,6 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
             <div className="letter-pack__cutline" aria-hidden="true" />
             <div className="letter-pack__tear-edge" aria-hidden="true" />
           </div>
-          <div className="letter-pack__charge" aria-hidden="true">
-            <svg viewBox="0 0 160 160" focusable="false" role="presentation">
-              <circle className="letter-pack__charge-track" cx="80" cy="80" r="74" />
-              <circle
-                className="letter-pack__charge-progress"
-                cx="80"
-                cy="80"
-                r="74"
-                strokeDasharray={CHARGE_CIRCUMFERENCE}
-                style={{ strokeDashoffset: chargeDashOffset }}
-              />
-            </svg>
-          </div>
           <div className="letter-pack__letter" aria-hidden={!letterImage}>
             {letterImage ? (
               <img src={letterImage.src} alt={letterImage.alt ?? 'スキャンした手紙'} />
@@ -826,7 +579,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           {secondaryHint ? <p className="letter-hints__secondary">{secondaryHint}</p> : null}
           {isKeyboardActive ? (
             <span className="letter-hints__keyboard" role="status">
-              {`長押し進捗 ${chargePercent}%`}
+              {`破り進捗 ${tearPercent}%`}
             </span>
           ) : null}
           <span className="letter-hints__live" aria-live="polite">
