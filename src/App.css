@@ -1661,6 +1661,31 @@
       cubic-bezier(0.22, 0.14, 0.08, 1) forwards;
 }
 
+.media-fragment__trail {
+  position: absolute;
+  inset: -44% -32% -18%;
+  border-radius: 44%;
+  background:
+    radial-gradient(circle at 50% 82%, rgba(32, 92, 210, 0.36), rgba(12, 20, 44, 0) 76%),
+    linear-gradient(
+      90deg,
+      rgba(140, 196, 255, 0.24),
+      rgba(215, 240, 255, 0.12) 36%,
+      rgba(40, 70, 130, 0.04)
+    );
+  opacity: 0;
+  transform-origin: center;
+  transform:
+    translateY(22%)
+    scale(var(--fragment-trail-scale, 1))
+    rotateZ(var(--fragment-rotate-mid, var(--fragment-rotate-z, 0deg)));
+  filter: blur(18px);
+  mix-blend-mode: screen;
+  animation: mediaFragmentTrail calc(var(--fragment-flight, 3600ms) * 0.78)
+    cubic-bezier(0.18, 0, 0.12, 1) forwards;
+  animation-delay: calc(var(--fragment-delay, 0ms) + var(--fragment-trail-delay, 120ms));
+}
+
 .media-fragment__glow {
   position: absolute;
   inset: -28%;
@@ -1677,6 +1702,7 @@
     blur(calc(16px + var(--fragment-drift, 0.4) * 24px));
   animation: mediaFragmentGlow calc(var(--fragment-flight, 3600ms) * 1.4)
     ease-in-out infinite;
+  animation-delay: calc(var(--fragment-delay, 0ms) + 80ms);
 }
 
 .media-fragment__plane {
@@ -1698,6 +1724,7 @@
   mix-blend-mode: screen;
   animation: mediaFragmentShimmer calc(var(--fragment-flight, 3600ms) * 1.18)
     ease-in-out infinite;
+  animation-delay: calc(var(--fragment-delay, 0ms) + 160ms);
 }
 
 .media-fragment__plane::before,
@@ -1762,30 +1789,30 @@
     transform:
       translate3d(-50%, -50%, 0)
       translate3d(
-        var(--fragment-translate-x, 0),
-        calc(var(--fragment-translate-y, 0) + 12vh),
-        calc(var(--fragment-depth, -140px) + 150px)
+        calc(var(--fragment-translate-x, 0) + var(--fragment-launch-x-offset, 0)),
+        calc(var(--fragment-translate-y, 0) + var(--fragment-launch-y-offset, 12vh)),
+        calc(var(--fragment-depth, -140px) + var(--fragment-launch-depth, 160px))
       )
       rotateX(calc(var(--fragment-tilt-x, 0deg) * 0.42))
       rotateY(calc(var(--fragment-tilt-y, 0deg) * 0.42))
-      rotateZ(var(--fragment-rotate-z, 0deg))
-      scale(calc(var(--fragment-scale, 1) * 0.62));
-    filter: blur(16px);
+      rotateZ(var(--fragment-rotate-initial, var(--fragment-rotate-z, 0deg)))
+      scale(calc(var(--fragment-scale, 1) * var(--fragment-launch-scale, 0.68)));
+    filter: blur(18px);
   }
-  34% {
+  46% {
     opacity: 1;
     transform:
       translate3d(-50%, -50%, 0)
       translate3d(
-        var(--fragment-translate-x, 0),
-        calc(var(--fragment-translate-y, 0) - 1.8vh),
-        calc(var(--fragment-depth, -140px) - 26px)
+        calc(var(--fragment-translate-x, 0) + var(--fragment-arc-x-offset, 0)),
+        calc(var(--fragment-translate-y, 0) + var(--fragment-arc-y-offset, -8vh)),
+        calc(var(--fragment-depth, -140px) - 34px)
       )
-      rotateX(var(--fragment-tilt-x, 0deg))
-      rotateY(var(--fragment-tilt-y, 0deg))
-      rotateZ(var(--fragment-rotate-z, 0deg))
-      scale(calc(var(--fragment-scale, 1) * 1.06));
-    filter: blur(2px);
+      rotateX(calc(var(--fragment-tilt-x, 0deg) * 0.88))
+      rotateY(calc(var(--fragment-tilt-y, 0deg) * 0.92))
+      rotateZ(var(--fragment-rotate-mid, var(--fragment-rotate-z, 0deg)))
+      scale(calc(var(--fragment-scale, 1) * 1.08));
+    filter: blur(3px);
   }
   100% {
     opacity: 1;
@@ -1801,6 +1828,28 @@
       rotateZ(var(--fragment-rotate-z, 0deg))
       scale(var(--fragment-scale, 1));
     filter: blur(0);
+  }
+}
+
+@keyframes mediaFragmentTrail {
+  0% {
+    opacity: 0;
+    transform:
+      translateY(28%)
+      scale(calc(var(--fragment-trail-scale, 1) * 0.46))
+      rotateZ(var(--fragment-rotate-initial, var(--fragment-rotate-z, 0deg)));
+    filter: blur(22px);
+  }
+  35% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translateY(-24%)
+      scale(calc(var(--fragment-trail-scale, 1) * 1.12))
+      rotateZ(var(--fragment-rotate-z, 0deg));
+    filter: blur(28px);
   }
 }
 

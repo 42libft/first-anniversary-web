@@ -49,11 +49,21 @@ type Fragment = {
   tiltX: number
   tiltY: number
   rotateZ: number
+  initialRotateZ: number
+  midRotateZ: number
   glare: number
   sheen: number
   drift: number
   delay: number
   flight: number
+  launchOffsetX: number
+  launchOffsetY: number
+  arcOffsetX: number
+  arcOffsetY: number
+  launchDepth: number
+  launchScale: number
+  trailDelay: number
+  trailScale: number
   isFading: boolean
 }
 
@@ -362,6 +372,9 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
       const tiltX = (Math.random() - 0.5) * 32
       const tiltY = (Math.random() - 0.5) * 38
       const rotateZ = Math.random() * 360
+      const spin = (Math.random() - 0.5) * 54
+      const initialRotateZ = rotateZ + spin
+      const midRotateZ = rotateZ + spin * 0.45
       const glare = 0.38 + Math.random() * 0.42
       const sheen = 0.22 + Math.random() * 0.5
       const drift = Math.random()
@@ -370,6 +383,14 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         1800,
         Math.round(controls.flightDuration * (0.88 + drift * controls.driftStrength * 0.6))
       )
+      const launchOffsetX = (Math.random() - 0.5) * 18
+      const launchOffsetY = 12 + Math.random() * 14
+      const arcOffsetX = (Math.random() - 0.5) * 12
+      const arcOffsetY = -(6 + Math.random() * 14)
+      const launchDepth = 180 + Math.random() * 160
+      const launchScale = 0.58 + Math.random() * 0.18
+      const trailDelay = Math.floor(Math.random() * 240)
+      const trailScale = 0.82 + Math.random() * 0.5
 
       bundle.push({
         id: createdAt + index + Math.floor(Math.random() * 1000),
@@ -383,11 +404,21 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         tiltX,
         tiltY,
         rotateZ,
+        initialRotateZ,
+        midRotateZ,
         glare,
         sheen,
         drift,
         delay,
         flight,
+        launchOffsetX,
+        launchOffsetY,
+        arcOffsetX,
+        arcOffsetY,
+        launchDepth,
+        launchScale,
+        trailDelay,
+        trailScale,
         isFading: false,
       })
     }
@@ -470,6 +501,15 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
               const glare = fragment.glare.toFixed(3)
               const sheen = fragment.sheen.toFixed(3)
               const drift = fragment.drift.toFixed(3)
+              const launchOffsetX = fragment.launchOffsetX.toFixed(2)
+              const launchOffsetY = fragment.launchOffsetY.toFixed(2)
+              const arcOffsetX = fragment.arcOffsetX.toFixed(2)
+              const arcOffsetY = fragment.arcOffsetY.toFixed(2)
+              const launchDepth = fragment.launchDepth.toFixed(2)
+              const launchScale = fragment.launchScale.toFixed(3)
+              const rotateInitial = fragment.initialRotateZ.toFixed(2)
+              const rotateMid = fragment.midRotateZ.toFixed(2)
+              const trailScale = fragment.trailScale.toFixed(3)
 
               const style = {
                 '--fragment-translate-x': `${translateX}vw`,
@@ -479,12 +519,23 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
                 '--fragment-tilt-x': `${tiltX}deg`,
                 '--fragment-tilt-y': `${tiltY}deg`,
                 '--fragment-rotate-z': `${rotateZ}deg`,
+                '--fragment-rotate-initial': `${rotateInitial}deg`,
+                '--fragment-rotate-mid': `${rotateMid}deg`,
                 '--fragment-hue': `${hueShift}deg`,
                 '--fragment-alpha': alpha,
                 '--fragment-glare': glare,
                 '--fragment-sheen': sheen,
                 '--fragment-drift': drift,
                 '--fragment-flight': `${fragment.flight}ms`,
+                '--fragment-launch-x-offset': `${launchOffsetX}vw`,
+                '--fragment-launch-y-offset': `${launchOffsetY}vh`,
+                '--fragment-arc-x-offset': `${arcOffsetX}vw`,
+                '--fragment-arc-y-offset': `${arcOffsetY}vh`,
+                '--fragment-launch-depth': `${launchDepth}px`,
+                '--fragment-launch-scale': launchScale,
+                '--fragment-trail-delay': `${fragment.trailDelay}ms`,
+                '--fragment-trail-scale': trailScale,
+                '--fragment-delay': `${fragment.delay}ms`,
                 animationDelay: `${fragment.delay}ms`,
               } as CSSProperties
 
@@ -494,6 +545,7 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
                   className={`media-fragment${fragment.isFading ? ' is-fading' : ''}`}
                   style={style}
                 >
+                  <span className="media-fragment__trail" />
                   <span className="media-fragment__glow" />
                   <span className="media-fragment__plane" />
                 </div>
