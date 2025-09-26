@@ -3783,7 +3783,7 @@
   inset: 10% 12% 12%;
   border-radius: 1.15rem;
   overflow: hidden;
-  background: #fffdf6;
+  background: #eef1ff;
   box-shadow: 0 22px 36px rgba(12, 18, 48, 0.2);
   clip-path: polygon(
     0% calc(var(--letter-tear-depth) + 2%),
