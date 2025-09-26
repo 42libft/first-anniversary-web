@@ -19,6 +19,7 @@ interface LetterExperienceProps {
 type InteractionStage =
   | 'intro'
   | 'idle'
+  | 'aligning'
   | 'charging'
   | 'charged'
   | 'primed'
@@ -32,8 +33,41 @@ const CHARGE_DURATION = 1700
 const TEAR_DISTANCE = 260
 const AUTO_BURST_THRESHOLD = 0.72
 const CHARGE_CIRCUMFERENCE = 2 * Math.PI * 74
+const START_ZONE_X = 0.26
+const START_ZONE_Y = 0.34
+const CUTLINE_BAND_EXTENSION = 0.12
+const START_ZONE_LEEWAY = 0.06
 
 const supportsVibration = () => typeof navigator !== 'undefined' && 'vibrate' in navigator
+
+const getRelativePosition = (element: HTMLElement, clientX: number, clientY: number) => {
+  const rect = element.getBoundingClientRect()
+  if (rect.width === 0 || rect.height === 0) {
+    return { x: 0.5, y: 0.5 }
+  }
+
+  return {
+    x: (clientX - rect.left) / rect.width,
+    y: (clientY - rect.top) / rect.height,
+  }
+}
+
+const isWithinStartZone = (element: HTMLElement, clientX: number, clientY: number) => {
+  const { x, y } = getRelativePosition(element, clientX, clientY)
+  return (
+    x >= -START_ZONE_LEEWAY &&
+    x <= START_ZONE_X + START_ZONE_LEEWAY &&
+    y >= -START_ZONE_LEEWAY &&
+    y <= START_ZONE_Y + START_ZONE_LEEWAY
+  )
+}
+
+const isNearCutlineBand = (element: HTMLElement, clientX: number, clientY: number) => {
+  const { x, y } = getRelativePosition(element, clientX, clientY)
+  const withinY = y >= -START_ZONE_LEEWAY && y <= START_ZONE_Y + CUTLINE_BAND_EXTENSION
+  const withinX = x >= -START_ZONE_LEEWAY && x <= START_ZONE_X + 0.18
+  return withinX && withinY
+}
 
 export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -304,18 +338,34 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
   const startTear = useCallback(
     (native: PointerEvent) => {
-      if (stage !== 'primed' && stage !== 'tearing') {
+      if (stage !== 'primed' && stage !== 'tearing' && stage !== 'charged') {
+        return
+      }
+
+      const element = interactionRef.current
+      if (!element) {
+        return
+      }
+
+      if (stage !== 'tearing' && !isNearCutlineBand(element, native.clientX, native.clientY)) {
+        setStage((prev) => {
+          if (prev === 'burst' || prev === 'revealed') {
+            return prev
+          }
+          return 'aligning'
+        })
         return
       }
 
       const now = performance.now()
+      const baseProgress = stage === 'charged' ? 0 : tearProgress
       tearStartRef.current = {
         x: native.clientX,
         y: native.clientY,
-        progress: tearProgress,
+        progress: baseProgress,
         time: now,
       }
-      tearVelocityRef.current = { progress: tearProgress, time: now }
+      tearVelocityRef.current = { progress: baseProgress, time: now }
       setStage('tearing')
       setTearSpeed('slow')
     },
@@ -331,7 +381,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const base = tearStartRef.current
       const deltaX = native.clientX - base.x
       const deltaY = native.clientY - base.y
-      const horizontal = Math.max(Math.abs(deltaX), 0)
+      const horizontal = Math.max(deltaX, 0)
       const vertical = Math.max(deltaY, 0)
       const distance = horizontal + vertical * 0.35
       const nextProgress = Math.max(
@@ -376,15 +426,32 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         event.preventDefault()
       }
 
-      event.currentTarget.focus({ preventScroll: true })
-      event.currentTarget.setPointerCapture?.(event.pointerId)
-      pointerIdRef.current = event.pointerId
+      const element = event.currentTarget
+      element.focus({ preventScroll: true })
 
-      if (stage === 'primed' || stage === 'tearing') {
+      if (stage === 'primed' || stage === 'tearing' || stage === 'charged') {
+        element.setPointerCapture?.(event.pointerId)
+        pointerIdRef.current = event.pointerId
         startTear(event.nativeEvent)
         return
       }
 
+      if (!isWithinStartZone(element, event.clientX, event.clientY)) {
+        setStage((prev) => {
+          if (prev === 'burst' || prev === 'revealed') {
+            return prev
+          }
+          return 'aligning'
+        })
+        return
+      }
+
+      element.setPointerCapture?.(event.pointerId)
+      pointerIdRef.current = event.pointerId
+      tearStartRef.current = null
+      tearVelocityRef.current = { progress: 0, time: performance.now() }
+      hasBurstRef.current = false
+      setTearProgress(0)
       await beginCharge()
     },
     [beginCharge, stage, startTear]
@@ -392,13 +459,19 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      if (stage !== 'tearing') {
+      if (stage === 'tearing') {
+        updateTear(event.nativeEvent)
         return
       }
 
-      updateTear(event.nativeEvent)
+      if (stage === 'charged' || stage === 'primed') {
+        startTear(event.nativeEvent)
+        if (tearStartRef.current) {
+          updateTear(event.nativeEvent)
+        }
+      }
     },
-    [stage, updateTear]
+    [stage, startTear, updateTear]
   )
 
   const handlePointerUp = useCallback(
@@ -416,6 +489,11 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           setStage('primed')
           setTearSpeed('idle')
         }
+        return
+      }
+
+      if (stage === 'aligning') {
+        setStage('idle')
         return
       }
 
@@ -447,6 +525,11 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         return
       }
 
+      if (stage === 'aligning') {
+        setStage('idle')
+        return
+      }
+
       if (stage === 'burst' || stage === 'revealed') {
         return
       }
@@ -459,6 +542,9 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const handlePointerLeave = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (stage !== 'tearing') {
+        if (stage === 'aligning') {
+          setStage('idle')
+        }
         return
       }
       handlePointerUp(event)
@@ -602,11 +688,13 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       case 'intro':
         return 'パックが姿を現しました'
       case 'idle':
-        return 'パックを長押しして力を集めましょう'
+        return 'パック左上の切り取り線を長押しして力を集めましょう'
+      case 'aligning':
+        return '切り取り線の左端に指を合わせてください'
       case 'charging':
-        return 'チャージが満ちるまで指を離さないでください'
+        return '左上の切り取り線を押さえ続けてください'
       case 'charged':
-        return '指を離して裂け目を作りましょう'
+        return 'チャージ完了。指をそのまま右へ滑らせましょう'
       case 'primed':
         return '裂けた上辺から指で横へ破り進めてください'
       case 'tearing':
@@ -624,8 +712,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     switch (stage) {
       case 'charging':
         return `チャージ ${chargePercent}%`
+      case 'aligning':
+        return '切り取り線の左端に指を置くとチャージできます'
       case 'charged':
-        return '縁が脈打ち破りの準備が整いました'
+        return '封の縁が脈打ち破りの準備が整いました'
       case 'primed':
         return '再度タップまたは横方向のドラッグで続きが破れます'
       case 'tearing':
@@ -635,7 +725,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       case 'revealed':
         return 'いつでも読めるようにスキャンデータをここに保管しています'
       case 'idle':
-        return '背景が少し明るくなり開封を待っています'
+        return '左上の切り取り線に触れるとチャージが始まります'
       default:
         return ''
     }
@@ -645,6 +735,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     switch (stage) {
       case 'charging':
         return `チャージ ${chargePercent}%`
+      case 'charged':
+        return 'チャージが満ちました'
+      case 'aligning':
+        return '開始位置を調整しています'
       case 'tearing':
         return `破り ${tearPercent}%`
       case 'burst':
@@ -675,7 +769,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           style={visualStyle}
           role="button"
           tabIndex={0}
-          aria-label="スキャンした手紙を守るトレーディングカードのパック。長押しして開封してください"
+          aria-label="スキャンした手紙を守るトレーディングカードのパック。左上の切り取り線を長押しして右へスライドしてください"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
