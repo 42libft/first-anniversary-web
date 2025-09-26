@@ -34,6 +34,14 @@ const START_ZONE_Y = 0.36
 const START_ZONE_LEEWAY = 0.08
 const CUTLINE_BAND_EXTENSION = 0.18
 const PARTICLE_COUNT = 365
+const PACK_HORIZONTAL_MARGIN = 0.08
+const PACK_BOTTOM_MARGIN = 0.06
+const PACK_TOP_MIN = 0.08
+const PACK_MIN_VERTICAL_SPAN = 0.32
+const PACK_TOP_OFFSET_PERCENT = 2
+const PARTICLE_FADE_SPEED = 0.85
+const PARTICLE_FADE_SPEED_REDUCED = 0.55
+const ENERGY_RELEASE_STRENGTH = 0.0024
 
 interface FloatingParticle {
   x: number
@@ -113,6 +121,26 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   )
   const floatingResizeObserverRef = useRef<ResizeObserver | null>(null)
   const floatingWasBurstRef = useRef(false)
+  const particleFadeRef = useRef(1)
+  const particlesDissipatingRef = useRef(false)
+
+  const seedParticles = useCallback(() => {
+    const bottomBound = 1 - PACK_BOTTOM_MARGIN
+    const minTopCandidate = bottomBound - PACK_MIN_VERTICAL_SPAN
+    const topBound = Math.max(PACK_TOP_MIN, minTopCandidate)
+    const verticalSpan = Math.max(0.12, bottomBound - topBound)
+    const leftBound = PACK_HORIZONTAL_MARGIN
+    const rightBound = 1 - PACK_HORIZONTAL_MARGIN
+    const horizontalSpan = Math.max(0.12, rightBound - leftBound)
+
+    floatingParticlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
+      x: leftBound + Math.random() * horizontalSpan,
+      y: topBound + Math.random() * verticalSpan,
+      vx: (Math.random() - 0.5) * 0.006,
+      vy: (Math.random() - 0.5) * 0.006,
+      base: 0.35 + Math.random() * 0.55,
+    }))
+  }, [])
 
   const clearAlignTimeout = useCallback(() => {
     if (alignTimeoutRef.current !== null) {
@@ -168,6 +196,16 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   }, [stage, tearProgress, tearSpeed])
 
   useEffect(() => {
+    if (stage !== 'burst' && stage !== 'revealed') {
+      particlesDissipatingRef.current = false
+      particleFadeRef.current = 1
+      if (floatingParticlesRef.current.length === 0) {
+        seedParticles()
+      }
+    }
+  }, [seedParticles, stage])
+
+  useEffect(() => {
     const canvas = floatingCanvasRef.current
     if (!canvas) {
       return
@@ -180,17 +218,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
     floatingCtxRef.current = ctx
 
-    const initializeParticles = () => {
-      floatingParticlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
-        x: Math.random(),
-        y: Math.random(),
-        vx: (Math.random() - 0.5) * 0.006,
-        vy: (Math.random() - 0.5) * 0.006,
-        base: 0.35 + Math.random() * 0.55,
-      }))
-    }
-
-    initializeParticles()
+    seedParticles()
 
     const updateCanvasSize = () => {
       const rect = canvas.getBoundingClientRect()
@@ -237,15 +265,51 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const movementScale = delta * 60
       const intensityBase = 0.22 + config.tearProgress * 0.78 + (config.stage === 'tearing' ? 0.12 : 0)
       const intensity = Math.min(1.1, intensityBase + (config.tearSpeed === 'fast' ? 0.08 : 0))
+      const isDissipating = particlesDissipatingRef.current
+      if (isDissipating) {
+        const fadeSpeed = prefersReducedMotion ? PARTICLE_FADE_SPEED_REDUCED : PARTICLE_FADE_SPEED
+        particleFadeRef.current = Math.max(0, particleFadeRef.current - delta * fadeSpeed)
+        if (particleFadeRef.current === 0) {
+          particlesDissipatingRef.current = false
+        }
+      }
+      const fadeFactor = particleFadeRef.current
 
       context.save()
       context.clearRect(0, 0, width, height)
+
+      if (fadeFactor <= 0 || particles.length === 0) {
+        context.restore()
+        if (particles.length !== 0) {
+          floatingParticlesRef.current = []
+        }
+        floatingAnimationRef.current = requestAnimationFrame(drawFrame)
+        return
+      }
+
       context.globalCompositeOperation = 'lighter'
 
-      if (!prefersReducedMotion) {
-        particles.forEach((particle) => {
+      const tearBasePercent = 8 + config.tearProgress * 40
+      let topBoundary = (tearBasePercent + PACK_TOP_OFFSET_PERCENT) / 100
+      topBoundary = Math.max(PACK_TOP_MIN, topBoundary)
+      const bottomBoundary = 1 - PACK_BOTTOM_MARGIN
+      if (bottomBoundary - topBoundary < PACK_MIN_VERTICAL_SPAN) {
+        topBoundary = Math.max(PACK_TOP_MIN, bottomBoundary - PACK_MIN_VERTICAL_SPAN)
+      }
+      const leftBoundary = PACK_HORIZONTAL_MARGIN
+      const rightBoundary = 1 - PACK_HORIZONTAL_MARGIN
+      const centerX = (leftBoundary + rightBoundary) / 2
+      const centerY = topBoundary + (bottomBoundary - topBoundary) * 0.5
+
+      particles.forEach((particle) => {
+        if (!prefersReducedMotion) {
           particle.vx += (Math.random() - 0.5) * 0.0032 * driftFactor
           particle.vy += (Math.random() - 0.5) * 0.0032 * driftFactor
+
+          if (isDissipating) {
+            particle.vx += (particle.x - centerX) * ENERGY_RELEASE_STRENGTH
+            particle.vy += (particle.y - centerY) * ENERGY_RELEASE_STRENGTH
+          }
 
           const maxVelocity = 0.02 + config.tearProgress * 0.12
           particle.vx = clamp(particle.vx, -maxVelocity, maxVelocity)
@@ -253,30 +317,34 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
           particle.x += particle.vx * movementScale
           particle.y += particle.vy * movementScale
+        }
 
-          if (particle.x < 0) {
-            particle.x = 0
-            particle.vx = Math.abs(particle.vx) * 0.6
-          } else if (particle.x > 1) {
-            particle.x = 1
-            particle.vx = -Math.abs(particle.vx) * 0.6
-          }
+        if (particle.x < leftBoundary) {
+          particle.x = leftBoundary
+          particle.vx = Math.abs(particle.vx) * 0.58
+        } else if (particle.x > rightBoundary) {
+          particle.x = rightBoundary
+          particle.vx = -Math.abs(particle.vx) * 0.58
+        }
 
-          if (particle.y < 0) {
-            particle.y = 0
-            particle.vy = Math.abs(particle.vy) * 0.6
-          } else if (particle.y > 1) {
-            particle.y = 1
-            particle.vy = -Math.abs(particle.vy) * 0.6
-          }
-        })
-      }
+        if (particle.y < topBoundary) {
+          particle.y = topBoundary
+          particle.vy = Math.abs(particle.vy) * 0.58
+        } else if (particle.y > bottomBoundary) {
+          particle.y = bottomBoundary
+          particle.vy = -Math.abs(particle.vy) * 0.58
+        }
+      })
 
       particles.forEach((particle) => {
         const px = particle.x * width
         const py = particle.y * height
         const radius = 1.1 + particle.base * 2.2 + config.tearProgress * 1.4
-        const alpha = Math.min(1, 0.15 + particle.base * 0.55 + intensity * 0.55)
+        const alpha = Math.min(1, (0.15 + particle.base * 0.55 + intensity * 0.55) * fadeFactor)
+
+        if (alpha <= 0) {
+          return
+        }
 
         const gradient = context.createRadialGradient(px, py, 0, px, py, radius * 1.8)
         gradient.addColorStop(0, `rgba(142, 229, 255, ${alpha})`)
@@ -290,7 +358,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       })
 
       context.globalCompositeOperation = 'destination-in'
-      const tearBase = 8 + config.tearProgress * 40
+      const tearBase = tearBasePercent
       const polygonPoints: Array<[number, number]> = [
         [0, tearBase + 2],
         [12, tearBase - 1.6],
@@ -337,7 +405,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       floatingParticlesRef.current = []
       floatingCtxRef.current = null
     }
-  }, [prefersReducedMotion])
+  }, [prefersReducedMotion, seedParticles])
 
   const triggerBurst = useCallback(() => {
     if (hasBurstRef.current) {
@@ -349,6 +417,8 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     setStage('burst')
     setTearProgress(1)
     setTearSpeed('fast')
+    particlesDissipatingRef.current = true
+    particleFadeRef.current = 1
 
     if (supportsVibration()) {
       navigator.vibrate?.([0, prefersReducedMotion ? 24 : 42])
