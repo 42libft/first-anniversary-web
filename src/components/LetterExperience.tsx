@@ -85,7 +85,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const [stage, setStage] = useState<InteractionStage>('intro')
   const [tearProgress, setTearProgress] = useState(0)
   const [tearSpeed, setTearSpeed] = useState<TearSpeed>('idle')
-  const [isKeyboardActive, setIsKeyboardActive] = useState(false)
+  
 
   const interactionRef = useRef<HTMLDivElement>(null)
   const tearStartRef = useRef<{
@@ -603,7 +603,6 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         return
       }
 
-      setIsKeyboardActive(true)
       setStage('tearing')
       setTearSpeed('slow')
 
@@ -628,7 +627,6 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       }
 
       event.preventDefault()
-      setIsKeyboardActive(false)
 
       if (stage === 'burst' || stage === 'revealed') {
         return
@@ -651,46 +649,6 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   )
 
   const tearPercent = Math.round(tearProgress * 100)
-
-  const primaryHint = useMemo(() => {
-    switch (stage) {
-      case 'intro':
-        return 'パックが姿を現しました'
-      case 'idle':
-        return 'パックが静かに開封の瞬間を待っています'
-      case 'aligning':
-        return '左上で揺らめく光がスタートの合図です'
-      case 'tearing':
-        return '指でそのまま右へ破り進めましょう'
-      case 'primed':
-        return '途中まで破れています。続きは右へ滑らせてください'
-      case 'burst':
-        return 'パックが弾けて中身が飛び出します'
-      case 'revealed':
-        return 'スキャンして保存した手紙を表示しました'
-      default:
-        return ''
-    }
-  }, [stage])
-
-  const secondaryHint = useMemo(() => {
-    switch (stage) {
-      case 'aligning':
-        return '輝く切り取り線から右へ滑らせると破りやすいです'
-      case 'tearing':
-        return `破り進行 ${tearPercent}%`
-      case 'primed':
-        return '切り取り線に沿ってもう一度スライドできます'
-      case 'burst':
-        return '紙片が舞い散り、カード束が現れます'
-      case 'revealed':
-        return 'いつでも読めるようにスキャンデータをここに保管しています'
-      case 'idle':
-        return 'そっと触れて右へ滑らせると破り始められます'
-      default:
-        return ''
-    }
-  }, [stage, tearPercent])
 
   const liveStatus = useMemo(() => {
     switch (stage) {
@@ -802,18 +760,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
             {particles}
           </div>
         </div>
-        <div className="letter-hints">
-          <p className="letter-hints__primary">{primaryHint}</p>
-          {secondaryHint ? <p className="letter-hints__secondary">{secondaryHint}</p> : null}
-          {isKeyboardActive ? (
-            <span className="letter-hints__keyboard" role="status">
-              {`破り進捗 ${tearPercent}%`}
-            </span>
-          ) : null}
-          <span className="letter-hints__live" aria-live="polite">
-            {liveStatus}
-          </span>
-        </div>
+        <div className="letter-hints" aria-hidden="true" />
+        <span className="letter-hints__live" aria-live="polite">
+          {liveStatus}
+        </span>
       </div>
     </div>
   )

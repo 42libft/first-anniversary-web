@@ -4016,32 +4016,7 @@
 
 .letter-hints {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.45rem;
-  color: rgba(24, 28, 52, 0.9);
-}
-
-.letter-hints__primary {
-  margin: 0;
-  font-weight: 600;
-  font-size: clamp(1rem, 2.8vw, 1.2rem);
-}
-
-.letter-hints__secondary {
-  margin: 0;
-  font-size: 0.9rem;
-  color: rgba(40, 45, 70, 0.75);
-  line-height: 1.6;
-}
-
-.letter-hints__keyboard {
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(38, 52, 98, 0.8);
+  display: none;
 }
 
 .letter-hints__live {
@@ -4080,9 +4055,6 @@
     padding: clamp(1.1rem, 6vw, 1.9rem);
   }
 
-  .letter-hints__secondary {
-    font-size: 0.85rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
