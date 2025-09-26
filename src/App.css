@@ -1657,11 +1657,12 @@
   mix-blend-mode: screen;
   opacity: 0;
   filter: drop-shadow(0 24px 48px rgba(18, 28, 64, 0.4));
+  will-change: transform, opacity;
   animation: mediaFragmentFloat var(--fragment-flight, 3600ms)
       cubic-bezier(0.22, 0.14, 0.08, 1) forwards;
 }
 
-.media-fragment__trail {
+.media-fragment::before {
   position: absolute;
   inset: -44% -32% -18%;
   border-radius: 44%;
@@ -1679,11 +1680,14 @@
     translateY(22%)
     scale(var(--fragment-trail-scale, 1))
     rotateZ(var(--fragment-rotate-mid, var(--fragment-rotate-z, 0deg)));
-  filter: blur(18px);
+  filter: blur(16px);
   mix-blend-mode: screen;
+  will-change: transform, opacity;
   animation: mediaFragmentTrail calc(var(--fragment-flight, 3600ms) * 0.78)
     cubic-bezier(0.18, 0, 0.12, 1) forwards;
   animation-delay: calc(var(--fragment-delay, 0ms) + var(--fragment-trail-delay, 120ms));
+  content: '';
+  pointer-events: none;
 }
 
 .media-fragment__glow {
@@ -1700,6 +1704,7 @@
   opacity: calc(0.28 + var(--fragment-glare, 0.4) * 0.56);
   filter: hue-rotate(var(--fragment-hue, 0deg))
     blur(calc(16px + var(--fragment-drift, 0.4) * 24px));
+  will-change: transform, opacity;
   animation: mediaFragmentGlow calc(var(--fragment-flight, 3600ms) * 1.4)
     ease-in-out infinite;
   animation-delay: calc(var(--fragment-delay, 0ms) + 80ms);
@@ -1722,6 +1727,7 @@
     inset 0 0 24px rgba(182, 226, 255, 0.3),
     0 0 38px rgba(120, 186, 255, 0.24);
   mix-blend-mode: screen;
+  will-change: opacity, transform;
   animation: mediaFragmentShimmer calc(var(--fragment-flight, 3600ms) * 1.18)
     ease-in-out infinite;
   animation-delay: calc(var(--fragment-delay, 0ms) + 160ms);
@@ -1797,7 +1803,7 @@
       rotateY(calc(var(--fragment-tilt-y, 0deg) * 0.42))
       rotateZ(var(--fragment-rotate-initial, var(--fragment-rotate-z, 0deg)))
       scale(calc(var(--fragment-scale, 1) * var(--fragment-launch-scale, 0.68)));
-    filter: blur(18px);
+    filter: blur(16px);
   }
   46% {
     opacity: 1;
@@ -1838,7 +1844,7 @@
       translateY(28%)
       scale(calc(var(--fragment-trail-scale, 1) * 0.46))
       rotateZ(var(--fragment-rotate-initial, var(--fragment-rotate-z, 0deg)));
-    filter: blur(22px);
+    filter: blur(18px);
   }
   35% {
     opacity: 0.7;
@@ -1849,7 +1855,7 @@
       translateY(-24%)
       scale(calc(var(--fragment-trail-scale, 1) * 1.12))
       rotateZ(var(--fragment-rotate-z, 0deg));
-    filter: blur(28px);
+    filter: blur(22px);
   }
 }
 

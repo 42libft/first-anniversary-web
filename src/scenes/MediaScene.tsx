@@ -545,7 +545,6 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
                   className={`media-fragment${fragment.isFading ? ' is-fading' : ''}`}
                   style={style}
                 >
-                  <span className="media-fragment__trail" />
                   <span className="media-fragment__glow" />
                   <span className="media-fragment__plane" />
                 </div>
