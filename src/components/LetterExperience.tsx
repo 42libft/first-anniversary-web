@@ -33,6 +33,15 @@ const START_ZONE_X = 0.32
 const START_ZONE_Y = 0.36
 const START_ZONE_LEEWAY = 0.08
 const CUTLINE_BAND_EXTENSION = 0.18
+const PARTICLE_COUNT = 365
+
+interface FloatingParticle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  base: number
+}
 
 const supportsVibration = () => typeof navigator !== 'undefined' && 'vibrate' in navigator
 
@@ -93,6 +102,17 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const alignTimeoutRef = useRef<number | null>(null)
   const hasBurstRef = useRef(false)
 
+  const floatingCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const floatingCtxRef = useRef<CanvasRenderingContext2D | null>(null)
+  const floatingParticlesRef = useRef<FloatingParticle[]>([])
+  const floatingAnimationRef = useRef<number | null>(null)
+  const floatingSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 })
+  const floatingConfigRef = useRef<{ stage: InteractionStage; tearProgress: number; tearSpeed: TearSpeed }>(
+    { stage: 'intro', tearProgress: 0, tearSpeed: 'idle' }
+  )
+  const floatingResizeObserverRef = useRef<ResizeObserver | null>(null)
+  const floatingWasBurstRef = useRef(false)
+
   const clearAlignTimeout = useCallback(() => {
     if (alignTimeoutRef.current !== null) {
       window.clearTimeout(alignTimeoutRef.current)
@@ -124,6 +144,168 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       clearAlignTimeout()
     }
   }, [clearAlignTimeout])
+
+  useEffect(() => {
+    floatingConfigRef.current = { stage, tearProgress, tearSpeed }
+
+    if (!floatingWasBurstRef.current && stage === 'burst') {
+      floatingParticlesRef.current.forEach((particle) => {
+        particle.vx += (Math.random() - 0.5) * 0.18
+        particle.vy += (Math.random() - 0.5) * 0.14 - 0.08
+      })
+      floatingWasBurstRef.current = true
+    } else if (floatingWasBurstRef.current && stage !== 'burst') {
+      floatingWasBurstRef.current = false
+    }
+
+    if (stage === 'idle' && tearProgress <= 0.01) {
+      floatingParticlesRef.current.forEach((particle) => {
+        particle.vx *= 0.4
+        particle.vy *= 0.4
+      })
+    }
+  }, [stage, tearProgress, tearSpeed])
+
+  useEffect(() => {
+    const canvas = floatingCanvasRef.current
+    if (!canvas) {
+      return
+    }
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      return
+    }
+
+    floatingCtxRef.current = ctx
+
+    const initializeParticles = () => {
+      floatingParticlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        vx: (Math.random() - 0.5) * 0.006,
+        vy: (Math.random() - 0.5) * 0.006,
+        base: 0.35 + Math.random() * 0.55,
+      }))
+    }
+
+    initializeParticles()
+
+    const updateCanvasSize = () => {
+      const rect = canvas.getBoundingClientRect()
+      const dpr = window.devicePixelRatio || 1
+      canvas.width = rect.width * dpr
+      canvas.height = rect.height * dpr
+      canvas.style.width = `${rect.width}px`
+      canvas.style.height = `${rect.height}px`
+      if (typeof ctx.resetTransform === 'function') {
+        ctx.resetTransform()
+      } else {
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+      }
+      ctx.scale(dpr, dpr)
+      floatingSizeRef.current = { width: rect.width, height: rect.height }
+    }
+
+    updateCanvasSize()
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateCanvasSize()
+    })
+    resizeObserver.observe(canvas)
+    floatingResizeObserverRef.current = resizeObserver
+
+    let lastTime = performance.now()
+
+    const drawFrame = (timestamp: number) => {
+      const context = floatingCtxRef.current
+      const { width, height } = floatingSizeRef.current
+
+      if (!context || width === 0 || height === 0) {
+        floatingAnimationRef.current = requestAnimationFrame(drawFrame)
+        return
+      }
+
+      const delta = Math.min((timestamp - lastTime) / 1000, 0.06)
+      lastTime = timestamp
+
+      const config = floatingConfigRef.current
+      const particles = floatingParticlesRef.current
+      const speedBoost = config.tearSpeed === 'fast' ? 0.28 : config.tearSpeed === 'slow' ? 0.12 : 0
+      const driftFactor = 0.12 + config.tearProgress * 0.9 + speedBoost
+      const movementScale = delta * 60
+      const intensityBase = 0.22 + config.tearProgress * 0.78 + (config.stage === 'tearing' ? 0.12 : 0)
+      const intensity = Math.min(1.1, intensityBase + (config.tearSpeed === 'fast' ? 0.08 : 0))
+
+      context.save()
+      context.clearRect(0, 0, width, height)
+      context.globalCompositeOperation = 'lighter'
+
+      if (!prefersReducedMotion) {
+        particles.forEach((particle) => {
+          particle.vx += (Math.random() - 0.5) * 0.0032 * driftFactor
+          particle.vy += (Math.random() - 0.5) * 0.0032 * driftFactor
+
+          const maxVelocity = 0.02 + config.tearProgress * 0.12
+          particle.vx = clamp(particle.vx, -maxVelocity, maxVelocity)
+          particle.vy = clamp(particle.vy, -maxVelocity, maxVelocity)
+
+          particle.x += particle.vx * movementScale
+          particle.y += particle.vy * movementScale
+
+          if (particle.x < 0) {
+            particle.x = 0
+            particle.vx = Math.abs(particle.vx) * 0.6
+          } else if (particle.x > 1) {
+            particle.x = 1
+            particle.vx = -Math.abs(particle.vx) * 0.6
+          }
+
+          if (particle.y < 0) {
+            particle.y = 0
+            particle.vy = Math.abs(particle.vy) * 0.6
+          } else if (particle.y > 1) {
+            particle.y = 1
+            particle.vy = -Math.abs(particle.vy) * 0.6
+          }
+        })
+      }
+
+      particles.forEach((particle) => {
+        const px = particle.x * width
+        const py = particle.y * height
+        const radius = 1.1 + particle.base * 2.2 + config.tearProgress * 1.4
+        const alpha = Math.min(1, 0.15 + particle.base * 0.55 + intensity * 0.55)
+
+        const gradient = context.createRadialGradient(px, py, 0, px, py, radius * 1.8)
+        gradient.addColorStop(0, `rgba(255, 226, 170, ${alpha})`)
+        gradient.addColorStop(1, 'rgba(255, 226, 170, 0)')
+
+        context.fillStyle = gradient
+        context.beginPath()
+        context.arc(px, py, radius * 1.8, 0, Math.PI * 2)
+        context.fill()
+      })
+
+      context.restore()
+
+      floatingAnimationRef.current = requestAnimationFrame(drawFrame)
+    }
+
+    floatingAnimationRef.current = requestAnimationFrame(drawFrame)
+
+    return () => {
+      if (floatingAnimationRef.current) {
+        cancelAnimationFrame(floatingAnimationRef.current)
+        floatingAnimationRef.current = null
+      }
+
+      floatingResizeObserverRef.current?.disconnect()
+      floatingResizeObserverRef.current = null
+      floatingParticlesRef.current = []
+      floatingCtxRef.current = null
+    }
+  }, [prefersReducedMotion])
 
   const triggerBurst = useCallback(() => {
     if (hasBurstRef.current) {
@@ -553,6 +735,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
             <div className="letter-pack__cutline" aria-hidden="true" />
             <div className="letter-pack__tear-edge" aria-hidden="true" />
           </div>
+          <canvas className="letter-pack__lights" ref={floatingCanvasRef} aria-hidden="true" />
           <div className="letter-pack__letter" aria-hidden={!letterImage}>
             {letterImage ? (
               <img src={letterImage.src} alt={letterImage.alt ?? 'スキャンした手紙'} />
