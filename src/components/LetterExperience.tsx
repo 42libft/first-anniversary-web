@@ -220,10 +220,8 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     y: number
     progress: number
     time: number
-    startNormalizedX: number
-    startNormalizedY: number
-    lastNormalizedX: number
-    lastNormalizedY: number
+    normalizedX: number
+    normalizedY: number
     anchorX: number
     anchorY: number
   } | null>(null)
@@ -697,10 +695,8 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         y: native.clientY,
         progress: baseProgress,
         time: now,
-        startNormalizedX: normalizedX,
-        startNormalizedY: normalizedY,
-        lastNormalizedX: normalizedX,
-        lastNormalizedY: normalizedY,
+        normalizedX,
+        normalizedY,
         anchorX: anchor.x,
         anchorY: anchor.y,
       }
@@ -727,8 +723,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
   const updateTear = useCallback(
     (native: PointerEvent) => {
-      const base = tearStartRef.current
-      if (!base) {
+      if (!tearStartRef.current) {
         return
       }
 
@@ -752,7 +747,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       const anchor = computeTearAnchor(previousProgress)
       const remainingSpan = computeRemainingFrontSpan(anchor.x)
 
-      const pointerRatio = clamp01(
+      const rawHorizontalProgress = clamp01(
         (pointerNormalizedX - TEAR_FRONT_BASE_X) / TEAR_FRONT_SPAN_X
       )
 
@@ -762,86 +757,46 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           ? clamp01(previousProgress + (forwardDelta / remainingSpan) * (1 - previousProgress))
           : previousProgress
 
-      const horizontalFromStart = Math.max(pointerNormalizedX - base.startNormalizedX, 0)
-      const normalizedAdvanceDenominator = Math.max(0.18, 1 - base.startNormalizedX)
-      const baselineProgress = clamp01(
-        base.progress + (horizontalFromStart / normalizedAdvanceDenominator) * (1 - base.progress)
-      )
-
-      const verticalFromStart = Math.max(pointerNormalizedY - base.startNormalizedY, 0)
-      const verticalAssistFromStart = Math.min(
-        pointerMode === 'touch'
-          ? verticalFromStart * 0.6
-          : pointerMode === 'pen'
-            ? verticalFromStart * 0.48
-            : verticalFromStart * 0.4,
-        0.38
-      )
-
       const verticalOffset = pointerNormalizedY - anchor.y
-      const alignedVerticalAssist = clamp(
+      const verticalAssist = clamp(
         pointerMode === 'touch'
-          ? verticalOffset * 0.9
+          ? verticalOffset * 0.95
           : pointerMode === 'pen'
-            ? verticalOffset * 0.62
-            : verticalOffset * 0.5,
-        -0.18,
-        pointerMode === 'touch' ? 0.32 : 0.26
+            ? verticalOffset * 0.65
+            : verticalOffset * 0.55,
+        -0.16,
+        pointerMode === 'touch' ? 0.34 : 0.26
       )
 
-      let targetProgress = clamp01(
-        Math.max(
-          anchorDrivenProgress,
-          pointerRatio + alignedVerticalAssist,
-          baselineProgress + verticalAssistFromStart
-        )
+      let pointerDrivenProgress = clamp01(
+        Math.max(anchorDrivenProgress, rawHorizontalProgress + verticalAssist)
       )
 
       const backwardAllowance =
-        pointerMode === 'touch' ? 0.015 : pointerMode === 'pen' ? 0.02 : 0.04
+        pointerMode === 'touch' ? 0.06 : pointerMode === 'pen' ? 0.07 : 0.1
       const progressFloor = Math.max(previousProgress - backwardAllowance, 0)
 
-      const reachAssist =
-        pointerMode === 'touch'
-          ? Math.max(pointerNormalizedX - anchor.x, 0) * 0.72
-          : Math.max(pointerNormalizedX - anchor.x, 0) * 0.55
-      const verticalBonus =
-        pointerMode === 'touch'
-          ? Math.max(verticalOffset, 0) * 0.22
-          : Math.max(verticalOffset, 0) * 0.18
-      const baseHeadroom = pointerMode === 'touch' ? 0.18 : pointerMode === 'pen' ? 0.16 : 0.14
-      const pointerCeil = clamp01(pointerRatio + Math.max(verticalOffset, 0) * 0.22 + 0.18)
-      const progressCeil = Math.min(
-        1,
-        Math.max(previousProgress + baseHeadroom + reachAssist + verticalBonus, pointerCeil)
+      const forwardBoostBase =
+        pointerMode === 'touch' ? 0.28 : pointerMode === 'pen' ? 0.23 : 0.2
+      const forwardBoost =
+        forwardBoostBase +
+        Math.max(verticalOffset, 0) * 0.2 +
+        Math.max(pointerNormalizedX - anchor.x, 0) * (pointerMode === 'touch' ? 0.7 : 0.5)
+      const pointerCeil = clamp01(rawHorizontalProgress + Math.max(verticalOffset, 0) * 0.18 + 0.15)
+      const progressCeil = Math.min(1, Math.max(previousProgress + forwardBoost, pointerCeil))
+      pointerDrivenProgress = clamp(pointerDrivenProgress, progressFloor, progressCeil)
+
+      const smoothing = pointerMode === 'touch' ? 0.88 : pointerMode === 'pen' ? 0.82 : 0.68
+      const nextProgressRaw =
+        previousProgress + (pointerDrivenProgress - previousProgress) * smoothing
+      const pointerBound = Math.max(rawHorizontalProgress * 0.97, anchorDrivenProgress * 0.94)
+      const nextProgress = Number(
+        clamp01(Math.max(nextProgressRaw, pointerBound)).toFixed(3)
       )
-
-      targetProgress = clamp(targetProgress, progressFloor, progressCeil)
-
-      const smoothing = pointerMode === 'touch' ? 0.9 : pointerMode === 'pen' ? 0.85 : 0.72
-      let nextProgress =
-        previousProgress + (targetProgress - previousProgress) * smoothing
-
-      nextProgress = Number(clamp01(nextProgress).toFixed(4))
-
-      const minimalDelta = 0.0018
-      const now = performance.now()
-      if (Math.abs(nextProgress - previousProgress) < minimalDelta && nextProgress < 0.999) {
-        tearVelocityRef.current = { progress: previousProgress, time: now }
-        tearStartRef.current = {
-          ...base,
-          progress: previousProgress,
-          time: now,
-          lastNormalizedX: pointerNormalizedX,
-          lastNormalizedY: pointerNormalizedY,
-          anchorX: anchor.x,
-          anchorY: anchor.y,
-        }
-        return
-      }
 
       setTearProgress(nextProgress)
 
+      const now = performance.now()
       const deltaTime = (now - previousVelocity.time) / 1000
       if (deltaTime > 0) {
         const velocity = (nextProgress - previousVelocity.progress) / deltaTime
@@ -858,11 +813,12 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
       const updatedAnchor = computeTearAnchor(nextProgress)
       tearStartRef.current = {
-        ...base,
+        x: native.clientX,
+        y: native.clientY,
         progress: nextProgress,
         time: now,
-        lastNormalizedX: pointerNormalizedX,
-        lastNormalizedY: pointerNormalizedY,
+        normalizedX: pointerNormalizedX,
+        normalizedY: pointerNormalizedY,
         anchorX: updatedAnchor.x,
         anchorY: updatedAnchor.y,
       }
