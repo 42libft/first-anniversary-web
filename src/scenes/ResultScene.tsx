@@ -109,19 +109,17 @@ export const ResultScene = ({
         <div className="apex-result__topbackdrop" aria-hidden="true" />
 
         <header className="apex-result__header">
-          <div className="apex-result__camera" aria-hidden="true">
-            <span className="apex-result__camera-icon" />
-          </div>
-          <nav className="apex-result__tabs" aria-label="リザルトタブ">
-            <span className="apex-result__tab">観戦</span>
-            <span className="apex-result__tab">戦闘データ</span>
-            <span className="apex-result__tab is-active">リザルト</span>
+          <nav className="apex-tabs" aria-label="リザルトタブ">
+            <span className="apex-tabs__item">
+              <span className="apex-tabs__label">観戦</span>
+            </span>
+            <span className="apex-tabs__item">
+              <span className="apex-tabs__label">戦闘データ</span>
+            </span>
+            <span className="apex-tabs__item apex-tabs__item--active">
+              <span className="apex-tabs__label">リザルト</span>
+            </span>
           </nav>
-          <div className="apex-result__shoulders" aria-hidden="true">
-            <span className="apex-result__shoulder">L1</span>
-            <span className="apex-result__shoulder-divider" />
-            <span className="apex-result__shoulder">R1</span>
-          </div>
         </header>
 
         <div className="apex-result__banner" role="group" aria-label="部隊ステータス">
