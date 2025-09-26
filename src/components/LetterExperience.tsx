@@ -29,7 +29,7 @@ type InteractionStage =
 type TearSpeed = 'idle' | 'slow' | 'fast'
 
 const CHARGE_DURATION = 1700
-const TEAR_DISTANCE = 220
+const TEAR_DISTANCE = 260
 const AUTO_BURST_THRESHOLD = 0.72
 const CHARGE_CIRCUMFERENCE = 2 * Math.PI * 74
 
@@ -329,10 +329,15 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       }
 
       const base = tearStartRef.current
-      const deltaY = Math.max(native.clientY - base.y, 0)
-      const deltaX = Math.abs(native.clientX - base.x) * 0.45
-      const distance = deltaY + deltaX
-      const nextProgress = Math.max(Math.min(base.progress + distance / TEAR_DISTANCE, 1), 0)
+      const deltaX = native.clientX - base.x
+      const deltaY = native.clientY - base.y
+      const horizontal = Math.max(Math.abs(deltaX), 0)
+      const vertical = Math.max(deltaY, 0)
+      const distance = horizontal + vertical * 0.35
+      const nextProgress = Math.max(
+        Math.min(base.progress + distance / TEAR_DISTANCE, 1),
+        0
+      )
 
       const now = performance.now()
       const last = tearVelocityRef.current
@@ -343,9 +348,9 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
       if (deltaTime > 0) {
         const velocity = deltaProgress / deltaTime
-        if (velocity > 1.2) {
+        if (velocity > 0.8) {
           setTearSpeed('fast')
-        } else if (velocity > 0.2) {
+        } else if (velocity > 0.18) {
           setTearSpeed('slow')
         } else {
           setTearSpeed('idle')
@@ -552,15 +557,23 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     [chargeProgress]
   )
 
-  const visualStyle = useMemo(
-    () =>
-      ({
-        '--letter-charge-progress': chargeProgress.toFixed(3),
-        '--letter-tear-progress': tearProgress.toFixed(3),
-        '--letter-tear-open': `${Math.min(14 + tearProgress * 80, 98).toFixed(2)}%`,
-      }) as CSSProperties,
-    [chargeProgress, tearProgress]
-  )
+  const visualStyle = useMemo(() => {
+    const tearDepth = (6 + tearProgress * 38).toFixed(2)
+    const tearScale = (0.08 + tearProgress * 0.92).toFixed(3)
+    const letterReveal = Math.min(tearProgress * 1.12, 1).toFixed(3)
+    const tearFray = `${(tearProgress * 22).toFixed(2)}px`
+    const tearShift = `${(tearProgress * 6).toFixed(2)}px`
+
+    return {
+      '--letter-charge-progress': chargeProgress.toFixed(3),
+      '--letter-tear-progress': tearProgress.toFixed(3),
+      '--letter-tear-depth': `${tearDepth}%`,
+      '--letter-tear-scale': tearScale,
+      '--letter-letter-reveal': letterReveal,
+      '--letter-tear-fray': tearFray,
+      '--letter-tear-shift': tearShift,
+    } as CSSProperties
+  }, [chargeProgress, tearProgress])
 
   const packClassName = useMemo(() => {
     const classes = ['letter-pack', `letter-pack--${stage}`]
@@ -587,19 +600,19 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   const primaryHint = useMemo(() => {
     switch (stage) {
       case 'intro':
-        return '封筒が姿を現しました'
+        return 'パックが姿を現しました'
       case 'idle':
-        return '封筒を長押しして力を集めましょう'
+        return 'パックを長押しして力を集めましょう'
       case 'charging':
         return 'チャージが満ちるまで指を離さないでください'
       case 'charged':
         return '指を離して裂け目を作りましょう'
       case 'primed':
-        return '裂けた部分から指で破り進めてください'
+        return '裂けた上辺から指で横へ破り進めてください'
       case 'tearing':
-        return '手応えに合わせて好きな方向へ破りましょう'
+        return '切り取り線に沿って横へ破りましょう'
       case 'burst':
-        return '封筒が弾けて中身が飛び出します'
+        return 'パックが弾けて中身が飛び出します'
       case 'revealed':
         return 'スキャンして保存した手紙を表示しました'
       default:
@@ -614,7 +627,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       case 'charged':
         return '縁が脈打ち破りの準備が整いました'
       case 'primed':
-        return '再度タップまたはドラッグで破りを再開できます'
+        return '再度タップまたは横方向のドラッグで続きが破れます'
       case 'tearing':
         return `破り進行 ${tearPercent}%`
       case 'burst':
@@ -662,7 +675,7 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           style={visualStyle}
           role="button"
           tabIndex={0}
-          aria-label="スキャンした手紙の封筒。長押しして開封してください"
+          aria-label="スキャンした手紙を守るトレーディングカードのパック。長押しして開封してください"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -674,9 +687,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
           <div className="letter-pack__halo" aria-hidden="true" />
           <div className="letter-pack__glow" aria-hidden="true" />
           <div className="letter-pack__base" aria-hidden="true">
+            <div className="letter-pack__foil" aria-hidden="true" />
             <div className="letter-pack__texture" aria-hidden="true" />
-            <div className="letter-pack__flap" aria-hidden="true" />
-            <div className="letter-pack__body" aria-hidden="true" />
+            <div className="letter-pack__seal" aria-hidden="true" />
+            <div className="letter-pack__cutline" aria-hidden="true" />
             <div className="letter-pack__tear-edge" aria-hidden="true" />
           </div>
           <div className="letter-pack__charge" aria-hidden="true">

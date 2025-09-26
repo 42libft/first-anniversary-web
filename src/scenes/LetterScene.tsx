@@ -6,8 +6,8 @@ export const LetterScene = ({ onAdvance }: SceneComponentProps) => {
   return (
     <SceneLayout
       eyebrow="Letter"
-      title="封筒とメッセージ"
-      description="ポケポケの開封演出をオマージュした封筒を長押しで破り、スキャンした手紙へ誘うシーン。"
+      title="パックとメッセージ"
+      description="ポケポケのトレーディングカード開封をオマージュし、長押しから横方向の破り操作でスキャンした手紙へ誘うシーン。"
       onAdvance={onAdvance}
       advanceLabel="Resultへ"
     >
