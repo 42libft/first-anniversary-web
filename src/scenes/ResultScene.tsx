@@ -1,177 +1,362 @@
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
-import { totalLikes } from '../data/likes'
-import { totalMessages } from '../data/messages'
-import {
-  journeyQuizAnswerSpecs,
-  photoCaptureEstimate,
-  resultLegends,
-  type ResultStatKey,
-} from '../data/result'
 import type { SceneComponentProps } from '../types/scenes'
 
-const formatNumber = (value: number) =>
-  new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 0 }).format(value)
+import './ResultScene.css'
 
-interface StatRow {
-  key: ResultStatKey
-  label: string
-  value: string
+type PlayerRole = 'you' | 'ally'
+
+type StatKey =
+  | 'quizCorrect'
+  | 'messages'
+  | 'distanceKm'
+  | 'saidLove'
+  | 'photos'
+
+interface ResultPayloadPlayer {
+  role: PlayerRole
+  name?: string
+  image?: {
+    src: string
+    alt?: string
+  }
+  stats?: {
+    quizCorrect?: { value?: number; of?: number }
+    messages?: number
+    distanceKm?: number
+    saidLove?: number
+    photos?: number
+  }
 }
 
-export const ResultScene = ({
-  onRestart,
-  journeys,
-  distanceTraveled,
-  responses,
-}: SceneComponentProps) => {
-  const totalJourneyDistance = useMemo(
-    () => Math.round(journeys.reduce((sum, journey) => sum + journey.distanceKm, 0)),
-    [journeys]
-  )
+export interface ResultPayload {
+  resultTitle?: string
+  team?: {
+    rank?: number
+    totalKills?: number
+  }
+  players?: ResultPayloadPlayer[]
+}
 
-  const distanceValue = useMemo(() => {
-    const rounded = Math.round(distanceTraveled)
-    return rounded > 0 ? rounded : totalJourneyDistance
-  }, [distanceTraveled, totalJourneyDistance])
+interface PlayerStatDisplay {
+  key: StatKey
+  label: string
+  value: string
+  ariaLabel: string
+}
 
-  const quizStats = useMemo(() => {
-    if (journeyQuizAnswerSpecs.length === 0) {
-      return { correct: 0, total: 0 }
+interface ResultPlayerView {
+  role: PlayerRole
+  name: string
+  stats: PlayerStatDisplay[]
+  image?: {
+    src: string
+    alt: string
+  }
+}
+
+interface ResultViewData {
+  resultTitle: string
+  teamRank: {
+    text: string
+    ariaLabel: string
+  }
+  teamKills: {
+    text: string
+    ariaLabel: string
+  }
+  players: ResultPlayerView[]
+}
+
+const NUMBER_FORMAT = new Intl.NumberFormat('ja-JP')
+
+const PLAYER_ROLES: PlayerRole[] = ['you', 'ally']
+
+const PLAYER_DEFAULT_NAMES: Record<PlayerRole, string> = {
+  you: '自分',
+  ally: '味方',
+}
+
+const STAT_LABELS: Record<StatKey, string> = {
+  quizCorrect: 'クイズ正解数',
+  messages: '送ったメッセージ数',
+  distanceKm: '合計移動距離',
+  saidLove: '好きって言った回数',
+  photos: '撮った写真枚数',
+}
+
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value)
+
+const formatNumber = (value: unknown) => {
+  if (!isFiniteNumber(value)) {
+    return undefined
+  }
+  return NUMBER_FORMAT.format(value)
+}
+
+const buildDefaultStats = (): PlayerStatDisplay[] => [
+  {
+    key: 'quizCorrect',
+    label: STAT_LABELS.quizCorrect,
+    value: '— / 3',
+    ariaLabel: 'クイズ正解数 — / 3',
+  },
+  {
+    key: 'messages',
+    label: STAT_LABELS.messages,
+    value: '—',
+    ariaLabel: '送ったメッセージ数 —',
+  },
+  {
+    key: 'distanceKm',
+    label: STAT_LABELS.distanceKm,
+    value: '— km',
+    ariaLabel: '合計移動距離 — キロメートル',
+  },
+  {
+    key: 'saidLove',
+    label: STAT_LABELS.saidLove,
+    value: '—',
+    ariaLabel: '好きって言った回数 —',
+  },
+  {
+    key: 'photos',
+    label: STAT_LABELS.photos,
+    value: '—',
+    ariaLabel: '撮った写真枚数 —',
+  },
+]
+
+const createPlayerView = (role: PlayerRole, payload?: ResultPayloadPlayer): ResultPlayerView => {
+  const name = payload?.name?.trim() || PLAYER_DEFAULT_NAMES[role]
+  const stats = buildDefaultStats().map((stat) => {
+    if (!payload?.stats) {
+      return stat
     }
 
-    const answerMap = new Map(
-      responses.map((response) => [response.storageKey, response.answer.trim()])
-    )
+    if (stat.key === 'quizCorrect') {
+      const quiz = payload.stats.quizCorrect
+      const denominator = formatNumber(quiz?.of ?? 3) ?? '3'
+      const formattedValue = formatNumber(quiz?.value)
+      const value = formattedValue ?? '—'
+      return {
+        ...stat,
+        value: `${value} / ${denominator}`,
+        ariaLabel: `クイズ正解数 ${value} / ${denominator}`,
+      }
+    }
 
-    const correct = journeyQuizAnswerSpecs.reduce((count, quiz) => {
-      const recorded = answerMap.get(quiz.storageKey)
-      if (!recorded) return count
-      return recorded === quiz.correctAnswer ? count + 1 : count
-    }, 0)
+    if (stat.key === 'messages') {
+      const formatted = formatNumber(payload.stats.messages)
+      const value = formatted ?? '—'
+      return {
+        ...stat,
+        value,
+        ariaLabel: `送ったメッセージ数 ${value}`,
+      }
+    }
 
+    if (stat.key === 'distanceKm') {
+      const formatted = formatNumber(payload.stats.distanceKm)
+      const value = formatted ? `${formatted} km` : '— km'
+      return {
+        ...stat,
+        value,
+        ariaLabel: `合計移動距離 ${formatted ?? '—'} キロメートル`,
+      }
+    }
+
+    if (stat.key === 'saidLove') {
+      const formatted = formatNumber(payload.stats.saidLove)
+      const value = formatted ?? '—'
+      return {
+        ...stat,
+        value,
+        ariaLabel: `好きって言った回数 ${value}`,
+      }
+    }
+
+    const formatted = formatNumber(payload.stats.photos)
+    const value = formatted ?? '—'
     return {
-      correct,
-      total: journeyQuizAnswerSpecs.length,
+      ...stat,
+      value,
+      ariaLabel: `撮った写真枚数 ${value}`,
     }
-  }, [responses])
+  })
 
-  const statRows = useMemo<StatRow[]>(
-    () => [
-      {
-        key: 'quiz',
-        label: 'クイズ正解数',
-        value:
-          quizStats.total > 0
-            ? `${formatNumber(quizStats.correct)} / ${formatNumber(quizStats.total)}`
-            : '0',
-      },
-      {
-        key: 'messages',
-        label: '送ったメッセージ数',
-        value: formatNumber(totalMessages),
-      },
-      {
-        key: 'distance',
-        label: '合計移動距離',
-        value: `${formatNumber(distanceValue)} km`,
-      },
-      {
-        key: 'likes',
-        label: '好きって言った回数',
-        value: formatNumber(totalLikes),
-      },
-      {
-        key: 'photos',
-        label: '撮った写真枚数',
-        value: formatNumber(photoCaptureEstimate),
-      },
-    ],
-    [distanceValue, photoCaptureEstimate, quizStats, totalLikes, totalMessages]
-  )
+  const src = payload?.image?.src?.trim()
+  const alt = payload?.image?.alt?.trim()
 
-  const cardData = useMemo(
-    () =>
-      resultLegends.map((legend) => ({
-        legend,
-        stats: statRows.map((row) => ({
-          ...row,
-          emphasize: row.key === legend.statFocus,
-        })),
-      })),
-    [statRows]
-  )
+  return {
+    role,
+    name,
+    stats,
+    image: src
+      ? {
+          src,
+          alt: alt || `${name}のルーツ画像`,
+        }
+      : undefined,
+  }
+}
+
+const buildViewData = (payload?: ResultPayload): ResultViewData => {
+  const teamRankValue = formatNumber(payload?.team?.rank)
+  const teamKillsValue = formatNumber(payload?.team?.totalKills)
+
+  const playersByRole = new Map<PlayerRole, ResultPayloadPlayer>()
+  payload?.players?.forEach((player) => {
+    if (PLAYER_ROLES.includes(player.role)) {
+      playersByRole.set(player.role, player)
+    }
+  })
+
+  return {
+    resultTitle: payload?.resultTitle?.trim() || '—',
+    teamRank: {
+      text: teamRankValue ? `${teamRankValue}位` : '— 位',
+      ariaLabel: `部隊の順位 ${teamRankValue ?? '—'} 位`,
+    },
+    teamKills: {
+      text: teamKillsValue ?? '—',
+      ariaLabel: `部隊の合計キル ${teamKillsValue ?? '—'}`,
+    },
+    players: PLAYER_ROLES.map((role) => createPlayerView(role, playersByRole.get(role))),
+  }
+}
+
+const DEFAULT_VIEW_DATA = buildViewData()
+
+declare global {
+  interface Window {
+    setResultData?: (payload?: ResultPayload) => void
+  }
+}
+
+const ResultPlayerCard = ({ player }: { player: ResultPlayerView }) => {
+  const headingId = `result-player-${player.role}`
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
+
+  useEffect(() => {
+    setIsImageLoaded(false)
+  }, [player.image?.src])
 
   return (
-    <SceneLayout hideHeader onAdvance={onRestart} advanceLabel="もう一度再生">
-      <div className="apex-result" role="presentation">
-        <div className="apex-result__topbackdrop" aria-hidden="true" />
-
-        <header className="apex-result__header">
-          <nav className="apex-tabs" aria-label="リザルトタブ">
-            <span className="apex-tabs__item">
-              <span className="apex-tabs__label">観戦</span>
-            </span>
-            <span className="apex-tabs__item">
-              <span className="apex-tabs__label">戦闘データ</span>
-            </span>
-            <span className="apex-tabs__item apex-tabs__item--active">
-              <span className="apex-tabs__label">リザルト</span>
-            </span>
-          </nav>
+    <section className="result-card" role="group" aria-labelledby={headingId}>
+      <div className="result-card__body">
+        <header className="result-card__header">
+          <p id={headingId} className="result-card__title">
+            {player.name}
+          </p>
         </header>
-
-        <div className="apex-result__banner" role="group" aria-label="部隊ステータス">
-          <div className="apex-result__banner-bg" aria-hidden="true" />
-          <p className="apex-result__banner-title">アリーナチャンピオン</p>
-          <div className="apex-result__banner-meta">
-            <span>
-              部隊の順位 <strong>1位</strong>
-            </span>
-            <span className="apex-result__banner-divider" aria-hidden="true" />
-            <span>
-              部隊の合計キル <strong>17</strong>
-            </span>
-          </div>
+        <dl className="result-card__stats">
+          {player.stats.map((stat) => (
+            <div key={stat.key} className="result-card__stat">
+              <dt className="result-card__label">{stat.label}</dt>
+              <dd className="result-card__value" aria-label={stat.ariaLabel}>
+                {stat.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      <div className={`result-card__image${isImageLoaded ? ' is-loaded' : ''}`}>
+        <div className="result-card__image-placeholder" aria-hidden="true">
+          <span>ルーツ画像を設定してください</span>
         </div>
+        {player.image ? (
+          <img
+            src={player.image.src}
+            alt={player.image.alt}
+            loading="lazy"
+            onLoad={() => setIsImageLoaded(true)}
+            onError={() => setIsImageLoaded(false)}
+          />
+        ) : null}
+      </div>
+    </section>
+  )
+}
 
-        <section className="apex-result__cards" aria-label="レジェンドのリザルト">
-          {cardData.map(({ legend, stats }) => (
-            <article key={legend.id} className="apex-card" aria-label={legend.displayName}>
-              <div className="apex-card__frame">
-                <header className="apex-card__header">
-                  <p className="apex-card__name">{legend.displayName}</p>
-                </header>
-                <dl className="apex-card__stats">
-                  {stats.map((stat) => (
-                    <div key={stat.key} className="apex-card__stat">
-                      <dt className="apex-card__label">{stat.label}</dt>
-                      <dd
-                        className={`apex-card__value${
-                          stat.emphasize ? ' is-highlight' : ''
-                        }`}
-                      >
-                        {stat.value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <footer className="apex-card__footer" aria-hidden="true">
-                  <span className="apex-card__footer-icon" />
-                </footer>
-              </div>
-              <figure className="apex-card__portrait" aria-hidden="true">
-                <img src={legend.portrait.src} alt="" loading="lazy" />
-              </figure>
-            </article>
+export const ResultScene = ({ onRestart }: SceneComponentProps) => {
+  const [viewData, setViewData] = useState<ResultViewData>(DEFAULT_VIEW_DATA)
+
+  useEffect(() => {
+    const handleSetData = (payload?: ResultPayload) => {
+      setViewData(buildViewData(payload))
+    }
+
+    window.setResultData = handleSetData
+
+    return () => {
+      if (window.setResultData === handleSetData) {
+        delete window.setResultData
+      }
+    }
+  }, [])
+
+  return (
+    <SceneLayout hideHeader>
+      <div className="result-screen" role="presentation">
+        <div className="result-screen__backdrop" aria-hidden="true" />
+
+        <nav className="result-tabbar" aria-label="リザルトタブ">
+          <ul className="result-tabbar__list">
+            <li className="result-tabbar__item">
+              <span className="result-tabbar__label">観戦</span>
+            </li>
+            <li className="result-tabbar__item">
+              <span className="result-tabbar__label">戦闘データ</span>
+            </li>
+            <li className="result-tabbar__item is-active" aria-current="page">
+              <span className="result-tabbar__label">リザルト</span>
+            </li>
+          </ul>
+        </nav>
+
+        <section
+          className="result-banner"
+          aria-live="polite"
+          aria-label="勝利バナー"
+        >
+          <div className="result-banner__surface" aria-hidden="true" />
+          <p className="result-banner__title">{viewData.resultTitle}</p>
+          <div className="result-banner__stats">
+            <div className="result-banner__panel">
+              <span className="result-banner__panel-label">部隊の順位</span>
+              <span
+                className="result-banner__panel-value"
+                aria-label={viewData.teamRank.ariaLabel}
+              >
+                {viewData.teamRank.text}
+              </span>
+            </div>
+            <div className="result-banner__panel">
+              <span className="result-banner__panel-label">部隊の合計キル</span>
+              <span
+                className="result-banner__panel-value"
+                aria-label={viewData.teamKills.ariaLabel}
+              >
+                {viewData.teamKills.text}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section className="result-cards" aria-label="プレイヤー成績">
+          {viewData.players.map((player) => (
+            <ResultPlayerCard key={player.role} player={player} />
           ))}
         </section>
 
-        <footer className="apex-result__footer" aria-hidden="true">
-          <span className="apex-result__footer-button">◯</span>
-          <span className="apex-result__footer-text">ロビーに戻る</span>
-        </footer>
+        <div className="result-action">
+          <button type="button" className="result-action__button" onClick={onRestart}>
+            ロビーに戻る
+          </button>
+        </div>
       </div>
     </SceneLayout>
   )
