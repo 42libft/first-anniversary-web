@@ -34,14 +34,26 @@ const START_ZONE_Y = 0.36
 const START_ZONE_LEEWAY = 0.08
 const CUTLINE_BAND_EXTENSION = 0.18
 const PARTICLE_COUNT = 365
-const PACK_HORIZONTAL_MARGIN = 0.08
-const PACK_BOTTOM_MARGIN = 0.06
-const PACK_TOP_MIN = 0.08
-const PACK_MIN_VERTICAL_SPAN = 0.32
-const PACK_TOP_OFFSET_PERCENT = 2
+const MIN_HORIZONTAL_MARGIN = 0.018
+const MIN_VERTICAL_MARGIN = 0.024
 const PARTICLE_FADE_SPEED = 0.85
 const PARTICLE_FADE_SPEED_REDUCED = 0.55
-const ENERGY_RELEASE_STRENGTH = 0.0024
+const ENERGY_RELEASE_STRENGTH = 0.0032
+
+type WavePoint = {
+  x: number
+  y: number
+}
+
+const WAVE_SEGMENTS: Array<{ x: number; offset: number }> = [
+  { x: 0, offset: 2 },
+  { x: 12, offset: -1.6 },
+  { x: 28, offset: 1.8 },
+  { x: 46, offset: -1.2 },
+  { x: 68, offset: 1.6 },
+  { x: 88, offset: -1.4 },
+  { x: 100, offset: 1.6 },
+]
 
 interface FloatingParticle {
   x: number
@@ -54,6 +66,59 @@ interface FloatingParticle {
 const supportsVibration = () => typeof navigator !== 'undefined' && 'vibrate' in navigator
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
+
+const computeWavePoints = (tearProgress: number): WavePoint[] => {
+  const tearDepth = 8 + tearProgress * 40
+  return WAVE_SEGMENTS.map(({ x, offset }) => ({
+    x: x / 100,
+    y: clamp01((tearDepth + offset) / 100),
+  }))
+}
+
+const evaluateWaveAt = (points: WavePoint[], position: number) => {
+  if (points.length === 0) {
+    return 0
+  }
+
+  if (position <= points[0].x) {
+    return points[0].y
+  }
+
+  for (let index = 1; index < points.length; index += 1) {
+    const current = points[index]
+    if (position <= current.x) {
+      const previous = points[index - 1]
+      const span = current.x - previous.x || 1
+      const ratio = (position - previous.x) / span
+      return previous.y + (current.y - previous.y) * ratio
+    }
+  }
+
+  return points[points.length - 1].y
+}
+
+const drawRoundedRectPath = (
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) => {
+  const r = Math.max(0, Math.min(radius, Math.min(width, height) / 2))
+  context.moveTo(x + r, y)
+  context.lineTo(x + width - r, y)
+  context.quadraticCurveTo(x + width, y, x + width, y + r)
+  context.lineTo(x + width, y + height - r)
+  context.quadraticCurveTo(x + width, y + height, x + width - r, y + height)
+  context.lineTo(x + r, y + height)
+  context.quadraticCurveTo(x, y + height, x, y + height - r)
+  context.lineTo(x, y + r)
+  context.quadraticCurveTo(x, y, x + r, y)
+  context.closePath()
+}
 
 const getRelativePosition = (element: HTMLElement, clientX: number, clientY: number) => {
   const rect = element.getBoundingClientRect()
@@ -121,26 +186,36 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
   )
   const floatingResizeObserverRef = useRef<ResizeObserver | null>(null)
   const floatingWasBurstRef = useRef(false)
+  const clipMetricsRef = useRef<{ radiusX: number; radiusY: number }>({ radiusX: 0.06, radiusY: 0.06 })
   const particleFadeRef = useRef(1)
   const particlesDissipatingRef = useRef(false)
 
-  const seedParticles = useCallback(() => {
-    const bottomBound = 1 - PACK_BOTTOM_MARGIN
-    const minTopCandidate = bottomBound - PACK_MIN_VERTICAL_SPAN
-    const topBound = Math.max(PACK_TOP_MIN, minTopCandidate)
-    const verticalSpan = Math.max(0.12, bottomBound - topBound)
-    const leftBound = PACK_HORIZONTAL_MARGIN
-    const rightBound = 1 - PACK_HORIZONTAL_MARGIN
-    const horizontalSpan = Math.max(0.12, rightBound - leftBound)
+  const seedParticles = useCallback(
+    (progress: number = 0) => {
+      const wavePoints = computeWavePoints(progress)
+      const topWave = wavePoints.reduce((min, point) => Math.min(min, point.y), 1)
+      const { radiusX, radiusY } = clipMetricsRef.current
+      const horizontalPadding = Math.max(MIN_HORIZONTAL_MARGIN, radiusX * 0.75)
+      const tentativeLeft = horizontalPadding
+      const tentativeRight = Math.max(tentativeLeft + 0.12, 1 - horizontalPadding)
+      const horizontalSpan = Math.max(0.18, Math.min(1, tentativeRight) - Math.max(0, tentativeLeft))
+      const leftBound = Math.max(0, Math.min(tentativeLeft, 1 - horizontalSpan))
 
-    floatingParticlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
-      x: leftBound + Math.random() * horizontalSpan,
-      y: topBound + Math.random() * verticalSpan,
-      vx: (Math.random() - 0.5) * 0.006,
-      vy: (Math.random() - 0.5) * 0.006,
-      base: 0.35 + Math.random() * 0.55,
-    }))
-  }, [])
+      const bottomPadding = Math.max(MIN_VERTICAL_MARGIN, radiusY * 0.6)
+      const bottomBound = Math.min(1 - bottomPadding, 0.985)
+      const topBound = Math.min(bottomBound - 0.08, Math.max(topWave, radiusY * 0.7))
+      const verticalSpan = Math.max(0.08, bottomBound - topBound)
+
+      floatingParticlesRef.current = Array.from({ length: PARTICLE_COUNT }, () => ({
+        x: leftBound + Math.random() * horizontalSpan,
+        y: topBound + Math.random() * verticalSpan,
+        vx: (Math.random() - 0.5) * 0.006,
+        vy: (Math.random() - 0.5) * 0.006,
+        base: 0.35 + Math.random() * 0.55,
+      }))
+    },
+    []
+  )
 
   const clearAlignTimeout = useCallback(() => {
     if (alignTimeoutRef.current !== null) {
@@ -200,10 +275,10 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       particlesDissipatingRef.current = false
       particleFadeRef.current = 1
       if (floatingParticlesRef.current.length === 0) {
-        seedParticles()
+        seedParticles(tearProgress)
       }
     }
-  }, [seedParticles, stage])
+  }, [seedParticles, stage, tearProgress])
 
   useEffect(() => {
     const canvas = floatingCanvasRef.current
@@ -217,8 +292,6 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
     }
 
     floatingCtxRef.current = ctx
-
-    seedParticles()
 
     const updateCanvasSize = () => {
       const rect = canvas.getBoundingClientRect()
@@ -234,9 +307,35 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
       }
       ctx.scale(dpr, dpr)
       floatingSizeRef.current = { width: rect.width, height: rect.height }
+
+      const letterElement = interactionRef.current?.querySelector<HTMLElement>('.letter-pack__letter')
+      let radiusNormalizedX = clipMetricsRef.current.radiusX
+      let radiusNormalizedY = clipMetricsRef.current.radiusY
+
+      if (letterElement) {
+        const letterRect = letterElement.getBoundingClientRect()
+        const computedStyle = window.getComputedStyle(letterElement)
+        const topRadius = parseFloat(computedStyle.borderTopLeftRadius) || 0
+        if (letterRect.width > 0 && letterRect.height > 0 && !Number.isNaN(topRadius)) {
+          radiusNormalizedX = clamp01(topRadius / letterRect.width)
+          radiusNormalizedY = clamp01(topRadius / letterRect.height)
+        }
+      }
+
+      if (radiusNormalizedX <= 0 || radiusNormalizedY <= 0) {
+        const fallbackRadius = Math.min(rect.width, rect.height) * 0.08
+        radiusNormalizedX = clamp01(fallbackRadius / (rect.width || 1))
+        radiusNormalizedY = clamp01(fallbackRadius / (rect.height || 1))
+      }
+
+      clipMetricsRef.current = {
+        radiusX: radiusNormalizedX,
+        radiusY: radiusNormalizedY,
+      }
     }
 
     updateCanvasSize()
+    seedParticles()
 
     const resizeObserver = new ResizeObserver(() => {
       updateCanvasSize()
@@ -260,12 +359,32 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
 
       const config = floatingConfigRef.current
       const particles = floatingParticlesRef.current
+      const wavePoints = computeWavePoints(config.tearProgress)
       const speedBoost = config.tearSpeed === 'fast' ? 0.28 : config.tearSpeed === 'slow' ? 0.12 : 0
       const driftFactor = 0.12 + config.tearProgress * 0.9 + speedBoost
       const movementScale = delta * 60
       const intensityBase = 0.22 + config.tearProgress * 0.78 + (config.stage === 'tearing' ? 0.12 : 0)
       const intensity = Math.min(1.1, intensityBase + (config.tearSpeed === 'fast' ? 0.08 : 0))
+      const waveTop = wavePoints.reduce((min, point) => Math.min(min, point.y), 1)
+      const waveAverage = wavePoints.reduce((sum, point) => sum + point.y, 0) / wavePoints.length
+      const { radiusX, radiusY } = clipMetricsRef.current
+      let leftBoundary = Math.max(MIN_HORIZONTAL_MARGIN, radiusX * 0.72)
+      let rightBoundary = 1 - leftBoundary
+      if (rightBoundary - leftBoundary < 0.16) {
+        leftBoundary = Math.max(0, 0.5 - 0.08)
+        rightBoundary = Math.min(1, 0.5 + 0.08)
+      }
+      const bottomPadding = Math.max(MIN_VERTICAL_MARGIN, radiusY * 0.5)
+      const bottomBoundary = Math.min(1 - bottomPadding, 0.985)
+      const baseTopLimit = Math.min(bottomBoundary - 0.08, Math.max(waveTop, radiusY * 0.66))
       const isDissipating = particlesDissipatingRef.current
+      const centerX = (leftBoundary + rightBoundary) * 0.5
+      const centerYBase = Math.max(baseTopLimit, waveAverage)
+      const centerYOffset = isDissipating ? 0.68 : 0.52
+      const centerY = Math.min(
+        bottomBoundary - 0.02,
+        centerYBase + (bottomBoundary - centerYBase) * centerYOffset
+      )
       if (isDissipating) {
         const fadeSpeed = prefersReducedMotion ? PARTICLE_FADE_SPEED_REDUCED : PARTICLE_FADE_SPEED
         particleFadeRef.current = Math.max(0, particleFadeRef.current - delta * fadeSpeed)
@@ -287,52 +406,68 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         return
       }
 
+      const cornerRadius = Math.min(width * radiusX, height * radiusY)
+      context.beginPath()
+      drawRoundedRectPath(context, 0, 0, width, height, cornerRadius)
+      context.clip()
+
+      context.beginPath()
+      wavePoints.forEach((point, index) => {
+        const px = point.x * width
+        const py = point.y * height
+        if (index === 0) {
+          context.moveTo(px, py)
+        } else {
+          context.lineTo(px, py)
+        }
+      })
+      context.lineTo(width, height)
+      context.lineTo(0, height)
+      context.closePath()
+      context.clip()
+
       context.globalCompositeOperation = 'lighter'
 
-      const tearBasePercent = 8 + config.tearProgress * 40
-      let topBoundary = (tearBasePercent + PACK_TOP_OFFSET_PERCENT) / 100
-      topBoundary = Math.max(PACK_TOP_MIN, topBoundary)
-      const bottomBoundary = 1 - PACK_BOTTOM_MARGIN
-      if (bottomBoundary - topBoundary < PACK_MIN_VERTICAL_SPAN) {
-        topBoundary = Math.max(PACK_TOP_MIN, bottomBoundary - PACK_MIN_VERTICAL_SPAN)
-      }
-      const leftBoundary = PACK_HORIZONTAL_MARGIN
-      const rightBoundary = 1 - PACK_HORIZONTAL_MARGIN
-      const centerX = (leftBoundary + rightBoundary) / 2
-      const centerY = topBoundary + (bottomBoundary - topBoundary) * 0.5
+      const releaseStrength = isDissipating
+        ? ENERGY_RELEASE_STRENGTH * (prefersReducedMotion ? 0.55 : 1)
+        : 0
 
       particles.forEach((particle) => {
         if (!prefersReducedMotion) {
           particle.vx += (Math.random() - 0.5) * 0.0032 * driftFactor
           particle.vy += (Math.random() - 0.5) * 0.0032 * driftFactor
-
-          if (isDissipating) {
-            particle.vx += (particle.x - centerX) * ENERGY_RELEASE_STRENGTH
-            particle.vy += (particle.y - centerY) * ENERGY_RELEASE_STRENGTH
-          }
-
-          const maxVelocity = 0.02 + config.tearProgress * 0.12
-          particle.vx = clamp(particle.vx, -maxVelocity, maxVelocity)
-          particle.vy = clamp(particle.vy, -maxVelocity, maxVelocity)
-
-          particle.x += particle.vx * movementScale
-          particle.y += particle.vy * movementScale
         }
+
+        if (releaseStrength !== 0) {
+          particle.vx += (particle.x - centerX) * releaseStrength
+          particle.vy += (particle.y - centerY) * releaseStrength
+        }
+
+        const maxVelocity = 0.02 + config.tearProgress * 0.12
+        particle.vx = clamp(particle.vx, -maxVelocity, maxVelocity)
+        particle.vy = clamp(particle.vy, -maxVelocity, maxVelocity)
+
+        particle.x += particle.vx * movementScale
+        particle.y += particle.vy * movementScale
 
         if (particle.x < leftBoundary) {
           particle.x = leftBoundary
-          particle.vx = Math.abs(particle.vx) * 0.58
+          particle.vx = Math.abs(particle.vx) * 0.62
         } else if (particle.x > rightBoundary) {
           particle.x = rightBoundary
-          particle.vx = -Math.abs(particle.vx) * 0.58
+          particle.vx = -Math.abs(particle.vx) * 0.62
         }
 
+        const waveLimit = evaluateWaveAt(wavePoints, particle.x)
+        const topCandidate = Math.max(baseTopLimit, waveLimit)
+        const maxTop = bottomBoundary - 0.04
+        const topBoundary = Math.min(maxTop, topCandidate)
         if (particle.y < topBoundary) {
           particle.y = topBoundary
-          particle.vy = Math.abs(particle.vy) * 0.58
+          particle.vy = Math.abs(particle.vy) * 0.64
         } else if (particle.y > bottomBoundary) {
           particle.y = bottomBoundary
-          particle.vy = -Math.abs(particle.vy) * 0.58
+          particle.vy = -Math.abs(particle.vy) * 0.64
         }
       })
 
@@ -356,36 +491,6 @@ export const LetterExperience = ({ letterImage }: LetterExperienceProps) => {
         context.arc(px, py, radius * 1.8, 0, Math.PI * 2)
         context.fill()
       })
-
-      context.globalCompositeOperation = 'destination-in'
-      const tearBase = tearBasePercent
-      const polygonPoints: Array<[number, number]> = [
-        [0, tearBase + 2],
-        [12, tearBase - 1.6],
-        [28, tearBase + 1.8],
-        [46, tearBase - 1.2],
-        [68, tearBase + 1.6],
-        [88, tearBase - 1.4],
-        [100, tearBase + 1.6],
-      ]
-
-      context.beginPath()
-      polygonPoints.forEach(([xPercent, yPercent], index) => {
-        const x = (xPercent / 100) * width
-        const y = (yPercent / 100) * height
-        if (index === 0) {
-          context.moveTo(x, y)
-        } else {
-          context.lineTo(x, y)
-        }
-      })
-      context.lineTo(width, height)
-      context.lineTo(0, height)
-      context.closePath()
-      context.fillStyle = '#000'
-      context.fill()
-
-      context.globalCompositeOperation = 'source-over'
 
       context.restore()
 
