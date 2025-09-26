@@ -25,7 +25,7 @@ export const resultLegends: ResultLegend[] = [
     description:
       '移動プランの全ルートを記録し、旅ごとのサプライズを下準備した“ルートマスター”。',
     emblem: '旅ログ設計担当',
-    statFocus: 'distance',
+    statFocus: 'quiz',
     portrait: {
       src: '/images/prologue-self-placeholder.svg',
       alt: 'あなたのシルエットイラスト',
@@ -40,7 +40,7 @@ export const resultLegends: ResultLegend[] = [
     description:
       '思い出の瞬間をカメラとメッセージで収集し、Result演出の種を撒いた“ムードメーカー”。',
     emblem: 'ムードメーカー',
-    statFocus: 'messages',
+    statFocus: 'quiz',
     portrait: {
       src: '/images/prologue-partner-placeholder.svg',
       alt: '彼女のシルエットイラスト',
