@@ -278,7 +278,7 @@
 .result-cards__track {
   --active-index: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   justify-content: center;
   gap: clamp(20px, 3.2vw, 36px);
   transition: transform 280ms ease;
@@ -288,9 +288,7 @@
 .result-card {
   position: relative;
   display: grid;
-  width: 100%;
-  aspect-ratio: 2 / 3.5;
-  grid-template-columns: minmax(0, 1fr) clamp(105px, 18vw, 125px);
+  grid-template-columns: minmax(0, 1fr) clamp(110px, 16vw, 130px);
   gap: clamp(14px, 2.6vw, 24px);
   padding: clamp(18px, 2.8vw, 26px);
   border-radius: 14px;
@@ -384,7 +382,7 @@
   border-radius: 14px;
   padding: 10px;
   width: 100%;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 2 / 3.5;
   min-height: 0;
   background: linear-gradient(160deg, rgba(24, 26, 34, 0.95), rgba(10, 11, 16, 0.95));
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -556,7 +554,7 @@
 
 @media (max-width: 1024px) {
   .result-card {
-    grid-template-columns: minmax(0, 1fr) clamp(92px, 22vw, 118px);
+    grid-template-columns: minmax(0, 1fr) clamp(90px, 18vw, 118px);
   }
 }
 
@@ -579,7 +577,7 @@
   .result-card {
     flex: 0 0 100%;
     max-width: 100%;
-    grid-template-columns: minmax(0, 1fr) clamp(82px, 32vw, 102px);
+    grid-template-columns: minmax(0, 1fr) clamp(84px, 28vw, 105px);
   }
 
   .result-card:hover,
@@ -654,7 +652,7 @@
 
   .result-card {
     padding: clamp(16px, 6vw, 22px);
-    grid-template-columns: minmax(0, 1fr) clamp(74px, 40vw, 92px);
+    grid-template-columns: minmax(0, 1fr) clamp(75px, 32vw, 95px);
   }
 
   .result-cards__nav {
@@ -677,7 +675,6 @@
   .result-card {
     grid-template-columns: minmax(0, 1fr);
     gap: clamp(14px, 6vw, 20px);
-    aspect-ratio: auto;
   }
 
   .result-card__body,
