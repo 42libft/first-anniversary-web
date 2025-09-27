@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import './App.css'
 import { SceneQuickPanel } from './components/SceneQuickPanel'
 import { DistanceHUD } from './components/DistanceHUD'
 import { BuildStamp } from './components/BuildStamp'
+import { GlobalBackButton } from './components/GlobalBackButton'
 import { journeys } from './data/journeys'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
+import { useActionHistory } from './history/ActionHistoryContext'
 import { IntroScene } from './scenes/IntroScene'
 import { JourneysScene } from './scenes/JourneysScene'
 import { LetterScene } from './scenes/LetterScene'
@@ -58,9 +60,32 @@ function App() {
 
   const [distanceTraveled, setDistanceTraveled] = useState(0)
 
-  const { responses, saveResponse } = useStoredJourneyResponses()
+  const { responses, saveResponse, replaceResponses } = useStoredJourneyResponses()
+  const { record } = useActionHistory()
 
   const introLocked = introBootState !== 'ready'
+
+  const createSnapshot = useCallback(() => {
+    return {
+      sceneIndex,
+      distanceTraveled,
+      introBootState,
+      responses: responses.map((entry) => ({ ...entry })),
+    }
+  }, [sceneIndex, distanceTraveled, introBootState, responses])
+
+  const recordSnapshot = useCallback(
+    (label?: string) => {
+      const snapshot = createSnapshot()
+      record(() => {
+        setSceneIndex(snapshot.sceneIndex)
+        setDistanceTraveled(snapshot.distanceTraveled)
+        setIntroBootState(snapshot.introBootState)
+        replaceResponses(snapshot.responses.map((entry) => ({ ...entry })))
+      }, { label })
+    },
+    [createSnapshot, record, replaceResponses]
+  )
 
   const goToScene = (sceneId: SceneId) => {
     const targetIndex = sceneOrder.indexOf(sceneId)
@@ -70,6 +95,10 @@ function App() {
     if (introLocked && currentSceneId === 'intro' && sceneId !== 'intro') {
       return
     }
+    if (targetIndex === sceneIndex) {
+      return
+    }
+    recordSnapshot(`Scene to ${sceneId}`)
     setSceneIndex(targetIndex)
   }
 
@@ -77,20 +106,43 @@ function App() {
     if (introLocked && currentSceneId === 'intro') {
       return
     }
-    setSceneIndex((index) =>
-      Math.min(index + 1, sceneOrder.length - 1)
-    )
+    if (sceneIndex >= sceneOrder.length - 1) {
+      return
+    }
+    recordSnapshot('Next scene')
+    setSceneIndex(sceneIndex + 1)
   }
 
   const goToPreviousScene = () => {
-    setSceneIndex((index) => Math.max(index - 1, 0))
+    if (sceneIndex <= 0) {
+      return
+    }
+    recordSnapshot('Previous scene')
+    setSceneIndex(sceneIndex - 1)
   }
 
   const restartExperience = () => {
+    if (sceneIndex === 0 && distanceTraveled === 0 && introBootState === 'loading') {
+      return
+    }
+    recordSnapshot('Restart experience')
     setSceneIndex(0)
     setDistanceTraveled(0)
     setIntroBootState('loading')
   }
+
+  const saveResponseWithHistory = useCallback(
+    (payload: Parameters<typeof saveResponse>[0]) => {
+      const existing = responses.find((entry) => entry.storageKey === payload.storageKey)
+      if (existing && existing.answer === payload.answer) {
+        saveResponse(payload)
+        return
+      }
+      recordSnapshot('Save response')
+      saveResponse(payload)
+    },
+    [recordSnapshot, responses, saveResponse]
+  )
 
   const sceneProps: SceneComponentProps = {
     onAdvance: goToNextScene,
@@ -100,7 +152,7 @@ function App() {
     distanceTraveled,
     totalJourneyDistance,
     responses,
-    saveResponse,
+    saveResponse: saveResponseWithHistory,
     setDistanceTraveled,
     reportIntroBootState: setIntroBootState,
   }
@@ -126,6 +178,7 @@ function App() {
         <span className="scene-footer__label">SCENE</span>
         <span className="scene-footer__value">{sceneTitleMap[currentSceneId]}</span>
       </footer>
+      <GlobalBackButton />
     </div>
   )
 }

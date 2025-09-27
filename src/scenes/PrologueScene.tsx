@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { prologueScript } from '../data/prologue'
 import type { SceneComponentProps } from '../types/scenes'
+import { useActionHistory } from '../history/ActionHistoryContext'
 
 const CALL_LABELS = ['RTC接続中']
 const CALL_AVATAR_SRC = '/images/gimmie-placeholder.svg'
@@ -19,6 +20,7 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
 
     return firstSpeaker === 'partner' ? 'partner' : 'self'
   })
+  const { record } = useActionHistory()
 
   useEffect(() => {
     if (currentLine?.variant === 'self' || currentLine?.variant === 'partner') {
@@ -27,15 +29,23 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
   }, [currentLine?.variant])
 
   const handleAdvance = useCallback(() => {
-    setActiveIndex((current) => {
-      if (current >= totalLines - 1) {
-        onAdvance()
-        return current
-      }
+    if (activeIndex >= totalLines - 1) {
+      onAdvance()
+      return
+    }
 
-      return current + 1
-    })
-  }, [onAdvance, totalLines])
+    const snapshot = {
+      index: activeIndex,
+      backdrop: activeBackdrop,
+    }
+
+    record(() => {
+      setActiveIndex(snapshot.index)
+      setActiveBackdrop(snapshot.backdrop)
+    }, { label: 'Prologue: advance line' })
+
+    setActiveIndex((current) => Math.min(current + 1, totalLines - 1))
+  }, [activeBackdrop, activeIndex, onAdvance, record, totalLines])
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLElement>) => {

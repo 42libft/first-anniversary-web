@@ -80,9 +80,14 @@ export const useStoredJourneyResponses = () => {
     setResponses([])
   }, [])
 
+  const replaceResponses = useCallback((items: JourneyPromptResponse[]) => {
+    setResponses(items)
+  }, [])
+
   return {
     responses,
     saveResponse,
     clearResponses,
+    replaceResponses,
   }
 }

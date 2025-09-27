@@ -3,6 +3,7 @@ import type { CSSProperties, TouchEvent } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
 import type { SceneComponentProps } from '../types/scenes'
+import { useActionHistory } from '../history/ActionHistoryContext'
 
 import './ResultScene.css'
 
@@ -298,9 +299,19 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
   const [viewData, setViewData] = useState<ResultViewData>(DEFAULT_VIEW_DATA)
   const [activePlayerIndex, setActivePlayerIndex] = useState(0)
   const touchStartXRef = useRef<number | null>(null)
+  const { record } = useActionHistory()
 
   useEffect(() => {
     const handleSetData = (payload?: ResultPayload) => {
+      const snapshot = {
+        data: viewData,
+        index: activePlayerIndex,
+      }
+      record(() => {
+        setViewData(snapshot.data)
+        setActivePlayerIndex(snapshot.index)
+      }, { label: 'Result: update dataset' })
+
       setViewData(buildViewData(payload))
       setActivePlayerIndex(0)
     }
@@ -312,7 +323,7 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
         delete window.setResultData
       }
     }
-  }, [])
+  }, [activePlayerIndex, record, viewData])
 
   const totalPlayers = viewData.players.length
   type TrackStyle = CSSProperties & { '--active-index'?: number }
@@ -322,6 +333,12 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
     if (totalPlayers <= 1) {
       return
     }
+
+    const label = direction < 0 ? 'Result: previous player' : 'Result: next player'
+    const snapshotIndex = activePlayerIndex
+    record(() => {
+      setActivePlayerIndex(snapshotIndex)
+    }, { label })
 
     setActivePlayerIndex((prev) => {
       const nextIndex = (prev + direction + totalPlayers) % totalPlayers
@@ -333,6 +350,13 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
     if (index < 0 || index >= totalPlayers) {
       return
     }
+    if (index === activePlayerIndex) {
+      return
+    }
+    const snapshotIndex = activePlayerIndex
+    record(() => {
+      setActivePlayerIndex(snapshotIndex)
+    }, { label: `Result: select player ${index + 1}` })
     setActivePlayerIndex(index)
   }
 

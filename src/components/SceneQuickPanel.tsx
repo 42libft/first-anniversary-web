@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import type { SceneId } from '../types/scenes'
 import { sceneOrder, sceneTitleMap } from '../types/scenes'
+import { useActionHistory } from '../history/ActionHistoryContext'
 
 type SceneQuickPanelProps = {
   currentSceneId: SceneId
@@ -19,6 +20,7 @@ export const SceneQuickPanel = ({
   onRestart,
 }: SceneQuickPanelProps) => {
   const [isOpen, setIsOpen] = useState(true)
+  const { record } = useActionHistory()
 
   return (
     <aside
@@ -30,7 +32,15 @@ export const SceneQuickPanel = ({
         className="scene-quick__toggle"
         aria-expanded={isOpen}
         aria-label={isOpen ? 'クイックパネルを閉じる' : 'クイックパネルを開く'}
-        onClick={() => setIsOpen((open) => !open)}
+        onClick={() =>
+          setIsOpen((open) => {
+            const next = !open
+            record(() => setIsOpen(open), {
+              label: next ? 'Open quick panel' : 'Close quick panel',
+            })
+            return next
+          })
+        }
       >
         {isOpen ? '×' : 'Scene Nav'}
       </button>

@@ -11,6 +11,7 @@ import {
 import { TapRippleField } from '../components/TapRippleField'
 import { mediaExchangeCounts, totalMedia } from '../data/media'
 import type { SceneComponentProps } from '../types/scenes'
+import { useActionHistory } from '../history/ActionHistoryContext'
 
 const FINAL_TARGET = totalMedia
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 36))
@@ -73,6 +74,18 @@ type ControlState = {
   glowIntensity: number
   hueSpread: number
   driftStrength: number
+}
+
+type MediaSnapshot = {
+  count: number
+  phase: 'play' | 'announce' | 'cta'
+  ctaVisible: boolean
+  controls: ControlState
+  panelOpen: boolean
+  fragments: Fragment[]
+  waveSeed: number
+  slotOrder: number[]
+  slotCursor: number
 }
 
 const distanceNormalized = (a: ScatterSlot, b: { x: number; y: number }) =>
@@ -167,6 +180,7 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   const timersRef = useRef<number[]>([])
   const fadeTimersRef = useRef<Map<number, number>>(new Map())
   const removalTimersRef = useRef<Map<number, number>>(new Map())
+  const { record } = useActionHistory()
 
   const registerTimer = useCallback((handler: () => void, delay: number) => {
     const timerId = window.setTimeout(() => {
@@ -182,6 +196,49 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     timersRef.current = timersRef.current.filter((id) => id !== timerId)
   }, [])
 
+  const clearAllTimers = useCallback(() => {
+    timersRef.current.forEach((timer) => window.clearTimeout(timer))
+    timersRef.current = []
+    fadeTimersRef.current.forEach((timerId) => window.clearTimeout(timerId))
+    fadeTimersRef.current.clear()
+    removalTimersRef.current.forEach((timerId) => window.clearTimeout(timerId))
+    removalTimersRef.current.clear()
+  }, [])
+
+  const snapshotState = useCallback((): MediaSnapshot => ({
+    count,
+    phase,
+    ctaVisible,
+    controls: { ...controls },
+    panelOpen,
+    fragments: fragments.map((fragment) => ({ ...fragment })),
+    waveSeed,
+    slotOrder: [...slotOrderRef.current],
+    slotCursor: slotCursorRef.current,
+  }), [controls, count, ctaVisible, fragments, panelOpen, phase, waveSeed])
+
+  const restoreSnapshot = useCallback((snapshot: MediaSnapshot) => {
+    clearAllTimers()
+    setCount(snapshot.count)
+    setPhase(snapshot.phase)
+    setCtaVisible(snapshot.ctaVisible)
+    setControls(snapshot.controls)
+    setPanelOpen(snapshot.panelOpen)
+    setFragments(snapshot.fragments)
+    setWaveSeed(snapshot.waveSeed)
+    slotOrderRef.current = [...snapshot.slotOrder]
+    slotCursorRef.current = snapshot.slotCursor
+  }, [
+    clearAllTimers,
+    setControls,
+    setCount,
+    setCtaVisible,
+    setFragments,
+    setPanelOpen,
+    setPhase,
+    setWaveSeed,
+  ])
+
   const resetSlotOrder = useCallback(() => {
     const indices = Array.from({ length: scatterSlots.length }, (_, index) => index)
     slotOrderRef.current = shuffle(indices)
@@ -192,16 +249,7 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     resetSlotOrder()
   }, [resetSlotOrder])
 
-  useEffect(() => {
-    return () => {
-      timersRef.current.forEach((timer) => window.clearTimeout(timer))
-      timersRef.current = []
-      fadeTimersRef.current.forEach((timerId) => window.clearTimeout(timerId))
-      fadeTimersRef.current.clear()
-      removalTimersRef.current.forEach((timerId) => window.clearTimeout(timerId))
-      removalTimersRef.current.clear()
-    }
-  }, [])
+  useEffect(() => () => clearAllTimers(), [clearAllTimers])
 
   const visibleFragments = useMemo(
     () => fragments.slice(-MAX_FRAGMENTS),
@@ -218,14 +266,12 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   useEffect(() => {
     if (phase !== 'announce') return
     setCtaVisible(false)
-    const timer = window.setTimeout(() => {
+    const timer = registerTimer(() => {
       setCtaVisible(true)
       setPhase('cta')
     }, 3200)
-    return () => {
-      window.clearTimeout(timer)
-    }
-  }, [phase])
+    return () => clearTimer(timer)
+  }, [clearTimer, phase, registerTimer])
 
   const startFragmentFade = useCallback(
     (fragmentId: number, fadeDuration: number) => {
@@ -341,6 +387,8 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
 
   const handlePulse = (position?: { x: number; y: number }) => {
     if (phase !== 'play') return
+    const snapshot = snapshotState()
+    record(() => restoreSnapshot(snapshot), { label: 'Media: pulse tap' })
     setCount((prev) => Math.min(FINAL_TARGET, prev + TAP_INCREMENT))
 
     const anchorCandidate = position
@@ -461,6 +509,8 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   const handleControlChange = (key: keyof ControlState) =>
     (event: ChangeEvent<HTMLInputElement>) => {
       const value = Number(event.target.value)
+      const snapshot = snapshotState()
+      record(() => restoreSnapshot(snapshot), { label: `Media: adjust ${key}` })
       setControls((prev) => ({
         ...prev,
         [key]: value,
@@ -592,7 +642,11 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         <button
           type="button"
           className="media-control-panel__toggle"
-          onClick={() => setPanelOpen((prev) => !prev)}
+          onClick={() => {
+            const snapshot = snapshotState()
+            record(() => restoreSnapshot(snapshot), { label: 'Media: toggle panel' })
+            setPanelOpen((prev) => !prev)
+          }}
         >
           {panelOpen ? 'close' : 'tune'}
         </button>

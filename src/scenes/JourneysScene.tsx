@@ -10,6 +10,7 @@ import type {
   JourneyQuestionStep,
 } from '../types/journey'
 import type { SceneComponentProps } from '../types/scenes'
+import { useHistoryTrackedState } from '../history/useHistoryTrackedState'
 
 const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
   year: 'numeric',
@@ -348,9 +349,9 @@ export const JourneysScene = ({
     return list
   }, [journeys])
 
-  const [pageIndex, setPageIndex] = useState(0)
+  const [pageIndex, setPageIndex] = useHistoryTrackedState('journeys:pageIndex', 0)
   const [slideState, setSlideState] = useState<'idle' | 'leaving' | 'entering'>('idle')
-  const [draftAnswer, setDraftAnswer] = useState('')
+  const [draftAnswer, setDraftAnswer] = useHistoryTrackedState('journeys:draftAnswer', '')
   const stageRef = useRef<HTMLDivElement | null>(null)
   // Focus container for a11y on page change
 
@@ -390,15 +391,15 @@ export const JourneysScene = ({
     : false
 
   useEffect(() => {
-    if (activeQuestion) setDraftAnswer(storedResponse?.answer ?? '')
-    else setDraftAnswer('')
-  }, [activeQuestion, storedResponse])
+    if (activeQuestion) setDraftAnswer(storedResponse?.answer ?? '', { record: false })
+    else setDraftAnswer('', { record: false })
+  }, [activeQuestion, setDraftAnswer, storedResponse])
 
   const handleAnswerChange = useCallback(
     (value: string) => {
       if (!activeQuestion || !activeJourney) return
       if (activeQuestion.readonlyAfterSave !== false && storedResponse !== undefined) return
-      setDraftAnswer(value)
+      setDraftAnswer(value, { label: 'Journeys: edit answer' })
       if (activeQuestion.style === 'choice' || activeQuestion.readonlyAfterSave === false) {
         if (storedResponse?.answer === value) return
         saveResponse({
@@ -484,12 +485,18 @@ export const JourneysScene = ({
   const scheduleNext = () => {
     if (slideState === 'leaving') return
     setSlideState('leaving')
+    const previousIndex = pageIndex
     setTimeout(() => {
       if (isLastPage) {
         onAdvance()
-      } else {
-        setPageIndex((i) => Math.min(i + 1, pageCount - 1))
+        return
       }
+      const nextIndex = Math.min(previousIndex + 1, pageCount - 1)
+      if (nextIndex === previousIndex) {
+        setSlideState('idle')
+        return
+      }
+      setPageIndex(nextIndex, { label: 'Journeys: advance page' })
     }, 200)
   }
 

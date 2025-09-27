@@ -4,13 +4,22 @@ import type { CSSProperties } from 'react'
 import { SceneLayout } from '../components/SceneLayout'
 import { meetupPages } from '../data/meetups'
 import type { SceneComponentProps } from '../types/scenes'
+import { useActionHistory } from '../history/ActionHistoryContext'
 
 export const MeetupsScene = ({ onAdvance }: SceneComponentProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
+  const { record } = useActionHistory()
   const activePage = meetupPages[activeIndex]
 
   const handlePrev = () => {
-    setActiveIndex((index) => Math.max(index - 1, 0))
+    if (activeIndex <= 0) {
+      return
+    }
+    const snapshotIndex = activeIndex
+    record(() => {
+      setActiveIndex(snapshotIndex)
+    }, { label: 'Meetups: previous page' })
+    setActiveIndex(Math.max(activeIndex - 1, 0))
   }
 
   const handleNext = () => {
@@ -18,11 +27,21 @@ export const MeetupsScene = ({ onAdvance }: SceneComponentProps) => {
       onAdvance()
       return
     }
-
-    setActiveIndex((index) => Math.min(index + 1, meetupPages.length - 1))
+    const snapshotIndex = activeIndex
+    record(() => {
+      setActiveIndex(snapshotIndex)
+    }, { label: 'Meetups: next page' })
+    setActiveIndex(Math.min(activeIndex + 1, meetupPages.length - 1))
   }
 
   const handleSelect = (index: number) => {
+    if (index === activeIndex) {
+      return
+    }
+    const snapshotIndex = activeIndex
+    record(() => {
+      setActiveIndex(snapshotIndex)
+    }, { label: `Meetups: select page ${index + 1}` })
     setActiveIndex(index)
   }
 

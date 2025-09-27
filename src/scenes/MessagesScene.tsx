@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { CanvasMemoryStream } from '../components/CanvasMemoryStream'
 import { messageMilestones } from '../data/messages'
 import type { SceneComponentProps } from '../types/scenes'
+import { useActionHistory } from '../history/ActionHistoryContext'
+import { useHistoryTrackedState } from '../history/useHistoryTrackedState'
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
@@ -11,11 +13,33 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
   const FINAL_TARGET = 41086
   const TAPS_TO_COMPLETE = 120
   const TAP_INCREMENT = Math.ceil(FINAL_TARGET / TAPS_TO_COMPLETE)
-  const [count, setCount] = useState(0)
-  const [phase, setPhase] = useState<'play' | 'announce' | 'cta'>('play')
-  const [ctaVisible, setCtaVisible] = useState(false)
-  const [showTopLine, setShowTopLine] = useState(false)
-  const [showBottomLine, setShowBottomLine] = useState(false)
+  const [count, setCount] = useHistoryTrackedState('messages:count', 0)
+  const [phase, setPhase] = useHistoryTrackedState<'play' | 'announce' | 'cta'>(
+    'messages:phase',
+    'play'
+  )
+  const [ctaVisible, setCtaVisible] = useHistoryTrackedState('messages:ctaVisible', false)
+  const [showTopLine, setShowTopLine] = useHistoryTrackedState('messages:showTopLine', false)
+  const [showBottomLine, setShowBottomLine] = useHistoryTrackedState(
+    'messages:showBottomLine',
+    false
+  )
+  const timersRef = useRef<number[]>([])
+  const { record } = useActionHistory()
+
+  const clearTimers = useCallback(() => {
+    timersRef.current.forEach((timerId) => window.clearTimeout(timerId))
+    timersRef.current = []
+  }, [])
+
+  const scheduleTimer = useCallback((handler: () => void, delay: number) => {
+    const timerId = window.setTimeout(() => {
+      handler()
+      timersRef.current = timersRef.current.filter((id) => id !== timerId)
+    }, delay)
+    timersRef.current.push(timerId)
+    return timerId
+  }, [])
 
   // 文字プール（既存のプレビューとハイライトを合成）
   const messageStrings = useMemo(() => {
@@ -34,35 +58,68 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
   useEffect(() => {
     if (phase !== 'play') return
     if (count >= FINAL_TARGET) {
-      setPhase('announce')
+      setPhase('announce', { record: false })
     }
-  }, [count, phase])
+  }, [FINAL_TARGET, count, phase, setPhase])
 
   // announceに入ったら行ごとのフェード→CTAの順で表示
   useEffect(() => {
     if (phase !== 'announce') return
-    setShowTopLine(false)
-    setShowBottomLine(false)
-    setCtaVisible(false)
-    const t1 = setTimeout(() => setShowTopLine(true), 1200)
-    const t2 = setTimeout(() => setShowBottomLine(true), 2600)
-    const t3 = setTimeout(() => { setCtaVisible(true); setPhase('cta') }, 4600)
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
-  }, [phase])
+    setShowTopLine(false, { record: false })
+    setShowBottomLine(false, { record: false })
+    setCtaVisible(false, { record: false })
+    const t1 = scheduleTimer(() => setShowTopLine(true, { record: false }), 1200)
+    const t2 = scheduleTimer(() => setShowBottomLine(true, { record: false }), 2600)
+    const t3 = scheduleTimer(() => {
+      setCtaVisible(true, { record: false })
+      setPhase('cta', { record: false })
+    }, 4600)
+    return () => {
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+      window.clearTimeout(t3)
+      timersRef.current = timersRef.current.filter(
+        (timerId) => timerId !== t1 && timerId !== t2 && timerId !== t3
+      )
+    }
+  }, [phase, scheduleTimer, setCtaVisible, setPhase, setShowBottomLine, setShowTopLine])
+
+  useEffect(() => () => clearTimers(), [clearTimers])
 
   const handleReveal = () => {
     if (phase !== 'play') return
     // 1タップで3段階に分けて加算（約1/3ずつ）
     const step = Math.ceil(TAP_INCREMENT / 3)
+    const snapshot = {
+      count,
+      phase,
+      ctaVisible,
+      showTopLine,
+      showBottomLine,
+    }
+
+    clearTimers()
+
+    record(() => {
+      clearTimers()
+      setCount(snapshot.count, { record: false })
+      setPhase(snapshot.phase, { record: false })
+      setCtaVisible(snapshot.ctaVisible, { record: false })
+      setShowTopLine(snapshot.showTopLine, { record: false })
+      setShowBottomLine(snapshot.showBottomLine, { record: false })
+    }, { label: 'Messages: reveal tap' })
+
     let i = 0
     const tick = () => {
       setCount((c) => {
         if (c >= FINAL_TARGET) return c
         const next = Math.min(FINAL_TARGET, c + step)
         return next
-      })
+      }, { record: false })
       i += 1
-      if (i < 3) setTimeout(tick, 120)
+      if (i < 3) {
+        scheduleTimer(tick, 120)
+      }
     }
     tick()
   }

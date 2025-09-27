@@ -11,6 +11,7 @@ import {
 
 import { linkExchangeCounts, totalLinks } from '../data/links'
 import type { SceneComponentProps } from '../types/scenes'
+import { useActionHistory } from '../history/ActionHistoryContext'
 
 const FINAL_TARGET = totalLinks
 const TAP_INCREMENT = Math.max(1, Math.ceil(FINAL_TARGET / 32))
@@ -74,6 +75,20 @@ type Segment = {
   fadeDuration: number
 }
 
+type LinksSnapshot = {
+  count: number
+  phase: 'play' | 'announce' | 'cta'
+  ctaVisible: boolean
+  showLines: boolean
+  dynamicNodes: Node[]
+  dynamicEdges: Array<[number, number]>
+  segments: Segment[]
+  activeNodes: string[]
+  controls: ControlState
+  panelOpen: boolean
+  batch: number
+}
+
 export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const [count, setCount] = useState(() => Math.min(10, FINAL_TARGET))
   const [phase, setPhase] = useState<'play' | 'announce' | 'cta'>(
@@ -98,6 +113,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const batchRef = useRef(0)
   const timersRef = useRef<number[]>([])
   const fadeTimeoutsRef = useRef<Map<number, number>>(new Map())
+  const { record } = useActionHistory()
 
   const registerTimer = useCallback((handler: () => void, delay: number) => {
     const timerId = window.setTimeout(() => {
@@ -112,6 +128,65 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     window.clearTimeout(timerId)
     timersRef.current = timersRef.current.filter((id) => id !== timerId)
   }, [])
+
+  const clearAllTimers = useCallback(() => {
+    timersRef.current.forEach((timerId) => window.clearTimeout(timerId))
+    timersRef.current = []
+    fadeTimeoutsRef.current.forEach((timerId) => window.clearTimeout(timerId))
+    fadeTimeoutsRef.current.clear()
+  }, [])
+
+  const snapshotState = useCallback((): LinksSnapshot => ({
+    count,
+    phase,
+    ctaVisible,
+    showLines,
+    dynamicNodes: dynamicNodes.map((node) => ({ ...node })),
+    dynamicEdges: dynamicEdges.map((edge) => [edge[0], edge[1]] as [number, number]),
+    segments: segments.map((segment) => ({ ...segment })),
+    activeNodes: Array.from(activeNodes),
+    controls: { ...controls },
+    panelOpen,
+    batch: batchRef.current,
+  }), [
+    activeNodes,
+    controls,
+    count,
+    ctaVisible,
+    dynamicEdges,
+    dynamicNodes,
+    panelOpen,
+    phase,
+    segments,
+    showLines,
+  ])
+
+  const restoreSnapshot = useCallback((snapshot: LinksSnapshot) => {
+    clearAllTimers()
+    setCount(snapshot.count)
+    setPhase(snapshot.phase)
+    setCtaVisible(snapshot.ctaVisible)
+    setShowLines(snapshot.showLines)
+    setDynamicNodes(snapshot.dynamicNodes)
+    setDynamicEdges(snapshot.dynamicEdges)
+    setSegments(snapshot.segments)
+    setActiveNodes(new Set(snapshot.activeNodes))
+    setControls(snapshot.controls)
+    setPanelOpen(snapshot.panelOpen)
+    batchRef.current = snapshot.batch
+  }, [
+    clearAllTimers,
+    setActiveNodes,
+    setControls,
+    setCount,
+    setCtaVisible,
+    setDynamicEdges,
+    setDynamicNodes,
+    setPanelOpen,
+    setPhase,
+    setSegments,
+    setShowLines,
+  ])
 
   const startSegmentFade = useCallback(
     (segmentId: number, duration: number) => {
@@ -166,14 +241,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     [dynamicEdges]
   )
 
-  useEffect(() => {
-    return () => {
-      timersRef.current.forEach((timer) => window.clearTimeout(timer))
-      timersRef.current = []
-      fadeTimeoutsRef.current.forEach((timerId) => clearTimer(timerId))
-      fadeTimeoutsRef.current.clear()
-    }
-  }, [clearTimer])
+  useEffect(() => () => clearAllTimers(), [clearAllTimers])
 
   useEffect(() => {
     if (phase !== 'play') return
@@ -186,16 +254,16 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     if (phase !== 'announce') return
     setShowLines(false)
     setCtaVisible(false)
-    const timerLine = window.setTimeout(() => setShowLines(true), 900)
-    const timerCta = window.setTimeout(() => {
+    const timerLine = registerTimer(() => setShowLines(true), 900)
+    const timerCta = registerTimer(() => {
       setCtaVisible(true)
       setPhase('cta')
     }, 3600)
     return () => {
-      window.clearTimeout(timerLine)
-      window.clearTimeout(timerCta)
+      clearTimer(timerLine)
+      clearTimer(timerCta)
     }
-  }, [phase])
+  }, [clearTimer, phase, registerTimer])
 
   const toViewBoxPoint = (event: PointerEvent<HTMLDivElement>) => {
     if (!networkRef.current) return null
@@ -213,6 +281,9 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     if (phase !== 'play') return
     const svgPoint = toViewBoxPoint(event)
     if (!svgPoint) return
+
+    const snapshot = snapshotState()
+    record(() => restoreSnapshot(snapshot), { label: 'Links: network tap' })
 
     batchRef.current += 1
     const batchId = batchRef.current
@@ -257,13 +328,14 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         next.add(target.id)
         return next
       })
-      window.setTimeout(() => {
+      const releaseDelay = 1400 + idx * 160
+      registerTimer(() => {
         setActiveNodes((prev) => {
           const next = new Set(prev)
           next.delete(target.id)
           return next
         })
-      }, 1400 + idx * 160)
+      }, releaseDelay)
     })
 
     setActiveNodes((prev) => {
@@ -271,7 +343,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       next.add(newNodeId)
       return next
     })
-    window.setTimeout(() => {
+    registerTimer(() => {
       setActiveNodes((prev) => {
         const next = new Set(prev)
         next.delete(newNodeId)
@@ -311,6 +383,8 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const handleControlChange = (key: keyof ControlState) =>
     (event: ChangeEvent<HTMLInputElement>) => {
       const value = Number(event.target.value)
+      const snapshot = snapshotState()
+      record(() => restoreSnapshot(snapshot), { label: `Links: adjust ${key}` })
       setControls((prev) => ({
         ...prev,
         [key]: value,
@@ -482,7 +556,11 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         <button
           type="button"
           className="links-control-panel__toggle"
-          onClick={() => setPanelOpen((prev) => !prev)}
+          onClick={() => {
+            const snapshot = snapshotState()
+            record(() => restoreSnapshot(snapshot), { label: 'Links: toggle panel' })
+            setPanelOpen((prev) => !prev)
+          }}
         >
           {panelOpen ? 'close' : 'tune'}
         </button>
