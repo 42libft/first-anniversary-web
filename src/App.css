@@ -438,31 +438,25 @@
   height: clamp(220px, 38vh, 340px);
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   gap: 0.65rem;
   overflow: hidden;
 }
 
 .terminal__viewport {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.35rem;
+  display: block;
   overflow-y: auto;
   padding-right: 0.25rem;
-  scrollbar-width: none;
-  mask-image: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 1) 60%,
-    rgba(0, 0, 0, 0.88) 80%,
-    rgba(0, 0, 0, 0) 100%
-  );
+  scrollbar-width: thin;
 }
 
 .terminal__viewport::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+  width: 6px;
+}
+
+.terminal__viewport::-webkit-scrollbar-thumb {
+  background: rgba(143, 172, 255, 0.4);
+  border-radius: 999px;
 }
 
 .terminal__line {
@@ -470,6 +464,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 0 0 auto;
+}
+
+.terminal__viewport .terminal__line + .terminal__line {
+  margin-top: 0.3rem;
 }
 
 .terminal__line--category {
