@@ -109,12 +109,13 @@
 
 .result-banner {
   position: relative;
-  padding: clamp(14px, 2.6vw, 22px) clamp(22px, 4vw, 34px);
+  padding: clamp(14px, 2.4vw, 20px) clamp(22px, 4vw, 34px);
   border-radius: 8px;
   overflow: hidden;
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  min-height: clamp(68px, 10vw, 92px);
   background: linear-gradient(90deg, rgba(152, 102, 10, 0.78) 0%, rgba(236, 203, 122, 0.62) 48%, rgba(152, 102, 10, 0.78) 100%);
   backdrop-filter: blur(6px);
 }
@@ -162,7 +163,6 @@
 }
 
 .result-banner__title {
-  grid-column: 1 / -1;
   margin: 0;
   text-align: center;
   font-size: clamp(2.1rem, 5vw, 2.6rem);
@@ -172,16 +172,21 @@
   color: #fff7e8;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   line-height: 1.08;
+  padding: 0 clamp(72px, 16vw, 160px);
+  position: relative;
+  z-index: 1;
 }
 
 .result-banner__stats {
-  grid-column: 2 / 3;
-  display: flex;
+  position: absolute;
+  top: 55%;
+  right: clamp(22px, 4vw, 36px);
+  transform: translateY(-38%);
+  display: inline-flex;
   align-items: flex-end;
   justify-content: flex-end;
-  flex-wrap: wrap;
   gap: clamp(16px, 3vw, 30px);
-  padding-top: clamp(2px, 0.9vw, 8px);
+  z-index: 1;
 }
 
 .result-banner__panel {
@@ -401,16 +406,24 @@
 
   .result-banner {
     border-radius: 9px;
-    grid-template-columns: 1fr;
-    row-gap: 0.75rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: auto;
     padding: clamp(16px, 5vw, 20px) clamp(18px, 6vw, 24px);
   }
 
+  .result-banner__title {
+    padding: 0;
+  }
+
   .result-banner__stats {
-    grid-column: 1 / -1;
     width: 100%;
     justify-content: flex-end;
     gap: 1rem;
+    position: static;
+    transform: none;
+    margin-top: 0.4rem;
   }
 
   .result-banner__panel {
