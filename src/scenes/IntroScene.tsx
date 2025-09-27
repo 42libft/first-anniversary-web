@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { AsciiStartScene } from '../components/AsciiStartScene'
 import { GlobalStarfield } from '../components/GlobalStarfield'
@@ -121,6 +121,14 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
     } as const
   }, [currentAsset?.label, currentRetries, estimatedRemainingMs, hasMissing, status])
 
+  const terminalViewportRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const viewport = terminalViewportRef.current
+    if (!viewport) return
+    viewport.scrollTop = viewport.scrollHeight
+  }, [logs.length, progressLine])
+
   const handleClick = () => {
     if (stage === 'start') {
       onAdvance()
@@ -137,8 +145,9 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
     >
       {stage === 'terminal' ? (
         <div className="intro-terminal" role="status" aria-live="polite">
-          <div className="intro-terminal__logs">
-            <div className="terminal">
+        <div className="intro-terminal__logs">
+          <div className="terminal" aria-live="polite">
+            <div className="terminal__viewport" ref={terminalViewportRef}>
               {logs.map((line) => {
                 if (line.kind === 'category') {
                   return (
@@ -165,11 +174,12 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
                   </div>
                 )
               })}
-                <div className="terminal__line terminal__line--progress" aria-live="polite">
-                  {progressLine}
-                </div>
-              </div>
             </div>
+            <div className="terminal__line terminal__line--progress">
+              {progressLine}
+            </div>
+          </div>
+        </div>
 
           <div className="intro-terminal__meter" aria-live="polite">
             <div className="intro-terminal__counts">{loaded}/{total}</div>

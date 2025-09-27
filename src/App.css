@@ -435,8 +435,34 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.86rem;
   line-height: 1.5;
-  max-height: 40vh;
+  height: clamp(220px, 38vh, 340px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.65rem;
   overflow: hidden;
+}
+
+.terminal__viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 1) 60%,
+    rgba(0, 0, 0, 0.88) 80%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.terminal__viewport::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .terminal__line {
