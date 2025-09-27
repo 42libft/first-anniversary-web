@@ -53,6 +53,28 @@ function App() {
   const [introBootState, setIntroBootState] = useState<'loading' | 'ready' | 'error'>('loading')
   const currentSceneId = sceneOrder[sceneIndex]
 
+  const allowMaintenanceNavigation = useMemo(() => {
+    if (import.meta.env.DEV) {
+      return true
+    }
+    if (typeof window === 'undefined') {
+      return false
+    }
+    if (window.location.hostname === 'localhost') {
+      return true
+    }
+    try {
+      const params = new URLSearchParams(window.location.search)
+      if (params.has('maintenanceNav')) {
+        return true
+      }
+      return window.localStorage.getItem('first-anniversary-web:maintenance-nav') === '1'
+    } catch (error) {
+      console.warn('Failed to read maintenance navigation flag', error)
+      return false
+    }
+  }, [])
+
   const totalJourneyDistance = useMemo(
     () => journeys.reduce((sum, journey) => sum + journey.distanceKm, 0),
     []
@@ -63,7 +85,7 @@ function App() {
   const { responses, saveResponse, replaceResponses } = useStoredJourneyResponses()
   const { record } = useActionHistory()
 
-  const introLocked = introBootState !== 'ready'
+  const introLocked = !allowMaintenanceNavigation && introBootState !== 'ready'
 
   const createSnapshot = useCallback(() => {
     return {
