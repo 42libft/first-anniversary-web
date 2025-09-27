@@ -7,11 +7,11 @@ import { useActionHistory } from '../history/ActionHistoryContext'
 const SPEAKER_PROFILES = {
   self: {
     name: 'libft',
-    avatar: '/images/prologue-self-placeholder.svg',
+    avatar: '/images/prologue/Generated Image September 26, 2025 - 2_48AM.png',
   },
   partner: {
     name: 'れおん',
-    avatar: '/images/prologue-partner-placeholder.svg',
+    avatar: '/images/prologue/Generated Image September 26, 2025 - 3_37AM.png',
   },
 } as const
 

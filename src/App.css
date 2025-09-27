@@ -3822,25 +3822,53 @@
   box-shadow: 0 0 0 6px rgba(255, 102, 196, 0.2);
 }
 
-.journeys-card__status {
-  margin: 0;
-  font-size: 0.82rem;
-  letter-spacing: 0.05em;
-  color: rgba(245, 244, 255, 0.7);
-}
-
-.journeys-card__status-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
 .journeys-card__choices {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.journeys-card__quiz-footer {
+  margin-top: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.journeys-card__quiz-feedback {
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  background: rgba(255, 102, 196, 0.12);
+  border: 1px solid rgba(255, 102, 196, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.journeys-card__result {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245, 244, 255, 0.85);
+}
+
+.journeys-card__result--correct {
+  color: #b4ffcc;
+}
+
+.journeys-card__result--incorrect {
+  color: #ffc7d4;
+}
+
+.journeys-card__answer {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(245, 244, 255, 0.78);
+}
+
+.journeys-card__quiz-footer .journeys-card__timestamp {
+  align-self: flex-end;
 }
 
 .journeys-choice {

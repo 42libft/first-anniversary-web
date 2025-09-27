@@ -78,6 +78,16 @@ const toRoutePath = (points: JourneyCoordinate[]): string => {
   return rest.reduce((acc, point) => `${acc} L ${point[0]} ${point[1]}`, `M ${first[0]} ${first[1]}`)
 }
 
+const resolveAssetPath = (path: string): string => {
+  if (!path) return path
+  if (path.startsWith('data:')) return path
+  if (/^(?:https?:)?\/\//.test(path)) return path
+  const base = import.meta.env.BASE_URL ?? '/'
+  const sanitizedBase = base.endsWith('/') ? base.slice(0, -1) : base
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  return `${sanitizedBase}${normalizedPath}`
+}
+
 const JourneyRouteMap = ({ step }: { step: JourneyMoveStep }) => {
   const points =
     step.mode === 'flight' && step.fromCoord && step.toCoord
@@ -129,6 +139,7 @@ const TitleCard = ({ eyebrow, title }: { eyebrow: string; title: string }) => (
 )
 const MoveCard = ({ step, journey }: { step: JourneyMoveStep; journey: Journey }) => {
   const transport = transportMeta[step.mode]
+  const mapImageSrc = step.mapImage ? resolveAssetPath(step.mapImage.src) : undefined
   return (
     <article className="journeys-card journeys-card--move" tabIndex={-1}>
       <p className="journeys-card__eyebrow">MOVE</p>
@@ -145,10 +156,10 @@ const MoveCard = ({ step, journey }: { step: JourneyMoveStep; journey: Journey }
         </span>
       </div>
       <figure className="journeys-card__figure journeys-card__figure--map">
-        {step.mapImage ? (
+        {step.mapImage && mapImageSrc ? (
           <img
             className="journeys-map journeys-map--image"
-            src={step.mapImage.src}
+            src={mapImageSrc}
             alt={step.mapImage.alt}
             loading="lazy"
           />
@@ -192,6 +203,7 @@ const MoveCard = ({ step, journey }: { step: JourneyMoveStep; journey: Journey }
 }
 
 const MemoryCard = ({ step, journey }: { step: JourneyEpisodeStep; journey: Journey }) => {
+  const photoSrc = resolveAssetPath(step.photo.src)
   return (
     <article className="journeys-card journeys-card--memory" tabIndex={-1}>
       <p className="journeys-card__eyebrow">MEMORIES</p>
@@ -199,7 +211,7 @@ const MemoryCard = ({ step, journey }: { step: JourneyEpisodeStep; journey: Jour
       <figure className="journeys-card__figure">
         <img
           className="journeys-map journeys-map--image"
-          src={step.photo.src}
+          src={photoSrc}
           alt={step.photo.alt}
           loading="lazy"
           style={
@@ -241,6 +253,12 @@ const QuestionCard = ({
   const recordedLabel = storedResponse?.recordedAt
     ? `記録: ${formatRecordedAt(storedResponse.recordedAt)}`
     : '未記録'
+  const answerValue = value || storedResponse?.answer || ''
+  const hasAnswer = answerValue.trim().length > 0
+  const shouldShowQuizFeedback = Boolean(isChoice && step.correctAnswer && hasAnswer)
+  const isCorrectAnswer = shouldShowQuizFeedback
+    ? answerValue === step.correctAnswer
+    : undefined
 
   return (
     <article
@@ -253,28 +271,49 @@ const QuestionCard = ({
         <p className="journeys-card__helper">{step.helper}</p>
       ) : null}
       {isChoice ? (
-        <div className="journeys-card__choices">
-          {(step.choices ?? []).map((choice) => {
-            const selected = value === choice
-            return (
-              <button
-                key={choice}
-                type="button"
-                className="journeys-choice"
-                data-selected={selected}
-                onClick={
-                  isLocked || !onAnswerChange ? undefined : () => onAnswerChange(choice)
-                }
-                disabled={isLocked}
+        <>
+          <div className="journeys-card__choices">
+            {(step.choices ?? []).map((choice) => {
+              const selected = answerValue === choice
+              return (
+                <button
+                  key={choice}
+                  type="button"
+                  className="journeys-choice"
+                  data-selected={selected}
+                  onClick={
+                    isLocked || !onAnswerChange ? undefined : () => onAnswerChange(choice)
+                  }
+                  disabled={isLocked}
+                >
+                  <span className="journeys-choice__label">{choice}</span>
+                  <span className="journeys-choice__icon" aria-hidden="true">
+                    {selected ? '●' : '○'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          <div className="journeys-card__quiz-footer">
+            {shouldShowQuizFeedback && step.correctAnswer ? (
+              <div
+                className="journeys-card__quiz-feedback"
+                role="status"
+                aria-live="polite"
               >
-                <span className="journeys-choice__label">{choice}</span>
-                <span className="journeys-choice__icon" aria-hidden="true">
-                  {selected ? '●' : '○'}
-                </span>
-              </button>
-            )
-          })}
-        </div>
+                <p
+                  className={`journeys-card__result${
+                    isCorrectAnswer ? ' journeys-card__result--correct' : ' journeys-card__result--incorrect'
+                  }`}
+                >
+                  {isCorrectAnswer ? '正解！' : '残念…'}
+                </p>
+                <p className="journeys-card__answer">正解: {step.correctAnswer}</p>
+              </div>
+            ) : null}
+            <span className="journeys-card__timestamp">{recordedLabel}</span>
+          </div>
+        </>
       ) : (
         <div className="journeys-card__form">
           <textarea
@@ -296,9 +335,6 @@ const QuestionCard = ({
           </div>
         </div>
       )}
-      <p className="journeys-card__status">
-        {isLocked ? '保存済みのため編集できません。' : '回答は自動保存されます。'}
-      </p>
       <p className="journeys-card__timestamp">{formatJourneyDate(journey.date)}</p>
     </article>
   )
@@ -388,7 +424,25 @@ export const JourneysScene = ({
       if (!activeQuestion || !activeJourney) return
       if (activeQuestion.readonlyAfterSave !== false && storedResponse !== undefined) return
       setDraftAnswer(value, { label: 'Journeys: edit answer' })
-      if (activeQuestion.style === 'choice' || activeQuestion.readonlyAfterSave === false) {
+      if (activeQuestion.style === 'choice') {
+        if (storedResponse?.answer === value) return
+        const isCorrect = activeQuestion.correctAnswer
+          ? activeQuestion.correctAnswer === value
+          : undefined
+        saveResponse({
+          journeyId: activeJourney.id,
+          stepId: activeQuestion.id,
+          storageKey: activeQuestion.storageKey,
+          prompt: activeQuestion.prompt,
+          answer: value,
+          questionType: activeQuestion.style,
+          correctAnswer: activeQuestion.correctAnswer,
+          isCorrect,
+        })
+        return
+      }
+
+      if (activeQuestion.readonlyAfterSave === false) {
         if (storedResponse?.answer === value) return
         saveResponse({
           journeyId: activeJourney.id,
@@ -396,8 +450,8 @@ export const JourneysScene = ({
           storageKey: activeQuestion.storageKey,
           prompt: activeQuestion.prompt,
           answer: value,
+          questionType: activeQuestion.style,
         })
-        // 選択/自由書き込み（リアルタイム保存時）は即次へ
         scheduleNext()
         return
       }
@@ -410,6 +464,7 @@ export const JourneysScene = ({
           storageKey: activeQuestion.storageKey,
           prompt: activeQuestion.prompt,
           answer: value,
+          questionType: activeQuestion.style,
         })
         scheduleNext()
       }
@@ -429,6 +484,7 @@ export const JourneysScene = ({
       storageKey: activeQuestion.storageKey,
       prompt: activeQuestion.prompt,
       answer: draftAnswer,
+      questionType: activeQuestion.style,
     })
   }, [activeJourney, activeQuestion, draftAnswer, saveResponse, storedResponse])
 
@@ -470,6 +526,7 @@ export const JourneysScene = ({
     const target = event.target as HTMLElement
     const tag = target.tagName.toLowerCase()
     if (['button', 'a', 'input', 'textarea', 'select', 'label'].includes(tag)) return
+    if (!canAdvanceFromActivePage) return
     scheduleNext()
   }
 
@@ -487,12 +544,21 @@ export const JourneysScene = ({
     if (el) el.focus()
   }, [pageIndex])
 
+  const canAdvanceFromActivePage = (() => {
+    if (!activePage) return true
+    if (activePage.kind === 'quiz') {
+      const answer = storedResponse?.answer ?? draftAnswer
+      return typeof answer === 'string' && answer.trim().length > 0
+    }
+    return true
+  })()
+
   return (
     <SceneLayout eyebrow="Journeys">
       <div
         ref={stageRef}
         className="journeys-stage"
-        data-can-advance="true"
+        data-can-advance={canAdvanceFromActivePage ? 'true' : 'false'}
         onClick={handleStageClick}
         role="region"
         aria-label="Journeys story"
