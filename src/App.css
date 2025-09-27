@@ -474,6 +474,15 @@
   font-weight: 600;
 }
 
+.terminal__line--progress {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(163, 174, 255, 0.25);
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: rgba(205, 215, 255, 0.88);
+}
+
 .terminal__cursor {
   display: inline-block;
   width: 0.6ch;

@@ -6,6 +6,8 @@ import { preloadAssets } from '../data/preloadManifest'
 import { useAssetPreloader } from '../hooks/useAssetPreloader'
 import type { SceneComponentProps } from '../types/scenes'
 
+const PROGRESS_BAR_UNITS = 24
+
 const formatPercent = (progress: number, status: 'loading' | 'complete' | 'error' | 'idle') => {
   if (status === 'complete') return 100
   if (status === 'idle') return 0
@@ -70,6 +72,30 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
 
   const percent = useMemo(() => formatPercent(progress, status), [progress, status])
 
+  const progressBar = useMemo(() => {
+    const rawFilled = (percent / 100) * PROGRESS_BAR_UNITS
+    const filledUnits = Math.floor(rawFilled)
+    const hasTail = status === 'loading' && filledUnits < PROGRESS_BAR_UNITS
+    const tailChar = hasTail ? '>' : filledUnits > 0 || percent === 100 ? '=' : ' '
+    const remainingUnits = PROGRESS_BAR_UNITS - filledUnits - (hasTail ? 1 : 0)
+    const barCore = `${'='.repeat(filledUnits)}${hasTail ? tailChar : ''}${'.'.repeat(Math.max(0, remainingUnits))}`
+    return `[${barCore}]`
+  }, [percent, status])
+
+  const progressLine = useMemo(() => {
+    const counts = total > 0 ? `${loaded}/${total}` : `${loaded}`
+    if (status === 'complete') {
+      return `progress ${progressBar} 100% (${counts}) [done]`
+    }
+    if (status === 'error') {
+      return `progress ${progressBar} ${percent}% (${counts}) [halted]`
+    }
+    if (status === 'idle') {
+      return `progress ${progressBar} ${percent}% (${counts}) [idle]`
+    }
+    return `progress ${progressBar} ${percent}% (${counts})`
+  }, [loaded, percent, progressBar, status, total])
+
   const footerLabel = useMemo(() => {
     if (hasMissing) {
       return {
@@ -112,11 +138,11 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
       {stage === 'terminal' ? (
         <div className="intro-terminal" role="status" aria-live="polite">
           <div className="intro-terminal__logs">
-            <div className="terminal" style={{ width: 'min(720px, 88vw)' }}>
-              {logs.map((line) => {
-                if (line.kind === 'category') {
-                  return (
-                    <div
+              <div className="terminal" style={{ width: 'min(720px, 88vw)' }}>
+                {logs.map((line) => {
+                  if (line.kind === 'category') {
+                    return (
+                      <div
                       key={line.id}
                       className={`terminal__line terminal__line--category terminal__line--${line.status}`}
                     >
@@ -130,15 +156,18 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
                       retry x{line.attempt} → {line.label}
                     </div>
                   )
-                }
-                return (
-                  <div key={line.id} className="terminal__line terminal__line--missing">
-                    missing → {line.label}
-                  </div>
-                )
-              })}
+                  }
+                  return (
+                    <div key={line.id} className="terminal__line terminal__line--missing">
+                      missing → {line.label}
+                    </div>
+                  )
+                })}
+                <div className="terminal__line terminal__line--progress" aria-live="polite">
+                  {progressLine}
+                </div>
+              </div>
             </div>
-          </div>
 
           <div className="intro-terminal__meter" aria-live="polite">
             <div className="intro-terminal__percent">{percent}%</div>
