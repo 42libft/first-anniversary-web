@@ -138,11 +138,11 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
       {stage === 'terminal' ? (
         <div className="intro-terminal" role="status" aria-live="polite">
           <div className="intro-terminal__logs">
-              <div className="terminal" style={{ width: 'min(720px, 88vw)' }}>
-                {logs.map((line) => {
-                  if (line.kind === 'category') {
-                    return (
-                      <div
+            <div className="terminal">
+              {logs.map((line) => {
+                if (line.kind === 'category') {
+                  return (
+                    <div
                       key={line.id}
                       className={`terminal__line terminal__line--category terminal__line--${line.status}`}
                     >
@@ -150,19 +150,21 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
                     </div>
                   )
                 }
+
                 if (line.kind === 'retry') {
                   return (
                     <div key={line.id} className="terminal__line terminal__line--retry">
                       retry x{line.attempt} → {line.label}
                     </div>
                   )
-                  }
-                  return (
-                    <div key={line.id} className="terminal__line terminal__line--missing">
-                      missing → {line.label}
-                    </div>
-                  )
-                })}
+                }
+
+                return (
+                  <div key={line.id} className="terminal__line terminal__line--missing">
+                    missing → {line.label}
+                  </div>
+                )
+              })}
                 <div className="terminal__line terminal__line--progress" aria-live="polite">
                   {progressLine}
                 </div>
@@ -170,7 +172,6 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
             </div>
 
           <div className="intro-terminal__meter" aria-live="polite">
-            <div className="intro-terminal__percent">{percent}%</div>
             <div className="intro-terminal__counts">{loaded}/{total}</div>
           </div>
 
