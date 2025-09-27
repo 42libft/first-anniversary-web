@@ -303,49 +303,51 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
       <div className="result-screen" role="presentation">
         <div className="result-screen__backdrop" aria-hidden="true" />
 
-        <nav className="result-tabbar" aria-label="リザルトタブ">
-          <ul className="result-tabbar__list">
-            <li className="result-tabbar__item">
-              <span className="result-tabbar__label">観戦</span>
-            </li>
-            <li className="result-tabbar__item">
-              <span className="result-tabbar__label">戦闘データ</span>
-            </li>
-            <li className="result-tabbar__item is-active" aria-current="page">
-              <span className="result-tabbar__label">リザルト</span>
-            </li>
-          </ul>
-        </nav>
+        <header className="result-screen__header">
+          <nav className="result-tabbar" aria-label="リザルトタブ">
+            <ul className="result-tabbar__list">
+              <li className="result-tabbar__item">
+                <span className="result-tabbar__label">観戦</span>
+              </li>
+              <li className="result-tabbar__item">
+                <span className="result-tabbar__label">戦闘データ</span>
+              </li>
+              <li className="result-tabbar__item is-active" aria-current="page">
+                <span className="result-tabbar__label">リザルト</span>
+              </li>
+            </ul>
+          </nav>
 
-        <section
-          className="result-banner"
-          aria-live="polite"
-          aria-label="勝利バナー"
-        >
-          <div className="result-banner__surface" aria-hidden="true" />
-          <div className="result-banner__streak" aria-hidden="true" />
-          <p className="result-banner__title">{viewData.resultTitle}</p>
-          <div className="result-banner__stats">
-            <div className="result-banner__panel">
-              <span className="result-banner__panel-label">部隊の順位</span>
-              <span
-                className="result-banner__panel-value"
-                aria-label={viewData.teamRank.ariaLabel}
-              >
-                {viewData.teamRank.text}
-              </span>
+          <section
+            className="result-banner"
+            aria-live="polite"
+            aria-label="勝利バナー"
+          >
+            <div className="result-banner__surface" aria-hidden="true" />
+            <div className="result-banner__streak" aria-hidden="true" />
+            <p className="result-banner__title">{viewData.resultTitle}</p>
+            <div className="result-banner__stats">
+              <div className="result-banner__panel">
+                <span className="result-banner__panel-label">部隊の順位</span>
+                <span
+                  className="result-banner__panel-value"
+                  aria-label={viewData.teamRank.ariaLabel}
+                >
+                  {viewData.teamRank.text}
+                </span>
+              </div>
+              <div className="result-banner__panel">
+                <span className="result-banner__panel-label">部隊の合計キル</span>
+                <span
+                  className="result-banner__panel-value"
+                  aria-label={viewData.teamKills.ariaLabel}
+                >
+                  {viewData.teamKills.text}
+                </span>
+              </div>
             </div>
-            <div className="result-banner__panel">
-              <span className="result-banner__panel-label">部隊の合計キル</span>
-              <span
-                className="result-banner__panel-value"
-                aria-label={viewData.teamKills.ariaLabel}
-              >
-                {viewData.teamKills.text}
-              </span>
-            </div>
-          </div>
-        </section>
+          </section>
+        </header>
 
         <section className="result-cards" aria-label="プレイヤー成績">
           {viewData.players.map((player) => (
