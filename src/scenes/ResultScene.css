@@ -382,7 +382,7 @@
   border-radius: 14px;
   padding: 10px;
   width: 100%;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 2 / 3.5;
   min-height: 0;
   background: linear-gradient(160deg, rgba(24, 26, 34, 0.95), rgba(10, 11, 16, 0.95));
   border: 1px solid rgba(255, 255, 255, 0.08);
