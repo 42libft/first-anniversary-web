@@ -76,10 +76,10 @@ export const IntroStartScene = ({
             aria-describedby="start-notice-description"
           >
             <h2 id="start-notice-title" className="start-notice-dialog__title">
-              NOTICE
+              注意事項
             </h2>
             <p id="start-notice-description" className="start-notice-dialog__body">
-              This experience progresses mainly by tapping. If you advance by mistake, use the back button at the bottom-left to return one step.
+              この体験は主にタップで進みます。誤って進んだ場合は、左下の戻るボタンで一つ前に戻れます。
             </p>
             <button
               type="button"
@@ -87,7 +87,7 @@ export const IntroStartScene = ({
               onClick={handleConfirm}
               ref={okButtonRef}
             >
-              OK
+              了解
             </button>
           </div>
         </div>
