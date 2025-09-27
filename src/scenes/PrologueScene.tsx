@@ -4,29 +4,49 @@ import { prologueScript } from '../data/prologue'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
 
-const CALL_LABELS = ['RTC接続中']
-const CALL_AVATAR_SRC = '/images/gimmie-placeholder.svg'
+const SPEAKER_PROFILES = {
+  self: {
+    name: 'libft',
+    avatar: '/images/prologue-self-placeholder.svg',
+  },
+  partner: {
+    name: 'れおん',
+    avatar: '/images/prologue-partner-placeholder.svg',
+  },
+} as const
+
+const FALLBACK_AVATAR_SRC = '/images/gimmie-placeholder.svg'
+
+const getInitialSpeaker = (): 'self' | 'partner' => {
+  const firstSpeaker = prologueScript.find(
+    (line) => line.variant === 'self' || line.variant === 'partner'
+  )?.variant
+
+  return firstSpeaker === 'partner' ? 'partner' : 'self'
+}
 
 export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
   const totalLines = prologueScript.length
   const isComplete = activeIndex >= totalLines - 1
-  const activeLabel = CALL_LABELS[Math.min(activeIndex, CALL_LABELS.length - 1)]
   const currentLine = prologueScript[activeIndex]
-  const [activeBackdrop, setActiveBackdrop] = useState<'self' | 'partner'>(() => {
-    const firstSpeaker = prologueScript.find((line) =>
-      line.variant === 'self' || line.variant === 'partner'
-    )?.variant
-
-    return firstSpeaker === 'partner' ? 'partner' : 'self'
-  })
+  const [activeBackdrop, setActiveBackdrop] = useState<'self' | 'partner'>(getInitialSpeaker)
+  const [activeSpeaker, setActiveSpeaker] = useState<'self' | 'partner'>(getInitialSpeaker)
   const { record } = useActionHistory()
+  const currentSpeakerProfile = SPEAKER_PROFILES[activeSpeaker]
+  const showCallStatus = activeIndex === 0
 
   useEffect(() => {
     if (currentLine?.variant === 'self' || currentLine?.variant === 'partner') {
       setActiveBackdrop(currentLine.variant)
+      setActiveSpeaker(currentLine.variant)
     }
   }, [currentLine?.variant])
+
+  const handleAvatarError = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
+    event.currentTarget.onerror = null
+    event.currentTarget.src = FALLBACK_AVATAR_SRC
+  }, [])
 
   const handleAdvance = useCallback(() => {
     if (activeIndex >= totalLines - 1) {
@@ -84,14 +104,19 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
           <div className="prologue__call-id">
             <div className="prologue__call-avatar">
               <img
-                src={CALL_AVATAR_SRC}
-                alt="Gimmie x Gimmieのサーバーアイコン"
+                src={currentSpeakerProfile.avatar}
+                alt={`${currentSpeakerProfile.name}のアイコン`}
+                onError={handleAvatarError}
                 loading="lazy"
               />
             </div>
             <div>
-              <p className="prologue__call-label">彩音 — Gimmie x Gimmie</p>
-              <p className="prologue__call-status">{activeLabel}</p>
+              <p className="prologue__call-label">
+                {currentSpeakerProfile.name} — GIMMIE X GIMMIE
+              </p>
+              {showCallStatus ? (
+                <p className="prologue__call-status">RTC接続中</p>
+              ) : null}
             </div>
           </div>
           <div className="prologue__call-meter" aria-hidden="true">
@@ -118,14 +143,6 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
         </div>
 
         <footer className="prologue__footer" aria-hidden="true">
-          <div className="prologue__progress">
-            {prologueScript.map((line, index) => (
-              <span
-                key={line.id}
-                className={index <= activeIndex ? 'is-active' : undefined}
-              />
-            ))}
-          </div>
           <p className="prologue__hint">
             {isComplete ? 'タップでJourneysへ' : 'タップで続ける'}
           </p>
