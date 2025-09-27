@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties, TouchEvent } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
 import type { SceneComponentProps } from '../types/scenes'
@@ -236,7 +237,13 @@ declare global {
   }
 }
 
-const ResultPlayerCard = ({ player }: { player: ResultPlayerView }) => {
+const ResultPlayerCard = ({
+  player,
+  isActive,
+}: {
+  player: ResultPlayerView
+  isActive: boolean
+}) => {
   const headingId = `result-player-${player.role}`
   const [isImageLoaded, setIsImageLoaded] = useState(false)
 
@@ -245,7 +252,11 @@ const ResultPlayerCard = ({ player }: { player: ResultPlayerView }) => {
   }, [player.image?.src])
 
   return (
-    <section className="result-card" role="group" aria-labelledby={headingId}>
+    <section
+      className={`result-card${isActive ? ' is-active' : ''}`}
+      role="group"
+      aria-labelledby={headingId}
+    >
       <div className="result-card__body">
         <header className="result-card__header">
           <p id={headingId} className="result-card__title">
@@ -264,18 +275,20 @@ const ResultPlayerCard = ({ player }: { player: ResultPlayerView }) => {
         </dl>
       </div>
       <div className={`result-card__image${isImageLoaded ? ' is-loaded' : ''}`}>
-        <div className="result-card__image-placeholder" aria-hidden="true">
-          <span>ルーツ画像を設定してください</span>
+        <div className="result-card__image-inner">
+          <div className="result-card__image-placeholder" aria-hidden="true">
+            <span>ルーツ画像を設定してください</span>
+          </div>
+          {player.image ? (
+            <img
+              src={player.image.src}
+              alt={player.image.alt}
+              loading="lazy"
+              onLoad={() => setIsImageLoaded(true)}
+              onError={() => setIsImageLoaded(false)}
+            />
+          ) : null}
         </div>
-        {player.image ? (
-          <img
-            src={player.image.src}
-            alt={player.image.alt}
-            loading="lazy"
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setIsImageLoaded(false)}
-          />
-        ) : null}
       </div>
     </section>
   )
@@ -283,10 +296,13 @@ const ResultPlayerCard = ({ player }: { player: ResultPlayerView }) => {
 
 export const ResultScene = ({ onRestart }: SceneComponentProps) => {
   const [viewData, setViewData] = useState<ResultViewData>(DEFAULT_VIEW_DATA)
+  const [activePlayerIndex, setActivePlayerIndex] = useState(0)
+  const touchStartXRef = useRef<number | null>(null)
 
   useEffect(() => {
     const handleSetData = (payload?: ResultPayload) => {
       setViewData(buildViewData(payload))
+      setActivePlayerIndex(0)
     }
 
     window.setResultData = handleSetData
@@ -297,6 +313,55 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
       }
     }
   }, [])
+
+  const totalPlayers = viewData.players.length
+  type TrackStyle = CSSProperties & { '--active-index'?: number }
+  const trackStyle: TrackStyle = { '--active-index': activePlayerIndex }
+
+  const stepPlayer = (direction: number) => {
+    if (totalPlayers <= 1) {
+      return
+    }
+
+    setActivePlayerIndex((prev) => {
+      const nextIndex = (prev + direction + totalPlayers) % totalPlayers
+      return nextIndex < 0 ? nextIndex + totalPlayers : nextIndex
+    })
+  }
+
+  const selectPlayer = (index: number) => {
+    if (index < 0 || index >= totalPlayers) {
+      return
+    }
+    setActivePlayerIndex(index)
+  }
+
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length !== 1) {
+      return
+    }
+    touchStartXRef.current = event.touches[0].clientX
+  }
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const startX = touchStartXRef.current
+    touchStartXRef.current = null
+
+    if (startX === null || event.changedTouches.length === 0) {
+      return
+    }
+
+    const deltaX = event.changedTouches[0].clientX - startX
+    if (Math.abs(deltaX) < 40) {
+      return
+    }
+
+    stepPlayer(deltaX > 0 ? -1 : 1)
+  }
+
+  const handleTouchCancel = () => {
+    touchStartXRef.current = null
+  }
 
   return (
     <SceneLayout hideHeader>
@@ -317,6 +382,8 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
               </li>
             </ul>
           </nav>
+
+          <div className="result-header__divider" aria-hidden="true" />
 
           <section
             className="result-banner"
@@ -350,9 +417,58 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
         </header>
 
         <section className="result-cards" aria-label="プレイヤー成績">
-          {viewData.players.map((player) => (
-            <ResultPlayerCard key={player.role} player={player} />
-          ))}
+          <div
+            className="result-cards__viewport"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchCancel}
+          >
+            <div className="result-cards__track" style={trackStyle}>
+              {viewData.players.map((player, index) => (
+                <ResultPlayerCard
+                  key={player.role}
+                  player={player}
+                  isActive={index === activePlayerIndex}
+                />
+              ))}
+            </div>
+          </div>
+
+          {totalPlayers > 1 ? (
+            <div className="result-cards__nav" aria-label="プレイヤーの切り替え">
+              <button
+                type="button"
+                className="result-cards__nav-button result-cards__nav-button--prev"
+                onClick={() => stepPlayer(-1)}
+                aria-label="前のプレイヤー"
+              >
+                ‹
+              </button>
+              <div className="result-cards__dots" role="tablist" aria-label="プレイヤー選択">
+                {viewData.players.map((player, index) => (
+                  <button
+                    key={player.role}
+                    type="button"
+                    role="tab"
+                    className={`result-cards__dot${
+                      index === activePlayerIndex ? ' is-active' : ''
+                    }`}
+                    onClick={() => selectPlayer(index)}
+                    aria-label={`${player.name}を表示`}
+                    aria-selected={index === activePlayerIndex}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                className="result-cards__nav-button result-cards__nav-button--next"
+                onClick={() => stepPlayer(1)}
+                aria-label="次のプレイヤー"
+              >
+                ›
+              </button>
+            </div>
+          ) : null}
         </section>
 
         <div className="result-action">
