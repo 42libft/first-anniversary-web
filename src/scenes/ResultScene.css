@@ -270,12 +270,16 @@
   position: relative;
   overflow: visible;
   border-radius: 0;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
 }
 
 .result-cards__track {
   --active-index: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  justify-content: center;
   gap: clamp(20px, 3.2vw, 36px);
   transition: transform 280ms ease;
   will-change: transform;
@@ -554,6 +558,8 @@
   .result-cards__viewport {
     border-radius: 12px;
     overflow: hidden;
+    max-width: none;
+    margin: 0;
   }
 
   .result-cards__track {
@@ -561,6 +567,7 @@
     gap: 0;
     width: 100%;
     transform: translateX(calc(var(--active-index, 0) * -100%));
+    justify-content: flex-start;
   }
 
   .result-card {
