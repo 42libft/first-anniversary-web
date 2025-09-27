@@ -32,6 +32,7 @@ export interface SceneComponentProps {
   responses: JourneyPromptResponse[]
   saveResponse: (payload: SaveJourneyResponsePayload) => void
   setDistanceTraveled: Dispatch<SetStateAction<number>>
+  reportIntroBootState?: (state: 'loading' | 'ready' | 'error') => void
 }
 
 export const sceneOrder: SceneId[] = [

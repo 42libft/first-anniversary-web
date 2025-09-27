@@ -48,6 +48,7 @@ const renderScene = (
 
 function App() {
   const [sceneIndex, setSceneIndex] = useState(0)
+  const [introBootState, setIntroBootState] = useState<'loading' | 'ready' | 'error'>('loading')
   const currentSceneId = sceneOrder[sceneIndex]
 
   const totalJourneyDistance = useMemo(
@@ -59,16 +60,23 @@ function App() {
 
   const { responses, saveResponse } = useStoredJourneyResponses()
 
+  const introLocked = introBootState !== 'ready'
+
   const goToScene = (sceneId: SceneId) => {
     const targetIndex = sceneOrder.indexOf(sceneId)
     if (targetIndex === -1) {
       return
     }
-
+    if (introLocked && currentSceneId === 'intro' && sceneId !== 'intro') {
+      return
+    }
     setSceneIndex(targetIndex)
   }
 
   const goToNextScene = () => {
+    if (introLocked && currentSceneId === 'intro') {
+      return
+    }
     setSceneIndex((index) =>
       Math.min(index + 1, sceneOrder.length - 1)
     )
@@ -81,6 +89,7 @@ function App() {
   const restartExperience = () => {
     setSceneIndex(0)
     setDistanceTraveled(0)
+    setIntroBootState('loading')
   }
 
   const sceneProps: SceneComponentProps = {
@@ -93,6 +102,7 @@ function App() {
     responses,
     saveResponse,
     setDistanceTraveled,
+    reportIntroBootState: setIntroBootState,
   }
 
   return (

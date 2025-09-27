@@ -1,64 +1,161 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
 import { AsciiStartScene } from '../components/AsciiStartScene'
 import { GlobalStarfield } from '../components/GlobalStarfield'
+import { preloadAssets } from '../data/preloadManifest'
+import { useAssetPreloader } from '../hooks/useAssetPreloader'
 import type { SceneComponentProps } from '../types/scenes'
 
-const BOOT_LINES = [
-  'anniv$ sudo ./boot --year=1',
-  'installing: night-sky, constellations, stardust',
-  'installing: festival-yatai, lanterns, warm-lights',
-  'loading: memories (Tokyo ⇄ Fukuoka, 12 trips)',
-  'mounting: start-screen (ascii, retro-ui)',
-  'checksum: OK — ready',
-]
-const BOOT_DELAYS = [900, 1400, 1100, 1600, 1200, 1500]
-
-const useBootLines = () => {
-  const [index, setIndex] = useState(0)
-  useEffect(() => {
-    if (index >= BOOT_LINES.length - 1) return
-    const t = setTimeout(() => setIndex((i) => i + 1), BOOT_DELAYS[index] ?? 700)
-    return () => clearTimeout(t)
-  }, [index])
-  return BOOT_LINES.slice(0, index + 1)
+const formatPercent = (progress: number, status: 'loading' | 'complete' | 'error' | 'idle') => {
+  if (status === 'complete') return 100
+  if (status === 'idle') return 0
+  const value = Math.floor(progress * 100)
+  return Math.max(0, Math.min(99, value))
 }
 
-export const IntroScene = ({ onAdvance }: SceneComponentProps) => {
-  const lines = useBootLines()
-  const [stage, setStage] = useState<'boot' | 'start'>('boot')
+const formatCategoryLabel = (label: string) => label.replace(/\//g, ' › ')
+
+const formatRemaining = (ms: number) => {
+  if (!Number.isFinite(ms) || ms <= 120) return '<1s'
+  if (ms < 1000) return '<1s'
+  if (ms < 90_000) return `${(ms / 1000).toFixed(1)}s`
+  const minutes = Math.ceil(ms / 1000 / 60)
+  return `${minutes}m`
+}
+
+export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentProps) => {
+  const [stage, setStage] = useState<'terminal' | 'start'>('terminal')
+  const preloader = useAssetPreloader(preloadAssets, { maxRetries: 3 })
+
+  const {
+    logs,
+    status,
+    progress,
+    loaded,
+    total,
+    currentAsset,
+    currentRetries,
+    estimatedRemainingMs,
+    hasMissing,
+  } = preloader
+
+  const lastMissingLabel = useMemo(() => {
+    for (let i = logs.length - 1; i >= 0; i -= 1) {
+      const entry = logs[i]
+      if (entry.kind === 'missing') {
+        return entry.label
+      }
+    }
+    return undefined
+  }, [logs])
 
   useEffect(() => {
-    if (stage !== 'boot') return
-    if (lines.length >= BOOT_LINES.length) {
-      const t = setTimeout(() => setStage('start'), 650)
-      return () => clearTimeout(t)
+    if (!reportIntroBootState) return
+    if (status === 'complete') {
+      reportIntroBootState('ready')
+    } else if (status === 'error') {
+      reportIntroBootState('error')
+    } else {
+      reportIntroBootState('loading')
     }
-  }, [stage, lines])
+  }, [reportIntroBootState, status])
+
+  useEffect(() => {
+    if (stage !== 'terminal') return
+    if (status === 'complete') {
+      const timer = setTimeout(() => setStage('start'), 500)
+      return () => clearTimeout(timer)
+    }
+  }, [stage, status])
+
+  const percent = useMemo(() => formatPercent(progress, status), [progress, status])
+
+  const footerLabel = useMemo(() => {
+    if (hasMissing) {
+      return {
+        label: lastMissingLabel ? `missing: ${lastMissingLabel}` : 'missing asset',
+        status: '再確認が必要です',
+        tone: 'error',
+      } as const
+    }
+    if (status === 'complete') {
+      return {
+        label: 'all assets verified',
+        status: 'ready to launch',
+        tone: 'success',
+      } as const
+    }
+    const label = currentAsset?.label ?? 'queue idle'
+    const remaining = estimatedRemainingMs > 0 ? `~${formatRemaining(estimatedRemainingMs)} remaining` : 'estimating…'
+    const retry = currentRetries > 0 ? `retry x${currentRetries}` : null
+    return {
+      label,
+      status: retry ? `${remaining} · ${retry}` : remaining,
+      tone: 'default',
+    } as const
+  }, [currentAsset?.label, currentRetries, estimatedRemainingMs, hasMissing, status])
 
   const handleClick = () => {
-    if (stage === 'start') onAdvance()
+    if (stage === 'start') {
+      onAdvance()
+    }
   }
 
   return (
-    <section className="scene-layout" role="button" onClick={handleClick} aria-label="Tap to start">
-      {stage === 'boot' ? (
-        <div style={{
-          width: '100%',
-          display: 'grid',
-          placeItems: 'center',
-          minHeight: '60vh',
-        }}>
-          <div className="terminal" role="status" aria-live="polite" style={{ width: 'min(720px, 88vw)', maxHeight: '60vh' }}>
-            {lines.map((l, i) => (
-              <div className="terminal__line" key={i}>
-                {i === lines.length - 1 ? (<>{l}<span className="terminal__cursor" aria-hidden="true" /></>) : l}
-              </div>
-            ))}
+    <section
+      className={`intro-scene stage-${stage}`}
+      role="button"
+      onClick={handleClick}
+      aria-disabled={stage !== 'start'}
+      aria-label={stage === 'start' ? 'Tap to start experience' : 'Terminal boot in progress'}
+    >
+      {stage === 'terminal' ? (
+        <div className="intro-terminal" role="status" aria-live="polite">
+          <div className="intro-terminal__logs">
+            <div className="terminal" style={{ width: 'min(720px, 88vw)' }}>
+              {logs.map((line) => {
+                if (line.kind === 'category') {
+                  return (
+                    <div
+                      key={line.id}
+                      className={`terminal__line terminal__line--category terminal__line--${line.status}`}
+                    >
+                      loading {formatCategoryLabel(line.label)} … {line.loaded}/{line.total}
+                    </div>
+                  )
+                }
+                if (line.kind === 'retry') {
+                  return (
+                    <div key={line.id} className="terminal__line terminal__line--retry">
+                      retry x{line.attempt} → {line.label}
+                    </div>
+                  )
+                }
+                return (
+                  <div key={line.id} className="terminal__line terminal__line--missing">
+                    missing → {line.label}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="intro-terminal__meter" aria-live="polite">
+            <div className="intro-terminal__percent">{percent}%</div>
+            <div className="intro-terminal__counts">{loaded}/{total}</div>
+          </div>
+
+          <div className="intro-terminal__footer" aria-live="polite">
+            <span
+              className={`intro-terminal__footer-label intro-terminal__footer-label--${footerLabel.tone}`}
+            >
+              {footerLabel.label}
+            </span>
+            <span className="intro-terminal__footer-status">{footerLabel.status}</span>
           </div>
         </div>
       ) : (
         <>
-          {/* Night sky + moon only on start screen */}
           <GlobalStarfield />
           <AsciiStartScene />
           <div className="start-ui">
