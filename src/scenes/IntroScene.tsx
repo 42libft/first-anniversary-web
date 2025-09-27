@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
-import { AsciiStartScene } from '../components/AsciiStartScene'
-import { GlobalStarfield } from '../components/GlobalStarfield'
 import { preloadAssets } from '../data/preloadManifest'
 import { useAssetPreloader } from '../hooks/useAssetPreloader'
 import type { SceneComponentProps } from '../types/scenes'
@@ -26,7 +24,6 @@ const formatRemaining = (ms: number) => {
 }
 
 export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentProps) => {
-  const [stage, setStage] = useState<'terminal' | 'start'>('terminal')
   const preloader = useAssetPreloader(preloadAssets, { maxRetries: 3 })
 
   const {
@@ -61,14 +58,6 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
       reportIntroBootState('loading')
     }
   }, [reportIntroBootState, status])
-
-  useEffect(() => {
-    if (stage !== 'terminal') return
-    if (status === 'complete') {
-      const timer = setTimeout(() => setStage('start'), 500)
-      return () => clearTimeout(timer)
-    }
-  }, [stage, status])
 
   const percent = useMemo(() => formatPercent(progress, status), [progress, status])
 
@@ -130,21 +119,20 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
   }, [logs.length, progressLine])
 
   const handleClick = () => {
-    if (stage === 'start') {
+    if (status === 'complete') {
       onAdvance()
     }
   }
 
   return (
     <section
-      className={`intro-scene stage-${stage}`}
+      className="intro-scene stage-terminal"
       role="button"
       onClick={handleClick}
-      aria-disabled={stage !== 'start'}
-      aria-label={stage === 'start' ? 'Tap to start experience' : 'Terminal boot in progress'}
+      aria-disabled={status !== 'complete'}
+      aria-label={status === 'complete' ? 'Tap to continue to launch screen' : 'Terminal boot in progress'}
     >
-      {stage === 'terminal' ? (
-        <div className="intro-terminal" role="status" aria-live="polite">
+      <div className="intro-terminal" role="status" aria-live="polite">
         <div className="intro-terminal__logs">
           <div className="terminal" aria-live="polite">
             <div className="terminal__viewport" ref={terminalViewportRef}>
@@ -181,30 +169,19 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
           </div>
         </div>
 
-          <div className="intro-terminal__meter" aria-live="polite">
-            <div className="intro-terminal__counts">{loaded}/{total}</div>
-          </div>
-
-          <div className="intro-terminal__footer" aria-live="polite">
-            <span
-              className={`intro-terminal__footer-label intro-terminal__footer-label--${footerLabel.tone}`}
-            >
-              {footerLabel.label}
-            </span>
-            <span className="intro-terminal__footer-status">{footerLabel.status}</span>
-          </div>
+        <div className="intro-terminal__meter" aria-live="polite">
+          <div className="intro-terminal__counts">{loaded}/{total}</div>
         </div>
-      ) : (
-        <>
-          <GlobalStarfield />
-          <AsciiStartScene />
-          <div className="start-ui">
-            <h1 className="start-title">TITLE PLACEHOLDER</h1>
-            <p className="start-subtitle">SUBTITLE PLACEHOLDER</p>
-            <div className="start-tap"><span className="tap-dot" /> TAP ANYWHERE TO START</div>
-          </div>
-        </>
-      )}
+
+        <div className="intro-terminal__footer" aria-live="polite">
+          <span
+            className={`intro-terminal__footer-label intro-terminal__footer-label--${footerLabel.tone}`}
+          >
+            {footerLabel.label}
+          </span>
+          <span className="intro-terminal__footer-status">{footerLabel.status}</span>
+        </div>
+      </div>
     </section>
   )
 }

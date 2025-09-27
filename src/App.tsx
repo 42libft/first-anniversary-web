@@ -9,6 +9,7 @@ import { journeys } from './data/journeys'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
 import { useActionHistory } from './history/ActionHistoryContext'
 import { IntroScene } from './scenes/IntroScene'
+import { IntroStartScene } from './scenes/IntroStartScene'
 import { JourneysScene } from './scenes/JourneysScene'
 import { LetterScene } from './scenes/LetterScene'
 import { LikesScene } from './scenes/LikesScene'
@@ -27,6 +28,8 @@ const renderScene = (
   switch (sceneId) {
     case 'intro':
       return <IntroScene {...props} />
+    case 'introStart':
+      return <IntroStartScene {...props} />
     case 'prologue':
       return <PrologueScene {...props} />
     case 'journeys':
@@ -114,7 +117,12 @@ function App() {
     if (targetIndex === -1) {
       return
     }
-    if (introLocked && currentSceneId === 'intro' && sceneId !== 'intro') {
+    if (
+      introLocked &&
+      currentSceneId === 'intro' &&
+      sceneId !== 'intro' &&
+      sceneId !== 'introStart'
+    ) {
       return
     }
     if (targetIndex === sceneIndex) {
@@ -122,17 +130,25 @@ function App() {
     }
     recordSnapshot(`Scene to ${sceneId}`)
     setSceneIndex(targetIndex)
+    if (sceneId === 'introStart') {
+      setIntroBootState('ready')
+    }
   }
 
   const goToNextScene = () => {
-    if (introLocked && currentSceneId === 'intro') {
-      return
-    }
     if (sceneIndex >= sceneOrder.length - 1) {
       return
     }
+    const nextIndex = Math.min(sceneIndex + 1, sceneOrder.length - 1)
+    const nextSceneId = sceneOrder[nextIndex]
+    if (introLocked && currentSceneId === 'intro' && nextSceneId !== 'introStart') {
+      return
+    }
     recordSnapshot('Next scene')
-    setSceneIndex(sceneIndex + 1)
+    setSceneIndex(nextIndex)
+    if (nextSceneId === 'introStart') {
+      setIntroBootState('ready')
+    }
   }
 
   const goToPreviousScene = () => {

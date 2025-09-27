@@ -8,6 +8,7 @@ import type {
 
 export type SceneId =
   | 'intro'
+  | 'introStart'
   | 'prologue'
   | 'journeys'
   | 'messages'
@@ -37,6 +38,7 @@ export interface SceneComponentProps {
 
 export const sceneOrder: SceneId[] = [
   'intro',
+  'introStart',
   'prologue',
   'journeys',
   'messages',
@@ -49,6 +51,7 @@ export const sceneOrder: SceneId[] = [
 
 export const sceneTitleMap: Record<SceneId, string> = {
   intro: 'Intro',
+  introStart: 'Start',
   prologue: 'Prologue',
   journeys: 'Journeys',
   messages: 'Messages',
