@@ -622,8 +622,8 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
 
       {phase !== 'play' && (
         <div className="media-caption" role="status">
-          <p>光の欠片が奥へと漂い、記録の層が積もっていく。</p>
-          <p>ふたりで共有したメディアの数だけ、残光が広がります。</p>
+          <p>一年間で送りあったメディアは</p>
+          <p>全部でこの数になりました</p>
         </div>
       )}
 

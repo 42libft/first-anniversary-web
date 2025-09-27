@@ -137,12 +137,12 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
           <div className="likes-announce__layout">
             {showTopLine && (
               <p className="likes-announce__line likes-announce__line--top">
-                １年間で重ねた「好き」は
+                １年間で送った「好き」は
               </p>
             )}
             {showBottomLine && (
               <p className="likes-announce__line likes-announce__line--bottom">
-                全部でこの回数になりました。
+                全部でこの回数になりました
               </p>
             )}
           </div>

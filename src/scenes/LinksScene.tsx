@@ -536,8 +536,8 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           className={`links-caption${showLines ? ' is-visible' : ''}`}
           role="status"
         >
-          <p>一年で交差したリンクの光跡。</p>
-          <p>全部でこの数だけネットワークに載りました。</p>
+          <p>一年で送り合ったリンクの数は</p>
+          <p>全部でこの数になりました。</p>
         </div>
       )}
 

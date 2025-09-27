@@ -74,6 +74,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         prompt: '初めて二人で寄ったコンビニは？',
         storageKey: 'fd-20241029-conveni',
         choices: ['セブンイレブン', 'ファミリーマート', 'ローソン', 'ミニストップ'],
+        correctAnswer: 'セブンイレブン',
         readonlyAfterSave: true,
         helper: '思い出せる選択肢を選んでね'
       },
@@ -200,6 +201,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         prompt: '小倉最初のご飯は何を食べた？',
         storageKey: 'xmas-20241224-lunch',
         choices: ['ローストビーフ丼', 'ラーメン', 'クリームパスタ', 'くら寿司'],
+        correctAnswer: 'ローストビーフ丼',
         readonlyAfterSave: true
       },
       {
@@ -354,6 +356,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         prompt: '次に向かったお寺は？',
         storageKey: 'kyoto-20250225-next-temple',
         choices: ['銀閣寺', '龍安寺', '伏見稲荷', '平安神宮'],
+        correctAnswer: '龍安寺',
         readonlyAfterSave: true
       },
       {
@@ -421,6 +424,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         prompt: '二人の最終的なラブ度は？',
         storageKey: 'kyoto-20250226-love-tester',
         choices: ['105', '95', '100', '115'],
+        correctAnswer: '115',
         readonlyAfterSave: true
       }
     ]

@@ -63,6 +63,7 @@ export interface JourneyQuestionStep {
   placeholder?: string
   helper?: string
   readonlyAfterSave?: boolean
+  correctAnswer?: string
 }
 
 export type JourneyStep =

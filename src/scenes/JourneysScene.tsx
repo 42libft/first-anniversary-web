@@ -314,35 +314,23 @@ export const JourneysScene = ({
   setDistanceTraveled,
 }: SceneComponentProps) => {
   type StoryPage =
-    | { kind: 'journeyTitle'; journey: Journey }
-    | { kind: 'moveTitle'; journey: Journey; step: JourneyMoveStep }
+    | { kind: 'journey'; journey: Journey }
     | { kind: 'move'; journey: Journey; step: JourneyMoveStep }
-    | { kind: 'memoryTitle'; journey: Journey; step: JourneyEpisodeStep }
     | { kind: 'memory'; journey: Journey; step: JourneyEpisodeStep }
-    | { kind: 'freeTitle'; journey: Journey; step: JourneyQuestionStep }
     | { kind: 'free'; journey: Journey; step: JourneyQuestionStep }
-    | { kind: 'quizTitle'; journey: Journey; step: JourneyQuestionStep }
     | { kind: 'quiz'; journey: Journey; step: JourneyQuestionStep }
 
   const pages: StoryPage[] = useMemo(() => {
     const list: StoryPage[] = []
     journeys.forEach((j) => {
-      list.push({ kind: 'journeyTitle', journey: j })
+      list.push({ kind: 'journey', journey: j })
       j.steps.forEach((s) => {
         if (s.type === 'move') {
-          list.push({ kind: 'moveTitle', journey: j, step: s })
           list.push({ kind: 'move', journey: j, step: s })
         } else if (s.type === 'episode') {
-          list.push({ kind: 'memoryTitle', journey: j, step: s })
           list.push({ kind: 'memory', journey: j, step: s })
         } else if (s.type === 'question') {
-          if (s.style === 'choice') {
-            list.push({ kind: 'quizTitle', journey: j, step: s })
-            list.push({ kind: 'quiz', journey: j, step: s })
-          } else {
-            list.push({ kind: 'freeTitle', journey: j, step: s })
-            list.push({ kind: 'free', journey: j, step: s })
-          }
+          list.push({ kind: s.style === 'choice' ? 'quiz' : 'free', journey: j, step: s })
         }
       })
     })
@@ -459,28 +447,6 @@ export const JourneysScene = ({
   }
 
   const pageCount = pages.length
-  const activePageNumber = pageIndex + 1
-
-  const headerSubtitle = (() => {
-    switch (activePage.kind) {
-      case 'journeyTitle':
-        return activeJourney.title
-      case 'moveTitle':
-      case 'move':
-        return `${activePage.step.from} → ${activePage.step.to}`
-      case 'memoryTitle':
-      case 'memory':
-        return activePage.step.title ?? activeJourney.title
-      case 'freeTitle':
-      case 'free':
-      case 'quizTitle':
-      case 'quiz':
-        return activePage.step.prompt
-      default:
-        return ''
-    }
-  })()
-
   const isLastPage = pageIndex >= pageCount - 1
   const scheduleNext = () => {
     if (slideState === 'leaving') return
@@ -522,7 +488,7 @@ export const JourneysScene = ({
   }, [pageIndex])
 
   return (
-    <SceneLayout eyebrow="Journeys" title={`${activePageNumber} / ${pageCount}`} description={headerSubtitle}>
+    <SceneLayout eyebrow="Journeys">
       <div
         ref={stageRef}
         className="journeys-stage"
@@ -533,18 +499,12 @@ export const JourneysScene = ({
         tabIndex={0}
       >
         <div className="journeys-slide" data-state={slideState}>
-          {activePage.kind === 'journeyTitle' ? (
+          {activePage.kind === 'journey' ? (
             <TitleCard eyebrow="JOURNEY" title={activePage.journey.title} />
-          ) : activePage.kind === 'moveTitle' ? (
-            <TitleCard eyebrow="MOVE" title={`${activePage.step.from} → ${activePage.step.to}`} />
           ) : activePage.kind === 'move' ? (
             <MoveCard step={activePage.step} journey={activePage.journey} />
-          ) : activePage.kind === 'memoryTitle' ? (
-            <TitleCard eyebrow="MEMORIES" title={activePage.step.title ?? activePage.journey.title} />
           ) : activePage.kind === 'memory' ? (
             <MemoryCard step={activePage.step} journey={activePage.journey} />
-          ) : activePage.kind === 'freeTitle' ? (
-            <TitleCard eyebrow="NOTE" title={activePage.step.prompt} />
           ) : activePage.kind === 'free' ? (
             <QuestionCard
               step={activePage.step}
@@ -555,8 +515,6 @@ export const JourneysScene = ({
               onAnswerChange={handleAnswerChange}
               onTextBlur={handleTextBlur}
             />
-          ) : activePage.kind === 'quizTitle' ? (
-            <TitleCard eyebrow="QUIZ" title={activePage.step.prompt} />
           ) : (
             <QuestionCard
               step={activePage.step}
