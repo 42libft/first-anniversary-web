@@ -664,6 +664,36 @@
   }
 }
 
+@media (max-width: 520px) {
+  .result-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(14px, 6vw, 20px);
+  }
+
+  .result-card__body,
+  .result-card__image {
+    grid-column: 1;
+  }
+
+  .result-card__image {
+    min-height: clamp(180px, 72vw, 240px);
+  }
+
+  .result-card__stats {
+    gap: clamp(10px, 4.6vw, 16px);
+  }
+
+  .result-card__stat {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: clamp(4px, 2vw, 8px);
+  }
+
+  .result-card__value {
+    text-align: left;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .result-card,
   .result-card__image,
