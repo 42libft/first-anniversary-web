@@ -2,6 +2,8 @@ import type { Journey } from '../types/journey'
 
 type JourneyInput = Omit<Journey, 'distanceKm'>
 
+// 追記用: journeys.ts の末尾 or journeyDefinitions 直下に貼り付け
+// 型: JourneyInput は `type JourneyInput = Omit<Journey, 'distanceKm'>` 前提
 const newJourneyDefinitions: JourneyInput[] = [
   // === 初対面のデート（1日目） 2024-10-29 ===
   {
