@@ -27,7 +27,92 @@ type MissingLine = {
   label: string
 }
 
-export type TerminalLogLine = CategoryLine | RetryLine | MissingLine
+type FlavorTone = 'neutral' | 'glitch' | 'hint'
+
+type FlavorLine = {
+  kind: 'flavor'
+  id: string
+  text: string
+  tone: FlavorTone
+}
+
+export type TerminalLogLine = CategoryLine | RetryLine | MissingLine | FlavorLine
+
+type FlavorScriptEvent = {
+  id: string
+  ratio: number
+  text: string
+  tone: FlavorTone
+}
+
+type PlannedFlavorEvent = FlavorScriptEvent & {
+  triggerCount: number
+}
+
+const FLAVOR_EVENTS: FlavorScriptEvent[] = [
+  {
+    id: 'handshake',
+    ratio: 0.04,
+    text: 'boot/init › uplink handshake … OK',
+    tone: 'neutral',
+  },
+  {
+    id: 'checksum',
+    ratio: 0.12,
+    text: 'checksum(seed=Y1) → 0x1FADCE // verified',
+    tone: 'neutral',
+  },
+  {
+    id: 'memo',
+    ratio: 0.22,
+    text: 'memo// keep spectators distracted — stage 2 requires surprise',
+    tone: 'hint',
+  },
+  {
+    id: 'anomaly',
+    ratio: 0.33,
+    text: 'anomaly › intercepted packet stamped «tomorrow»',
+    tone: 'glitch',
+  },
+  {
+    id: 'confetti',
+    ratio: 0.47,
+    text: 'preloading celebration.confetti() assets… prepping sparkle buffers',
+    tone: 'neutral',
+  },
+  {
+    id: 'whisper',
+    ratio: 0.61,
+    text: 'whisper> “they still remember year one” // logging suppressed',
+    tone: 'glitch',
+  },
+  {
+    id: 'override',
+    ratio: 0.75,
+    text: 'observer override: report 100% once buffers stable',
+    tone: 'hint',
+  },
+  {
+    id: 'doors',
+    ratio: 0.88,
+    text: 'memo// once lights dim → proceed to celebration stage',
+    tone: 'hint',
+  },
+]
+
+const planFlavorEvents = (total: number): PlannedFlavorEvent[] => {
+  if (total <= 0) return []
+  const planned: PlannedFlavorEvent[] = []
+  let lastCount = 0
+  FLAVOR_EVENTS.forEach((event) => {
+    const target = Math.min(total, Math.max(lastCount + 1, Math.ceil(event.ratio * total)))
+    if (target > lastCount && target <= total) {
+      planned.push({ ...event, triggerCount: target })
+      lastCount = target
+    }
+  })
+  return planned
+}
 
 export interface AssetPreloaderState {
   total: number
@@ -130,6 +215,13 @@ export const useAssetPreloader = (
 
   const total = sortedAssets.length
 
+  const flavorPlan = useMemo(() => planFlavorEvents(total), [total])
+  const flavorPlanRef = useRef(flavorPlan)
+  useEffect(() => {
+    flavorPlanRef.current = flavorPlan
+  }, [flavorPlan])
+  const flavorIndexRef = useRef(0)
+
   const [loaded, setLoaded] = useState(0)
   const [failed, setFailed] = useState(0)
   const [status, setStatus] = useState<PreloadRunStatus>(total === 0 ? 'complete' : 'idle')
@@ -167,6 +259,8 @@ export const useAssetPreloader = (
     let loadedCount = 0
     let failedCount = 0
 
+    flavorIndexRef.current = 0
+
     setLoaded(0)
     setFailed(0)
     setStatus('loading')
@@ -175,6 +269,36 @@ export const useAssetPreloader = (
     setHasMissing(false)
     durationsRef.current = []
     setAverageDurationMs(0)
+
+    const timers: ReturnType<typeof setTimeout>[] = []
+
+    const queueStartupFlavor = (event: FlavorLine, delay: number) => {
+      const timer = setTimeout(() => {
+        if (cancelled) return
+        appendLogLine(event)
+      }, delay)
+      timers.push(timer)
+    }
+
+    queueStartupFlavor(
+      {
+        kind: 'flavor',
+        id: 'startup:uplink',
+        text: 'boot/init >>> requesting uplink credentials…',
+        tone: 'neutral',
+      },
+      160
+    )
+
+    queueStartupFlavor(
+      {
+        kind: 'flavor',
+        id: 'startup:response',
+        text: 'response<ai-core> // access granted · watchers=present',
+        tone: 'hint',
+      },
+      620
+    )
 
     sortedAssets.forEach((asset) => {
       updateCategory(asset.category, (line) => ({ ...line, loaded: 0, status: 'pending' }))
@@ -227,6 +351,25 @@ export const useAssetPreloader = (
       return false
     }
 
+    const maybeEmitFlavor = (completed: number) => {
+      if (cancelled) return
+      const plan = flavorPlanRef.current
+      while (flavorIndexRef.current < plan.length) {
+        const next = plan[flavorIndexRef.current]
+        if (completed >= next.triggerCount) {
+          appendLogLine({
+            kind: 'flavor',
+            id: `flavor:${next.id}`,
+            text: next.text,
+            tone: next.tone,
+          })
+          flavorIndexRef.current += 1
+          continue
+        }
+        break
+      }
+    }
+
     const run = async () => {
       for (const asset of sortedAssets) {
         if (cancelled) break
@@ -266,11 +409,14 @@ export const useAssetPreloader = (
             label: asset.label,
           })
         }
+
+        maybeEmitFlavor(loadedCount + failedCount)
       }
 
       if (!cancelled) {
         setCurrentAsset(null)
         setCurrentRetries(0)
+        maybeEmitFlavor(total)
         if (failedCount > 0) {
           setStatus('error')
         } else {
@@ -283,8 +429,9 @@ export const useAssetPreloader = (
 
     return () => {
       cancelled = true
+      timers.forEach((timer) => clearTimeout(timer))
     }
-  }, [appendLogLine, maxRetries, sortedAssets, total, updateCategory])
+  }, [appendLogLine, flavorPlan, maxRetries, sortedAssets, total, updateCategory])
 
   const progress = total === 0 ? 1 : loaded / total
 

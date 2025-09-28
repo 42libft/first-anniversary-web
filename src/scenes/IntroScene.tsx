@@ -6,9 +6,14 @@ import type { SceneComponentProps } from '../types/scenes'
 
 const PROGRESS_BAR_UNITS = 24
 
+const EARLY_COMPLETE_THRESHOLD = 0.75
+
 const formatPercent = (progress: number, status: 'loading' | 'complete' | 'error' | 'idle') => {
   if (status === 'complete') return 100
   if (status === 'idle') return 0
+  if (status === 'loading' && progress >= EARLY_COMPLETE_THRESHOLD) {
+    return 100
+  }
   const value = Math.floor(progress * 100)
   return Math.max(0, Math.min(99, value))
 }
@@ -82,6 +87,9 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
     if (status === 'idle') {
       return `progress ${progressBar} ${percent}% (${counts}) [idle]`
     }
+    if (status === 'loading' && percent === 100) {
+      return `progress ${progressBar} 100% (${counts}) [finalizing…]`
+    }
     return `progress ${progressBar} ${percent}% (${counts})`
   }, [loaded, percent, progressBar, status, total])
 
@@ -148,6 +156,17 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
                   )
                 }
 
+                if (line.kind === 'flavor') {
+                  return (
+                    <div
+                      key={line.id}
+                      className={`terminal__line terminal__line--flavor terminal__line--flavor-${line.tone}`}
+                    >
+                      {line.text}
+                    </div>
+                  )
+                }
+
                 if (line.kind === 'retry') {
                   return (
                     <div key={line.id} className="terminal__line terminal__line--retry">
@@ -156,11 +175,15 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
                   )
                 }
 
-                return (
-                  <div key={line.id} className="terminal__line terminal__line--missing">
-                    missing → {line.label}
-                  </div>
-                )
+                if (line.kind === 'missing') {
+                  return (
+                    <div key={line.id} className="terminal__line terminal__line--missing">
+                      missing → {line.label}
+                    </div>
+                  )
+                }
+
+                return null
               })}
             </div>
             <div className="terminal__line terminal__line--progress">
