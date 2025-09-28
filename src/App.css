@@ -584,6 +584,26 @@
   color: rgba(255, 205, 160, 0.88);
 }
 
+.terminal__line--flavor {
+  color: rgba(208, 220, 255, 0.78);
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.terminal__line--flavor.terminal__line--flavor-neutral {
+  color: rgba(210, 222, 255, 0.82);
+  font-style: normal;
+}
+
+.terminal__line--flavor.terminal__line--flavor-hint {
+  color: rgba(166, 227, 255, 0.88);
+}
+
+.terminal__line--flavor.terminal__line--flavor-glitch {
+  color: #ff8cff;
+  text-shadow: 0 0 6px rgba(255, 140, 255, 0.35);
+}
+
 .terminal__line--missing {
   color: #ff7d98;
   font-weight: 600;
