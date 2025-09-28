@@ -241,6 +241,7 @@ const QuestionCard = ({
   onAnswerChange,
   onTextBlur,
   onSubmit,
+  onBeginNewSession,
 }: {
   step: JourneyQuestionStep
   journey: Journey
@@ -250,6 +251,7 @@ const QuestionCard = ({
   onAnswerChange?: (value: string) => void
   onTextBlur?: () => void
   onSubmit?: () => void
+  onBeginNewSession?: () => void
 }) => {
   const isChoice = step.style === 'choice'
   const recordedLabel = storedResponse?.recordedAt
@@ -261,6 +263,7 @@ const QuestionCard = ({
   const isCorrectAnswer = shouldShowQuizFeedback
     ? answerValue === step.correctAnswer
     : undefined
+  const canBeginNewSession = Boolean(onBeginNewSession) && isLocked
 
   return (
     <article
@@ -313,7 +316,18 @@ const QuestionCard = ({
                 <p className="journeys-card__answer">正解: {step.correctAnswer}</p>
               </div>
             ) : null}
-            <span className="journeys-card__timestamp">{recordedLabel}</span>
+            <div className="journeys-card__footer-meta">
+              {canBeginNewSession ? (
+                <button
+                  type="button"
+                  className="journeys-card__reset"
+                  onClick={onBeginNewSession}
+                >
+                  新規入力
+                </button>
+              ) : null}
+              <span className="journeys-card__timestamp">{recordedLabel}</span>
+            </div>
           </div>
         </>
       ) : (
@@ -345,7 +359,18 @@ const QuestionCard = ({
                 入力OK
               </button>
             ) : null}
-            <span className="journeys-card__timestamp">{recordedLabel}</span>
+            <div className="journeys-card__footer-meta">
+              {canBeginNewSession ? (
+                <button
+                  type="button"
+                  className="journeys-card__reset"
+                  onClick={onBeginNewSession}
+                >
+                  新規入力
+                </button>
+              ) : null}
+              <span className="journeys-card__timestamp">{recordedLabel}</span>
+            </div>
           </div>
         </div>
       )}
@@ -362,6 +387,7 @@ export const JourneysScene = ({
   responses,
   saveResponse,
   setDistanceTraveled,
+  beginJourneySession,
 }: SceneComponentProps) => {
   type StoryPage =
     | { kind: 'journey'; journey: Journey }
@@ -499,6 +525,11 @@ export const JourneysScene = ({
       questionType: activeQuestion.style,
     })
   }, [activeJourney, activeQuestion, draftAnswer, saveResponse, storedResponse])
+
+  const handleBeginJourneySession = useCallback(() => {
+    beginJourneySession()
+    setDraftAnswer('', { label: 'Journeys: begin new session', record: false })
+  }, [beginJourneySession, setDraftAnswer])
 
   if (!activeJourney || !activePage) {
     return (
@@ -639,6 +670,7 @@ export const JourneysScene = ({
               onAnswerChange={handleAnswerChange}
               onTextBlur={handleTextBlur}
               onSubmit={handleAnswerSubmit}
+              onBeginNewSession={handleBeginJourneySession}
             />
           ) : (
             <QuestionCard
@@ -649,6 +681,7 @@ export const JourneysScene = ({
               isLocked={isQuestionReadOnly}
               onAnswerChange={handleAnswerChange}
               onTextBlur={handleTextBlur}
+              onBeginNewSession={handleBeginJourneySession}
             />
           )}
         </div>
