@@ -451,6 +451,9 @@ export const JourneysScene = ({
   const responseMap = useMemo(() => {
     const map = new Map<string, typeof responses[number]>()
     responses.forEach((entry) => {
+      if (entry.questionType === 'choice') {
+        return
+      }
       map.set(entry.storageKey, entry)
     })
     return map
@@ -475,10 +478,10 @@ export const JourneysScene = ({
   const handleAnswerChange = useCallback(
     (value: string) => {
       if (!activeQuestion || !activeJourney) return
-      if (activeQuestion.readonlyAfterSave !== false && storedResponse !== undefined) return
-      setDraftAnswer(value, { label: 'Journeys: edit answer' })
+
       if (activeQuestion.style === 'choice') {
-        if (storedResponse?.answer === value) return
+        if (draftAnswer === value) return
+        setDraftAnswer(value, { label: 'Journeys: edit answer' })
         const isCorrect = activeQuestion.correctAnswer
           ? activeQuestion.correctAnswer === value
           : undefined
@@ -495,6 +498,9 @@ export const JourneysScene = ({
         return
       }
 
+      if (activeQuestion.readonlyAfterSave !== false && storedResponse !== undefined) return
+      setDraftAnswer(value, { label: 'Journeys: edit answer' })
+
       if (activeQuestion.readonlyAfterSave === false) {
         if (storedResponse?.answer === value) return
         saveResponse({
@@ -509,7 +515,14 @@ export const JourneysScene = ({
       }
 
     },
-    [activeJourney, activeQuestion, saveResponse, storedResponse]
+    [
+      activeJourney,
+      activeQuestion,
+      draftAnswer,
+      saveResponse,
+      setDraftAnswer,
+      storedResponse,
+    ]
   )
 
   const handleBeginJourneySession = useCallback(() => {
