@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
+import { resolveAssetPath } from '../utils/resolveAssetPath'
 import type {
   Journey,
   JourneyCoordinate,
@@ -76,16 +77,6 @@ const toRoutePath = (points: JourneyCoordinate[]): string => {
   if (!points.length) return ''
   const [first, ...rest] = points
   return rest.reduce((acc, point) => `${acc} L ${point[0]} ${point[1]}`, `M ${first[0]} ${first[1]}`)
-}
-
-const resolveAssetPath = (path: string): string => {
-  if (!path) return path
-  if (path.startsWith('data:')) return path
-  if (/^(?:https?:)?\/\//.test(path)) return path
-  const base = import.meta.env.BASE_URL ?? '/'
-  const sanitizedBase = base.endsWith('/') ? base.slice(0, -1) : base
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  return `${sanitizedBase}${normalizedPath}`
 }
 
 const JourneyRouteMap = ({ step }: { step: JourneyMoveStep }) => {
