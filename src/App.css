@@ -206,6 +206,93 @@
   transition: opacity 0.24s ease, transform 0.24s ease;
   pointer-events: auto;
 }
+
+/* Shared floating CTA hint */
+.scene-floating-cta {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: clamp(1rem, 7vh, 4.4rem) clamp(1.1rem, 6vw, 3.8rem)
+    calc(env(safe-area-inset-bottom, 0px) + clamp(1.6rem, 10vh, 3.8rem));
+  pointer-events: none;
+  z-index: 6;
+}
+
+.scene-floating-cta__button {
+  pointer-events: auto;
+  border: none;
+  background: none;
+  padding: 0;
+  color: rgba(238, 240, 255, 0.85);
+  font-size: clamp(0.64rem, 2.3vw, 0.9rem);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  cursor: pointer;
+  animation: fadeIn 2200ms ease 1600ms both;
+  text-shadow: 0 0 14px rgba(90, 120, 255, 0.28);
+}
+
+.scene-floating-cta__button::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 18px currentColor;
+  opacity: 0.7;
+}
+
+.scene-floating-cta__button:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgba(255, 255, 255, 0.75);
+}
+
+.scene-floating-cta--messages .scene-floating-cta__button {
+  color: rgba(215, 228, 255, 0.9);
+  text-shadow: 0 0 18px rgba(112, 140, 255, 0.35);
+}
+
+.scene-floating-cta--messages .scene-floating-cta__button::before {
+  background: rgba(215, 228, 255, 0.9);
+  box-shadow: 0 0 18px rgba(120, 160, 255, 0.48);
+}
+
+.scene-floating-cta--media .scene-floating-cta__button {
+  color: rgba(240, 236, 255, 0.88);
+  text-shadow: 0 0 18px rgba(180, 170, 255, 0.38);
+}
+
+.scene-floating-cta--media .scene-floating-cta__button::before {
+  background: rgba(240, 236, 255, 0.88);
+  box-shadow: 0 0 18px rgba(180, 170, 255, 0.5);
+}
+
+.scene-floating-cta--links .scene-floating-cta__button {
+  color: rgba(212, 242, 255, 0.86);
+  text-shadow: 0 0 18px rgba(120, 220, 255, 0.4);
+}
+
+.scene-floating-cta--links .scene-floating-cta__button::before {
+  background: rgba(212, 242, 255, 0.9);
+  box-shadow: 0 0 18px rgba(120, 220, 255, 0.55);
+}
+
+.scene-floating-cta--likes .scene-floating-cta__button {
+  color: rgba(255, 210, 244, 0.9);
+  text-shadow: 0 0 18px rgba(255, 140, 220, 0.42);
+}
+
+.scene-floating-cta--likes .scene-floating-cta__button::before {
+  background: rgba(255, 210, 244, 0.9);
+  box-shadow: 0 0 18px rgba(255, 144, 218, 0.5);
+}
 .scene-quick:not(.is-open) .scene-quick__panel {
   opacity: 0;
   transform: translateY(6px) scale(0.96);
@@ -1221,33 +1308,6 @@
   animation: fadeIn 3000ms ease 2000ms both;
 }
 
-.messages-cta-wrap {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: clamp(1.8rem, 8vh, 5.6rem) clamp(1.4rem, 6vw, 4rem)
-    calc(env(safe-area-inset-bottom, 0px) + clamp(2.2rem, 11vh, 4.6rem));
-  pointer-events: none;
-  z-index: 4;
-}
-.messages-cta {
-  pointer-events: auto;
-  padding: 0.7rem 1.4rem;
-  border-radius: 999px;
-  border: 1px solid rgba(163, 174, 255, 0.45);
-  background: rgba(12, 20, 46, 0.78);
-  color: rgba(215, 228, 255, 0.95);
-  font-weight: 800;
-  font-size: clamp(0.7rem, 1.4vw, 0.85rem);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  animation: fadeIn 2200ms ease 1600ms both;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 22px rgba(10, 16, 42, 0.35);
-}
-
 @media (max-width: 880px) {
   .messages-announce__line {
     left: clamp(1.2rem, 8vw, 12vw);
@@ -1267,8 +1327,7 @@
   .messages-announce__line {
     max-width: 32ch;
   }
-  .messages-cta-wrap {
-    justify-content: flex-end;
+  .scene-floating-cta--messages {
     padding-right: clamp(2.8rem, 10vw, 10rem);
   }
 }
@@ -1391,33 +1450,6 @@
   text-align: right;
   animation: fadeIn 3000ms ease 2000ms both;
 }
-.likes-cta-wrap {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: clamp(1.8rem, 8vh, 5.6rem) clamp(1.4rem, 6vw, 4.2rem)
-    calc(env(safe-area-inset-bottom, 0px) + clamp(2rem, 11vh, 4.8rem));
-  pointer-events: none;
-  z-index: 4;
-}
-.likes-cta {
-  pointer-events: auto;
-  padding: 0.72rem 1.5rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 176, 236, 0.55);
-  background: rgba(18, 10, 46, 0.82);
-  color: rgba(255, 236, 248, 0.96);
-  font-weight: 800;
-  font-size: clamp(0.7rem, 1.5vw, 0.86rem);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  animation: fadeIn 2200ms ease 1600ms both;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 30px rgba(26, 12, 52, 0.45);
-}
-
 .likes-control-host {
   position: relative;
   z-index: 120;
@@ -1918,27 +1950,6 @@
   margin: 0.2rem 0;
 }
 
-.links-cta {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: clamp(1.5rem, 10vh, 5rem) 1.2rem
-    calc(env(safe-area-inset-bottom, 0px) + clamp(2rem, 12vh, 4.2rem));
-}
-
-.links-cta button {
-  padding: 0.68rem 1.4rem;
-  border-radius: 999px;
-  border: 1px solid rgba(120, 220, 255, 0.45);
-  background: rgba(8, 30, 52, 0.72);
-  color: rgba(220, 248, 255, 0.92);
-  font-size: clamp(0.64rem, 2.6vw, 0.82rem);
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-}
-
 @keyframes linksGridDrift {
   0% {
     transform: rotate(0deg) scale(1);
@@ -2413,28 +2424,6 @@
   margin: 0.3rem 0;
 }
 
-.media-cta {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: clamp(1.5rem, 10vh, 5rem) clamp(1.2rem, 4vw, 2.6rem)
-    calc(env(safe-area-inset-bottom, 0px) + clamp(2rem, 12vh, 4.2rem));
-  z-index: 4;
-}
-
-.media-cta button {
-  padding: 0.7rem 1.5rem;
-  border-radius: 999px;
-  border: 1px solid rgba(170, 184, 255, 0.45);
-  background: rgba(24, 30, 66, 0.78);
-  color: rgba(250, 244, 236, 0.9);
-  font-size: clamp(0.64rem, 2.6vw, 0.82rem);
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-}
-
 .media-control-panel {
   position: absolute;
   right: clamp(0.8rem, 4vw, 1.8rem);
@@ -2638,12 +2627,13 @@
   .likes-announce__line--bottom {
     top: calc(50% + clamp(2.6rem, 24vh, 6.2rem));
   }
-  .likes-cta-wrap {
+  .scene-floating-cta--likes {
     align-items: center;
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(1.9rem, 12vh, 4.2rem));
   }
-  .likes-cta {
+  .scene-floating-cta--likes .scene-floating-cta__button {
     width: min(100%, 320px);
+    justify-content: center;
     text-align: center;
   }
 }
@@ -2653,7 +2643,7 @@
     font-size: clamp(0.9rem, 4.6vw, 1.12rem);
     letter-spacing: 0.13em;
   }
-  .likes-cta {
+  .scene-floating-cta--likes .scene-floating-cta__button {
     font-size: clamp(0.66rem, 4.2vw, 0.78rem);
     letter-spacing: 0.24em;
   }
@@ -2663,7 +2653,7 @@
   .likes-announce__line {
     max-width: 32ch;
   }
-  .likes-cta-wrap {
+  .scene-floating-cta--likes {
     justify-content: flex-end;
     padding-right: clamp(2.6rem, 9vw, 10rem);
   }

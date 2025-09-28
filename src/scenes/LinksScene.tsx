@@ -537,8 +537,12 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       )}
 
       {phase === 'cta' && ctaVisible && (
-        <div className="links-cta">
-          <button type="button" onClick={onAdvance}>
+        <div className="scene-floating-cta scene-floating-cta--links">
+          <button
+            type="button"
+            className="scene-floating-cta__button"
+            onClick={onAdvance}
+          >
             タップで次へ
           </button>
         </div>

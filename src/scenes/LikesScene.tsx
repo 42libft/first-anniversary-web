@@ -150,10 +150,10 @@ export const LikesScene = ({ onAdvance }: SceneComponentProps) => {
       )}
 
       {phase === 'cta' && ctaVisible && (
-        <div className="likes-cta-wrap">
+        <div className="scene-floating-cta scene-floating-cta--likes">
           <button
             type="button"
-            className="likes-cta"
+            className="scene-floating-cta__button"
             onClick={onAdvance}
           >
             タップで次へ
