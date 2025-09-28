@@ -46,8 +46,6 @@ resultLegends.forEach((legend) => {
   }
 })
 
-localImageSet.add('/images/gimmie-placeholder.svg')
-
 const remoteMeetupImages = new Set<string>()
 
 meetupPages.forEach((page) => {

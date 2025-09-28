@@ -203,24 +203,26 @@ const MoveCard = ({ step, journey }: { step: JourneyMoveStep; journey: Journey }
 }
 
 const MemoryCard = ({ step, journey }: { step: JourneyEpisodeStep; journey: Journey }) => {
-  const photoSrc = resolveAssetPath(step.photo.src)
+  const photoSrc = step.photo ? resolveAssetPath(step.photo.src) : undefined
   return (
     <article className="journeys-card journeys-card--memory" tabIndex={-1}>
       <p className="journeys-card__eyebrow">MEMORIES</p>
       <h3 className="journeys-card__title">{step.title ?? journey.title}</h3>
-      <figure className="journeys-card__figure">
-        <img
-          className="journeys-map journeys-map--image"
-          src={photoSrc}
-          alt={step.photo.alt}
-          loading="lazy"
-          style={
-            step.photo.objectPosition
-              ? { objectPosition: step.photo.objectPosition }
-              : undefined
-          }
-        />
-      </figure>
+      {step.photo && photoSrc ? (
+        <figure className="journeys-card__figure">
+          <img
+            className="journeys-map journeys-map--image"
+            src={photoSrc}
+            alt={step.photo.alt}
+            loading="lazy"
+            style={
+              step.photo.objectPosition
+                ? { objectPosition: step.photo.objectPosition }
+                : undefined
+            }
+          />
+        </figure>
+      ) : null}
       <div className="journeys-card__text-group">
         {step.text.map((paragraph, index) => (
           <p key={index} className="journeys-card__text">
