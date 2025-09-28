@@ -36,7 +36,7 @@ export interface ResultPayload {
   resultTitle?: string
   team?: {
     rank?: number
-    totalKills?: number
+    totalDaysTogether?: number
   }
   players?: ResultPayloadPlayer[]
 }
@@ -64,7 +64,7 @@ interface ResultViewData {
     text: string
     ariaLabel: string
   }
-  teamKills: {
+  teamDays: {
     text: string
     ariaLabel: string
   }
@@ -207,7 +207,7 @@ const createPlayerView = (role: PlayerRole, payload?: ResultPayloadPlayer): Resu
 
 const buildViewData = (payload?: ResultPayload): ResultViewData => {
   const teamRankValue = formatNumber(payload?.team?.rank)
-  const teamKillsValue = formatNumber(payload?.team?.totalKills)
+  const teamDaysValue = formatNumber(payload?.team?.totalDaysTogether)
 
   const playersByRole = new Map<PlayerRole, ResultPayloadPlayer>()
   payload?.players?.forEach((player) => {
@@ -217,14 +217,16 @@ const buildViewData = (payload?: ResultPayload): ResultViewData => {
   })
 
   return {
-    resultTitle: payload?.resultTitle?.trim() || '—',
+    resultTitle: payload?.resultTitle?.trim() || 'forever',
     teamRank: {
       text: teamRankValue ? `${teamRankValue}位` : '— 位',
       ariaLabel: `部隊の順位 ${teamRankValue ?? '—'} 位`,
     },
-    teamKills: {
-      text: teamKillsValue ?? '—',
-      ariaLabel: `部隊の合計キル ${teamKillsValue ?? '—'}`,
+    teamDays: {
+      text: teamDaysValue ? `${teamDaysValue}日` : '〇〇日',
+      ariaLabel: teamDaysValue
+        ? `一緒に過ごした合計日数 ${teamDaysValue} 日`
+        : '一緒に過ごした合計日数 未設定',
     },
     players: PLAYER_ROLES.map((role) => createPlayerView(role, playersByRole.get(role))),
   }
@@ -428,12 +430,12 @@ export const ResultScene = ({ onRestart }: SceneComponentProps) => {
                 </span>
               </div>
               <div className="result-banner__panel">
-                <span className="result-banner__panel-label">部隊の合計キル</span>
+                <span className="result-banner__panel-label">一緒に過ごした合計日数</span>
                 <span
                   className="result-banner__panel-value"
-                  aria-label={viewData.teamKills.ariaLabel}
+                  aria-label={viewData.teamDays.ariaLabel}
                 >
-                  {viewData.teamKills.text}
+                  {viewData.teamDays.text}
                 </span>
               </div>
             </div>
