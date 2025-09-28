@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 import { prologueScript } from '../data/prologue'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
+import { resolveAssetPath } from '../utils/resolveAssetPath'
 
 const SPEAKER_PROFILES = {
   self: {
@@ -23,10 +30,21 @@ const SPEAKER_PROFILES = {
 
 const SERVER_PROFILE = {
   name: 'NESSI',
-  avatar: '/images/prologue/IMG_nessi.jpeg',
+  avatar: resolveAssetPath('/images/prologue/IMG_nessi.jpeg'),
 } as const
 
-const FALLBACK_AVATAR_SRC = '/images/prologue-partner-placeholder.svg'
+const FALLBACK_AVATAR_SRC = resolveAssetPath('/images/prologue-partner-placeholder.svg')
+
+const SPEAKER_BACKDROP_IMAGES = {
+  self: {
+    idle: `url(${resolveAssetPath(SPEAKER_PROFILES.self.avatars.idle)})`,
+    speaking: `url(${resolveAssetPath(SPEAKER_PROFILES.self.avatars.speaking)})`,
+  },
+  partner: {
+    idle: `url(${resolveAssetPath(SPEAKER_PROFILES.partner.avatars.idle)})`,
+    speaking: `url(${resolveAssetPath(SPEAKER_PROFILES.partner.avatars.speaking)})`,
+  },
+} as const
 
 const getInitialSpeaker = (): 'self' | 'partner' => {
   const firstSpeaker = prologueScript.find(
@@ -60,6 +78,17 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
 
   const displayAvatarSrc = SERVER_PROFILE.avatar
   const displayAvatarAlt = `${SERVER_PROFILE.name}のアイコン`
+
+  const backdropCustomProperties = useMemo(
+    () =>
+      ({
+        '--prologue-self-idle-image': SPEAKER_BACKDROP_IMAGES.self.idle,
+        '--prologue-self-speaking-image': SPEAKER_BACKDROP_IMAGES.self.speaking,
+        '--prologue-partner-idle-image': SPEAKER_BACKDROP_IMAGES.partner.idle,
+        '--prologue-partner-speaking-image': SPEAKER_BACKDROP_IMAGES.partner.speaking,
+      }) as CSSProperties,
+    []
+  )
 
   useEffect(() => {
     if (currentLine?.variant === 'self' || currentLine?.variant === 'partner') {
@@ -110,6 +139,7 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
       onClick={handleAdvance}
       onKeyDown={handleKeyDown}
       aria-label={isComplete ? 'Journeysへ進む' : 'タップでセリフを進める'}
+      style={backdropCustomProperties}
     >
       <div className="prologue__backdrops" aria-hidden="true">
         <div
