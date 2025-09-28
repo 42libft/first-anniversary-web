@@ -240,6 +240,7 @@ const QuestionCard = ({
   isLocked,
   onAnswerChange,
   onTextBlur,
+  onSubmit,
 }: {
   step: JourneyQuestionStep
   journey: Journey
@@ -248,6 +249,7 @@ const QuestionCard = ({
   isLocked: boolean
   onAnswerChange?: (value: string) => void
   onTextBlur?: () => void
+  onSubmit?: () => void
 }) => {
   const isChoice = step.style === 'choice'
   const recordedLabel = storedResponse?.recordedAt
@@ -331,6 +333,18 @@ const QuestionCard = ({
             rows={5}
           />
           <div className="journeys-card__form-footer">
+            {onSubmit ? (
+              <button
+                type="button"
+                className="journeys-card__submit"
+                onClick={isLocked ? undefined : onSubmit}
+                disabled={
+                  isLocked || (step.readonlyAfterSave !== false && value.trim().length === 0)
+                }
+              >
+                入力OK
+              </button>
+            ) : null}
             <span className="journeys-card__timestamp">{recordedLabel}</span>
           </div>
         </div>
@@ -452,22 +466,9 @@ export const JourneysScene = ({
           answer: value,
           questionType: activeQuestion.style,
         })
-        scheduleNext()
         return
       }
 
-      // readonlyAfterSave !== false のテキストでも、入力が入ったら保存→次へ
-      if (activeQuestion.style === 'text' && value.trim().length > 0 && !storedResponse) {
-        saveResponse({
-          journeyId: activeJourney.id,
-          stepId: activeQuestion.id,
-          storageKey: activeQuestion.storageKey,
-          prompt: activeQuestion.prompt,
-          answer: value,
-          questionType: activeQuestion.style,
-        })
-        scheduleNext()
-      }
     },
     [activeJourney, activeQuestion, saveResponse, storedResponse]
   )
@@ -504,7 +505,7 @@ export const JourneysScene = ({
 
   const pageCount = pages.length
   const isLastPage = pageIndex >= pageCount - 1
-  const scheduleNext = () => {
+  const scheduleNext = useCallback(() => {
     if (slideState === 'leaving') return
     setSlideState('leaving')
     const previousIndex = pageIndex
@@ -520,7 +521,53 @@ export const JourneysScene = ({
       }
       setPageIndex(nextIndex, { label: 'Journeys: advance page' })
     }, 200)
-  }
+  }, [isLastPage, onAdvance, pageCount, pageIndex, setPageIndex, setSlideState, slideState])
+
+  const handleAnswerSubmit = useCallback(() => {
+    if (!activeQuestion || !activeJourney) return
+    if (activeQuestion.style !== 'text') return
+    if (isQuestionReadOnly) {
+      scheduleNext()
+      return
+    }
+
+    const answer = draftAnswer
+    if (activeQuestion.readonlyAfterSave === false) {
+      if (storedResponse?.answer !== answer) {
+        saveResponse({
+          journeyId: activeJourney.id,
+          stepId: activeQuestion.id,
+          storageKey: activeQuestion.storageKey,
+          prompt: activeQuestion.prompt,
+          answer,
+          questionType: activeQuestion.style,
+        })
+      }
+      scheduleNext()
+      return
+    }
+
+    if (answer.trim().length === 0) return
+    if (storedResponse?.answer !== answer) {
+      saveResponse({
+        journeyId: activeJourney.id,
+        stepId: activeQuestion.id,
+        storageKey: activeQuestion.storageKey,
+        prompt: activeQuestion.prompt,
+        answer,
+        questionType: activeQuestion.style,
+      })
+    }
+    scheduleNext()
+  }, [
+    activeJourney,
+    activeQuestion,
+    draftAnswer,
+    isQuestionReadOnly,
+    saveResponse,
+    scheduleNext,
+    storedResponse,
+  ])
 
   const handleStageClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
     const target = event.target as HTMLElement
@@ -580,6 +627,7 @@ export const JourneysScene = ({
               isLocked={isQuestionReadOnly}
               onAnswerChange={handleAnswerChange}
               onTextBlur={handleTextBlur}
+              onSubmit={handleAnswerSubmit}
             />
           ) : (
             <QuestionCard
