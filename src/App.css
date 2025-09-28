@@ -3772,6 +3772,10 @@
   transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
+.journeys-card__textarea[data-submit-effect='true'] {
+  animation: journeys-textarea-glint 0.6s ease;
+}
+
 .journeys-card__textarea:focus {
   outline: none;
   border-color: rgba(255, 102, 196, 0.7);
@@ -3781,6 +3785,25 @@
 .journeys-card__textarea:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+@keyframes journeys-textarea-glint {
+  0% {
+    border-color: rgba(163, 174, 255, 0.35);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.15);
+  }
+  35% {
+    border-color: rgba(255, 213, 255, 0.9);
+    box-shadow: 0 0 0 3px rgba(255, 213, 255, 0.35);
+  }
+  65% {
+    border-color: rgba(120, 168, 255, 0.9);
+    box-shadow: 0 0 0 3px rgba(120, 168, 255, 0.3);
+  }
+  100% {
+    border-color: rgba(163, 174, 255, 0.35);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.15);
+  }
 }
 
 .journeys-card__form-footer {

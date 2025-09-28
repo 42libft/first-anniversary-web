@@ -239,7 +239,6 @@ const QuestionCard = ({
   storedResponse,
   isLocked,
   onAnswerChange,
-  onTextBlur,
   onSubmit,
   onBeginNewSession,
 }: {
@@ -249,10 +248,10 @@ const QuestionCard = ({
   storedResponse?: SceneComponentProps['responses'][number]
   isLocked: boolean
   onAnswerChange?: (value: string) => void
-  onTextBlur?: () => void
   onSubmit?: () => void
   onBeginNewSession?: () => void
 }) => {
+  const [isSubmitEffectActive, setIsSubmitEffectActive] = useState(false)
   const isChoice = step.style === 'choice'
   const recordedLabel = storedResponse?.recordedAt
     ? `記録: ${formatRecordedAt(storedResponse.recordedAt)}`
@@ -264,6 +263,18 @@ const QuestionCard = ({
     ? answerValue === step.correctAnswer
     : undefined
   const canBeginNewSession = Boolean(onBeginNewSession) && isLocked
+
+  useEffect(() => {
+    if (!isSubmitEffectActive) return
+    const timer = window.setTimeout(() => setIsSubmitEffectActive(false), 600)
+    return () => window.clearTimeout(timer)
+  }, [isSubmitEffectActive])
+
+  const handleSubmitClick = useCallback(() => {
+    if (!onSubmit || isLocked) return
+    setIsSubmitEffectActive(true)
+    onSubmit()
+  }, [isLocked, onSubmit])
 
   return (
     <article
@@ -342,7 +353,7 @@ const QuestionCard = ({
                 ? (event) => onAnswerChange(event.currentTarget.value)
                 : undefined
             }
-            onBlur={onTextBlur}
+            data-submit-effect={isSubmitEffectActive ? 'true' : undefined}
             disabled={isLocked}
             rows={5}
           />
@@ -351,12 +362,10 @@ const QuestionCard = ({
               <button
                 type="button"
                 className="journeys-card__submit"
-                onClick={isLocked ? undefined : onSubmit}
-                disabled={
-                  isLocked || (step.readonlyAfterSave !== false && value.trim().length === 0)
-                }
+                onClick={handleSubmitClick}
+                disabled={isLocked || !onSubmit}
               >
-                入力OK
+                入力完了
               </button>
             ) : null}
             <div className="journeys-card__footer-meta">
@@ -510,22 +519,6 @@ export const JourneysScene = ({
     [activeJourney, activeQuestion, saveResponse, storedResponse]
   )
 
-  const handleTextBlur = useCallback(() => {
-    if (!activeQuestion || !activeJourney) return
-    if (activeQuestion.style !== 'text') return
-    if (activeQuestion.readonlyAfterSave === false) return
-    if (storedResponse !== undefined) return
-    if (draftAnswer.trim().length === 0) return
-    saveResponse({
-      journeyId: activeJourney.id,
-      stepId: activeQuestion.id,
-      storageKey: activeQuestion.storageKey,
-      prompt: activeQuestion.prompt,
-      answer: draftAnswer,
-      questionType: activeQuestion.style,
-    })
-  }, [activeJourney, activeQuestion, draftAnswer, saveResponse, storedResponse])
-
   const handleBeginJourneySession = useCallback(() => {
     beginJourneySession()
     setDraftAnswer('', { label: 'Journeys: begin new session', record: false })
@@ -589,7 +582,10 @@ export const JourneysScene = ({
       return
     }
 
-    if (answer.trim().length === 0) return
+    if (answer.trim().length === 0) {
+      scheduleNext()
+      return
+    }
     if (storedResponse?.answer !== answer) {
       saveResponse({
         journeyId: activeJourney.id,
@@ -668,7 +664,6 @@ export const JourneysScene = ({
               storedResponse={storedResponse}
               isLocked={isQuestionReadOnly}
               onAnswerChange={handleAnswerChange}
-              onTextBlur={handleTextBlur}
               onSubmit={handleAnswerSubmit}
               onBeginNewSession={handleBeginJourneySession}
             />
@@ -680,7 +675,6 @@ export const JourneysScene = ({
               storedResponse={storedResponse}
               isLocked={isQuestionReadOnly}
               onAnswerChange={handleAnswerChange}
-              onTextBlur={handleTextBlur}
             />
           )}
         </div>
