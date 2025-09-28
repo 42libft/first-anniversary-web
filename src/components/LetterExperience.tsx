@@ -1155,11 +1155,14 @@ export const LetterExperience = ({
     if (tearSpeed !== 'idle') {
       classes.push(`letter-pack--tear-${tearSpeed}`)
     }
+    if (isLetterOpen) {
+      classes.push('letter-pack--open')
+    }
     if (prefersReducedMotion) {
       classes.push('letter-pack--reduced')
     }
     return classes.join(' ')
-  }, [prefersReducedMotion, stage, tearSpeed])
+  }, [isLetterOpen, prefersReducedMotion, stage, tearSpeed])
 
   const rootClassName = useMemo(() => {
     const classes = ['letter-experience']

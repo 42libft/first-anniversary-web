@@ -4150,6 +4150,10 @@
   transform-style: preserve-3d;
 }
 
+.letter-pack--open {
+  overflow: visible;
+}
+
 .letter-pack:focus-visible {
   outline: 2px solid rgba(255, 204, 128, 0.85);
   outline-offset: 8px;
@@ -4609,8 +4613,8 @@
 }
 
 .letter-pack__letter[data-open='true'] {
-  --letter-floating-offset: -36%;
-  --letter-floating-scale: 1.14;
+  --letter-floating-offset: -28%;
+  --letter-floating-scale: 1.12;
   box-shadow: 0 42px 68px rgba(12, 18, 48, 0.28);
   overflow: visible;
 }
@@ -4622,7 +4626,7 @@
   }
 
   .letter-pack__letter[data-open='true'] {
-    --letter-floating-offset: clamp(-14%, -18%, -10%);
+    --letter-floating-offset: clamp(-10%, -14%, -6%);
     --letter-floating-scale: 1.05;
     overflow: visible;
   }
@@ -4636,16 +4640,18 @@
   justify-content: flex-end;
   align-items: center;
   pointer-events: none;
-  padding: clamp(0.75rem, 3vw, 1.2rem);
-  padding-top: clamp(1.5rem, 6vw, 2.75rem);
-  gap: clamp(0.5rem, 2vw, 1rem);
+  padding: clamp(0.6rem, 2.5vw, 1rem);
+  padding-top: clamp(1.35rem, 5vw, 2.4rem);
+  padding-bottom: calc(clamp(0.6rem, 2.5vw, 1rem) + env(safe-area-inset-bottom, 0px));
+  gap: clamp(0.5rem, 2vw, 0.9rem);
   z-index: 2;
   background: linear-gradient(
     180deg,
     rgba(4, 10, 26, 0) 0%,
-    rgba(4, 10, 26, 0.55) 55%,
-    rgba(4, 10, 26, 0.78) 100%
+    rgba(4, 10, 26, 0.24) 58%,
+    rgba(4, 10, 26, 0.42) 100%
   );
+  backdrop-filter: blur(8px);
 }
 
 .letter-pack__nav {
@@ -4655,7 +4661,15 @@
   gap: clamp(0.5rem, 2vw, 1rem);
   width: 100%;
   flex-wrap: wrap;
+  max-width: min(100%, 320px);
+  margin-inline: auto;
+  padding: clamp(0.35rem, 2.2vw, 0.75rem);
+  border-radius: clamp(1.35rem, 5vw, 1.8rem);
+  background: rgba(245, 247, 255, 0.88);
+  box-shadow: 0 16px 32px rgba(12, 18, 48, 0.22);
+  backdrop-filter: blur(14px);
   pointer-events: none;
+  transform: translateY(clamp(12px, 4vw, 20px));
 }
 
 .letter-pack__nav-button {
@@ -4699,14 +4713,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.45rem 1.2rem;
+  padding: 0.45rem 1.1rem;
   border-radius: 999px;
-  background: rgba(16, 24, 62, 0.55);
-  box-shadow: 0 16px 32px rgba(12, 18, 48, 0.26);
+  background: rgba(224, 230, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(132, 146, 206, 0.3), 0 10px 24px rgba(12, 18, 48, 0.18);
   font-size: clamp(0.78rem, 1.8vw, 0.95rem);
   letter-spacing: 0.08em;
-  color: rgba(238, 241, 255, 0.92);
-  text-shadow: 0 1px 3px rgba(8, 12, 32, 0.45);
+  color: rgba(20, 28, 64, 0.92);
+  text-shadow: none;
   margin: 0 auto;
 }
 
@@ -4780,11 +4794,13 @@
   }
 
   .letter-pack__letter-overlay {
-    padding-bottom: clamp(0.9rem, 4vw, 1.2rem);
+    padding-bottom: calc(clamp(0.8rem, 4vw, 1.1rem) + env(safe-area-inset-bottom, 0px));
   }
 
   .letter-pack__nav {
-    gap: clamp(0.4rem, 3vw, 0.75rem);
+    gap: clamp(0.4rem, 3vw, 0.7rem);
+    max-width: min(100%, 280px);
+    transform: translateY(clamp(16px, 6vw, 28px));
   }
 
   .letter-pack__page-status {
