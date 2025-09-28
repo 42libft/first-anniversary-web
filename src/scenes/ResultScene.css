@@ -118,7 +118,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: clamp(8px, 2vw, 18px);
   padding: clamp(4px, 0.9vw, 6px) clamp(14px, 2.4vw, 22px);
   border-radius: 9px;
@@ -187,16 +187,16 @@
 .result-banner__title {
   position: relative;
   margin: 0;
-  flex: 1;
-  max-width: 420px;
+  flex: 0 1 auto;
+  min-width: clamp(94px, 18vw, 140px);
   text-align: left;
-  font-size: clamp(0.92rem, 2.4vw, 1.22rem);
+  font-size: clamp(0.88rem, 2vw, 1.16rem);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(255, 248, 225, 0.92);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
-  line-height: 1.05;
+  line-height: 1.1;
   z-index: 1;
 }
 
@@ -213,37 +213,42 @@
 
 .result-banner__stats {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: clamp(8px, 1.8vw, 16px);
+  flex: 1 1 auto;
+  gap: clamp(10px, 2.2vw, 22px);
   margin-left: auto;
-  white-space: nowrap;
   z-index: 1;
+  flex-wrap: wrap;
 }
 
 .result-banner__panel {
-  display: inline-flex;
-  align-items: center;
-  gap: clamp(4px, 1vw, 8px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(2px, 0.6vw, 4px);
   padding: 0;
   background: transparent;
   border: none;
+  min-width: clamp(120px, 22vw, 200px);
 }
 
 .result-banner__panel-label {
-  font-size: 0.5rem;
-  letter-spacing: 0.18em;
+  font-size: clamp(0.48rem, 1.2vw, 0.62rem);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(51, 38, 17, 0.66);
+  line-height: 1.4;
 }
 
 .result-banner__panel-value {
-  font-size: clamp(0.82rem, 1.8vw, 1.08rem);
+  font-size: clamp(0.9rem, 2vw, 1.18rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: rgba(49, 33, 10, 0.85);
   text-shadow: 0 1px 0 rgba(255, 245, 220, 0.28);
+  line-height: 1.15;
 }
 
 .result-header__divider {
