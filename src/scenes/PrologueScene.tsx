@@ -58,13 +58,8 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
     ? SPEAKER_PROFILES.partner.name
     : activeSpeakerProfile.name
 
-  const displayAvatarSrc = isSystemLine
-    ? SERVER_PROFILE.avatar
-    : isSelfLine
-    ? SPEAKER_PROFILES.self.avatars.speaking
-    : isPartnerLine
-    ? SPEAKER_PROFILES.partner.avatars.speaking
-    : activeSpeakerProfile.avatars.idle
+  const displayAvatarSrc = SERVER_PROFILE.avatar
+  const displayAvatarAlt = `${SERVER_PROFILE.name}のアイコン`
 
   useEffect(() => {
     if (currentLine?.variant === 'self' || currentLine?.variant === 'partner') {
@@ -135,7 +130,7 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
             <div className="prologue__call-avatar">
               <img
                 src={displayAvatarSrc}
-                alt={`${displayName}のアイコン`}
+                alt={displayAvatarAlt}
                 onError={handleAvatarError}
                 loading="lazy"
               />
