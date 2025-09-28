@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react'
+import type {
+  CSSProperties,
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+} from 'react'
 
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion'
 
@@ -20,6 +24,12 @@ interface LetterExperienceProps {
   onStageChange?: (stage: InteractionStage) => void
   onLetterClick?: () => void
   letterActionLabel?: string
+  isLetterOpen?: boolean
+  hasPages?: boolean
+  onLetterPrev?: () => void
+  onLetterNext?: () => void
+  onLetterClose?: () => void
+  pageStatus?: string
 }
 
 type TearSpeed = 'idle' | 'slow' | 'fast'
@@ -251,6 +261,12 @@ export const LetterExperience = ({
   onStageChange,
   onLetterClick,
   letterActionLabel,
+  isLetterOpen = false,
+  hasPages = false,
+  onLetterPrev,
+  onLetterNext,
+  onLetterClose,
+  pageStatus,
 }: LetterExperienceProps) => {
   const prefersReducedMotion = usePrefersReducedMotion()
 
@@ -282,6 +298,8 @@ export const LetterExperience = ({
   const hasBurstRef = useRef(false)
   const tearDistanceRef = useRef(TEAR_DISTANCE)
   const pointerModeRef = useRef<PointerMode>('mouse')
+  const letterGestureRef = useRef<{ id: number; x: number; y: number } | null>(null)
+  const letterSwipeHandledRef = useRef(false)
 
   const floatingCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const floatingCtxRef = useRef<CanvasRenderingContext2D | null>(null)
@@ -1160,12 +1178,106 @@ export const LetterExperience = ({
     if (!isLetterInteractive) {
       return
     }
+    if (letterSwipeHandledRef.current) {
+      letterSwipeHandledRef.current = false
+      return
+    }
     onLetterClick?.()
   }, [isLetterInteractive, onLetterClick])
+
+  const handleLetterPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!isLetterInteractive) {
+        return
+      }
+      letterGestureRef.current = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+      }
+      letterSwipeHandledRef.current = false
+      event.currentTarget.setPointerCapture?.(event.pointerId)
+    },
+    [isLetterInteractive]
+  )
+
+  const handleLetterPointerUp = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!isLetterInteractive) {
+        return
+      }
+      const gesture = letterGestureRef.current
+      if (!gesture || gesture.id !== event.pointerId) {
+        return
+      }
+      event.currentTarget.releasePointerCapture?.(event.pointerId)
+      const dx = event.clientX - gesture.x
+      const dy = event.clientY - gesture.y
+      letterGestureRef.current = null
+
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        letterSwipeHandledRef.current = true
+        if (dx > 0) {
+          onLetterPrev?.()
+        } else {
+          if (onLetterNext) {
+            onLetterNext()
+          } else {
+            onLetterClick?.()
+          }
+        }
+      }
+    },
+    [isLetterInteractive, onLetterClick, onLetterNext, onLetterPrev]
+  )
+
+  const handleLetterPointerCancel = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    const gesture = letterGestureRef.current
+    if (!gesture || gesture.id !== event.pointerId) {
+      return
+    }
+    event.currentTarget.releasePointerCapture?.(event.pointerId)
+    letterGestureRef.current = null
+    letterSwipeHandledRef.current = false
+  }, [])
+
+  const handleLetterPointerLeave = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    const gesture = letterGestureRef.current
+    if (!gesture || gesture.id !== event.pointerId) {
+      return
+    }
+    event.currentTarget.releasePointerCapture?.(event.pointerId)
+    letterGestureRef.current = null
+    letterSwipeHandledRef.current = false
+  }, [])
 
   const handleLetterKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLDivElement>) => {
       if (!isLetterInteractive) {
+        return
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        onLetterPrev?.()
+        return
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        if (onLetterNext) {
+          onLetterNext()
+        } else {
+          onLetterClick?.()
+        }
+        return
+      }
+
+      if (event.key === 'Escape') {
+        if (isLetterOpen) {
+          event.preventDefault()
+          onLetterClose?.()
+        }
         return
       }
 
@@ -1174,7 +1286,14 @@ export const LetterExperience = ({
         onLetterClick?.()
       }
     },
-    [isLetterInteractive, onLetterClick]
+    [
+      isLetterInteractive,
+      isLetterOpen,
+      onLetterClick,
+      onLetterClose,
+      onLetterNext,
+      onLetterPrev,
+    ]
   )
 
   const particles = useMemo(
@@ -1225,6 +1344,11 @@ export const LetterExperience = ({
             onClick={isLetterInteractive ? handleLetterClick : undefined}
             onKeyDown={isLetterInteractive ? handleLetterKeyDown : undefined}
             data-interactive={isLetterInteractive ? 'true' : undefined}
+            data-open={isLetterOpen ? 'true' : undefined}
+            onPointerDown={isLetterInteractive ? handleLetterPointerDown : undefined}
+            onPointerUp={isLetterInteractive ? handleLetterPointerUp : undefined}
+            onPointerCancel={isLetterInteractive ? handleLetterPointerCancel : undefined}
+            onPointerLeave={isLetterInteractive ? handleLetterPointerLeave : undefined}
           >
             {letterImage ? (
               <img src={letterImage.src} alt={letterImage.alt ?? 'スキャンした手紙'} />
@@ -1234,6 +1358,45 @@ export const LetterExperience = ({
                 <span />
                 <span />
                 <span />
+              </div>
+            )}
+            {isLetterOpen && (hasPages || onLetterClose) && (
+              <div className="letter-pack__letter-overlay">
+                {hasPages && (
+                  <>
+                    <button
+                      type="button"
+                      className="letter-pack__nav-button letter-pack__nav-button--prev"
+                      onClick={onLetterPrev}
+                      disabled={!onLetterPrev}
+                      aria-label="前のページへ"
+                    >
+                      <span aria-hidden="true">‹</span>
+                    </button>
+                    <div className="letter-pack__page-status" role="status" aria-live="polite">
+                      {pageStatus ?? ''}
+                    </div>
+                    <button
+                      type="button"
+                      className="letter-pack__nav-button letter-pack__nav-button--next"
+                      onClick={onLetterNext ?? onLetterClick}
+                      disabled={!(onLetterNext ?? onLetterClick)}
+                      aria-label="次のページへ"
+                    >
+                      <span aria-hidden="true">›</span>
+                    </button>
+                  </>
+                )}
+                {onLetterClose && (
+                  <button
+                    type="button"
+                    className="letter-pack__close"
+                    onClick={onLetterClose}
+                    aria-label="封筒に戻す"
+                  >
+                    <span aria-hidden="true">×</span>
+                  </button>
+                )}
               </div>
             )}
           </div>

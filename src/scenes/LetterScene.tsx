@@ -107,7 +107,7 @@ export const LetterScene = ({ onAdvance }: SceneComponentProps) => {
     }
 
     if (!isLetterOpen || !hasPages) {
-      return '封筒を開いて手紙を表示'
+      return '封筒を開いて手紙を浮かせる'
     }
 
     return '手紙の次のページを表示'
@@ -115,6 +115,8 @@ export const LetterScene = ({ onAdvance }: SceneComponentProps) => {
 
   const advanceHandler = canAdvance ? onAdvance : undefined
   const pageNumber = hasPages ? letterPageIndex + 1 : 0
+  const pageStatus = hasPages ? `ページ ${pageNumber} / ${pageCount}` : undefined
+  const viewerStatus = isLetterOpen && hasPages ? pageStatus : '封筒を表示中'
 
   return (
     <SceneLayout
@@ -127,44 +129,23 @@ export const LetterScene = ({ onAdvance }: SceneComponentProps) => {
         letterImage={currentLetterImage}
         onLetterClick={handleLetterInteraction}
         letterActionLabel={letterActionLabel}
+        isLetterOpen={isLetterOpen}
+        hasPages={hasPages}
+        onLetterPrev={handlePrevPage}
+        onLetterNext={handleNextPage}
+        onLetterClose={handleCloseLetter}
+        pageStatus={viewerStatus}
       />
       {isRevealed && (
         <div className="letter-scene__viewer" role="group" aria-label="手紙の表示コントロール">
           <p className="letter-scene__instruction">
             {isLetterOpen && hasPages
-              ? '画像をタップするかボタンでページをめくれます。'
-              : '封筒をタップすると中の手紙を表示します。'}
+              ? '浮かび上がった手紙を左右にドラッグ / タップするとページをめくれます。'
+              : '封筒をタップすると中の手紙が浮かび上がります。'}
           </p>
-          <div className="letter-scene__controls">
-            <button
-              type="button"
-              className="letter-scene__button"
-              onClick={handlePrevPage}
-              disabled={!isLetterOpen || !hasPages}
-            >
-              前のページ
-            </button>
-            <span className="letter-scene__status" role="status" aria-live="polite">
-              {isLetterOpen && hasPages ? `ページ ${pageNumber} / ${pageCount}` : '封筒を表示中'}
-            </span>
-            <button
-              type="button"
-              className="letter-scene__button"
-              onClick={handleNextPage}
-              disabled={!hasPages}
-            >
-              {isLetterOpen && hasPages ? '次のページ' : '封筒を開く'}
-            </button>
-          </div>
-          {isLetterOpen && hasPages && (
-            <button
-              type="button"
-              className="letter-scene__button letter-scene__button--secondary"
-              onClick={handleCloseLetter}
-            >
-              封筒に戻す
-            </button>
-          )}
+          <span className="letter-scene__status" role="status" aria-live="polite">
+            {viewerStatus}
+          </span>
         </div>
       )}
     </SceneLayout>
