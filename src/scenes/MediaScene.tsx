@@ -9,7 +9,7 @@ import {
 } from 'react'
 
 import { TapRippleField } from '../components/TapRippleField'
-import { mediaExchangeCounts, totalMedia } from '../data/media'
+import { totalMedia } from '../data/media'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
 
@@ -613,11 +613,6 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
 
       <div className="media-count" aria-hidden>
         {formatNumber(count)}
-      </div>
-
-      <div className="media-meta" aria-hidden>
-        <p>あなた → 彼女 {formatNumber(mediaExchangeCounts.fromYou)} 枚</p>
-        <p>彼女 → あなた {formatNumber(mediaExchangeCounts.fromPartner)} 枚</p>
       </div>
 
       {phase !== 'play' && (

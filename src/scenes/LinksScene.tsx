@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react'
 
-import { linkExchangeCounts, totalLinks } from '../data/links'
+import { totalLinks } from '../data/links'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
 
@@ -524,11 +524,6 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
 
       <div className="links-count" aria-hidden>
         {formatNumber(count)}
-      </div>
-
-      <div className="links-meta" aria-hidden>
-        <p>あなた → 彼女 {formatNumber(linkExchangeCounts.fromYou)} 件</p>
-        <p>彼女 → あなた {formatNumber(linkExchangeCounts.fromPartner)} 件</p>
       </div>
 
       {phase !== 'play' && (
