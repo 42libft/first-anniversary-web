@@ -1,7 +1,6 @@
 import {
   type CSSProperties,
   type PointerEvent,
-  type ChangeEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -20,14 +19,11 @@ const SOFT_SEGMENT_LIFETIME = 1400
 const STRONG_FADE_DELAY = 3200
 const SOFT_FADE_DELAY = 720
 const MAX_SEGMENTS = 32
-
-type ControlState = {
-  intensity: number
-  softDuration: number
-  strongDuration: number
-  nodeRadius: number
-  thickness: number
-}
+const LINK_INTENSITY = 1.6
+const LINK_SOFT_DURATION = 600
+const LINK_STRONG_DURATION = 600
+const LINK_NODE_RADIUS = 0.5
+const LINK_THICKNESS = 0.9
 
 const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
@@ -84,8 +80,6 @@ type LinksSnapshot = {
   dynamicEdges: Array<[number, number]>
   segments: Segment[]
   activeNodes: string[]
-  controls: ControlState
-  panelOpen: boolean
   batch: number
 }
 
@@ -100,14 +94,6 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
   const [dynamicEdges, setDynamicEdges] = useState<Array<[number, number]>>([])
   const [segments, setSegments] = useState<Segment[]>([])
   const [activeNodes, setActiveNodes] = useState<Set<string>>(new Set())
-  const [controls, setControls] = useState<ControlState>({
-    intensity: 1.6,
-    softDuration: 600,
-    strongDuration: 600,
-    nodeRadius: 0.5,
-    thickness: 0.9,
-  })
-  const [panelOpen, setPanelOpen] = useState(false)
   const networkRef = useRef<SVGSVGElement | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
   const batchRef = useRef(0)
@@ -145,17 +131,13 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     dynamicEdges: dynamicEdges.map((edge) => [edge[0], edge[1]] as [number, number]),
     segments: segments.map((segment) => ({ ...segment })),
     activeNodes: Array.from(activeNodes),
-    controls: { ...controls },
-    panelOpen,
     batch: batchRef.current,
   }), [
     activeNodes,
-    controls,
     count,
     ctaVisible,
     dynamicEdges,
     dynamicNodes,
-    panelOpen,
     phase,
     segments,
     showLines,
@@ -171,18 +153,14 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     setDynamicEdges(snapshot.dynamicEdges)
     setSegments(snapshot.segments)
     setActiveNodes(new Set(snapshot.activeNodes))
-    setControls(snapshot.controls)
-    setPanelOpen(snapshot.panelOpen)
     batchRef.current = snapshot.batch
   }, [
     clearAllTimers,
     setActiveNodes,
-    setControls,
     setCount,
     setCtaVisible,
     setDynamicEdges,
     setDynamicNodes,
-    setPanelOpen,
     setPhase,
     setSegments,
     setShowLines,
@@ -364,8 +342,8 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       const fadeDelay = segment.isStrong ? STRONG_FADE_DELAY : SOFT_FADE_DELAY
 
       const fadeBuffer = segment.isStrong
-        ? Math.min(2600, Math.round(controls.strongDuration * 3.6))
-        : Math.min(900, Math.round(controls.softDuration * 1.5))
+        ? Math.min(2600, Math.round(LINK_STRONG_DURATION * 3.6))
+        : Math.min(900, Math.round(LINK_SOFT_DURATION * 1.5))
       const fadeStart = Math.max(
         200,
         Math.min(fadeDelay, Math.max(0, lifetime - fadeBuffer))
@@ -380,38 +358,27 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
     event.preventDefault()
   }
 
-  const handleControlChange = (key: keyof ControlState) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const value = Number(event.target.value)
-      const snapshot = snapshotState()
-      record(() => restoreSnapshot(snapshot), { label: `Links: adjust ${key}` })
-      setControls((prev) => ({
-        ...prev,
-        [key]: value,
-      }))
-    }
-
   const fadeConfig = useMemo(() => {
     const clamp = (value: number, min: number, max: number) =>
       Math.min(max, Math.max(min, value))
-    const softOpacityStart = clamp(0.62 * controls.intensity, 0.05, 1)
-    const softOpacityMid = clamp(0.55 * controls.intensity, 0.04, 0.9)
-    const softOpacityLate = clamp(0.34 * controls.intensity, 0.03, 0.7)
-    const softOpacityEnd = clamp(0.24 * controls.intensity, 0.05, 0.48)
-    const softBase = clamp(0.64 * controls.intensity, 0.28, 0.9)
-    const strongOpacityStart = clamp(0.78 * controls.intensity, 0.08, 1)
-    const strongOpacityMid = clamp(0.66 * controls.intensity, 0.06, 0.95)
-    const strongOpacityLate = clamp(0.48 * controls.intensity, 0.1, 0.9)
-    const strongOpacityEnd = clamp(0.38 * controls.intensity, 0.12, 0.74)
-    const strongBase = clamp(0.94 * controls.intensity, 0.46, 1)
-    const strongThickness = clamp(controls.thickness * 1.22, 0.3, 1.4)
-    const softFadeDuration = Math.max(540, controls.softDuration * 1.6)
-    const strongFadeDuration = Math.max(2400, controls.strongDuration * 4)
+    const softOpacityStart = clamp(0.62 * LINK_INTENSITY, 0.05, 1)
+    const softOpacityMid = clamp(0.55 * LINK_INTENSITY, 0.04, 0.9)
+    const softOpacityLate = clamp(0.34 * LINK_INTENSITY, 0.03, 0.7)
+    const softOpacityEnd = clamp(0.24 * LINK_INTENSITY, 0.05, 0.48)
+    const softBase = clamp(0.64 * LINK_INTENSITY, 0.28, 0.9)
+    const strongOpacityStart = clamp(0.78 * LINK_INTENSITY, 0.08, 1)
+    const strongOpacityMid = clamp(0.66 * LINK_INTENSITY, 0.06, 0.95)
+    const strongOpacityLate = clamp(0.48 * LINK_INTENSITY, 0.1, 0.9)
+    const strongOpacityEnd = clamp(0.38 * LINK_INTENSITY, 0.12, 0.74)
+    const strongBase = clamp(0.94 * LINK_INTENSITY, 0.46, 1)
+    const strongThickness = clamp(LINK_THICKNESS * 1.22, 0.3, 1.4)
+    const softFadeDuration = Math.max(540, LINK_SOFT_DURATION * 1.6)
+    const strongFadeDuration = Math.max(2400, LINK_STRONG_DURATION * 4)
 
     const stage = {
-      '--links-spark-soft-duration': `${controls.softDuration}ms`,
-      '--links-spark-strong-duration': `${controls.strongDuration}ms`,
-      '--links-spark-soft-width': `${controls.thickness}`,
+      '--links-spark-soft-duration': `${LINK_SOFT_DURATION}ms`,
+      '--links-spark-strong-duration': `${LINK_STRONG_DURATION}ms`,
+      '--links-spark-soft-width': `${LINK_THICKNESS}`,
       '--links-spark-strong-width': `${Number(strongThickness.toFixed(2))}`,
       '--links-spark-soft-opacity-start': `${softOpacityStart}`,
       '--links-spark-soft-opacity-mid': `${softOpacityMid}`,
@@ -432,7 +399,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
       soft: { baseOpacity: softBase, fadeDuration: softFadeDuration },
       strong: { baseOpacity: strongBase, fadeDuration: strongFadeDuration },
     }
-  }, [controls])
+  }, [])
   const stageStyle = fadeConfig.stageStyle
   const softConfig = fadeConfig.soft
   const strongConfig = fadeConfig.strong
@@ -489,7 +456,7 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
               key={node.id}
               cx={node.cx}
               cy={node.cy}
-              r={controls.nodeRadius}
+              r={LINK_NODE_RADIUS}
               className={`links-network__node${
                 activeNodes.has(node.id) ? ' is-active' : ''
               }`}
@@ -547,95 +514,6 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
           </button>
         </div>
       )}
-
-      <div
-        className={`links-control-panel${panelOpen ? ' is-open' : ''}`}
-        aria-hidden={false}
-      >
-        <button
-          type="button"
-          className="links-control-panel__toggle"
-          onClick={() => {
-            const snapshot = snapshotState()
-            record(() => restoreSnapshot(snapshot), { label: 'Links: toggle panel' })
-            setPanelOpen((prev) => !prev)
-          }}
-        >
-          {panelOpen ? 'close' : 'tune'}
-        </button>
-        <div className="links-control-panel__body">
-          <label className="links-control">
-            <span>Light intensity</span>
-            <input
-              type="range"
-              min={0.4}
-              max={1.6}
-              step={0.02}
-              value={controls.intensity}
-              onChange={handleControlChange('intensity')}
-            />
-            <span className="links-control__value">
-              {controls.intensity.toFixed(2)}
-            </span>
-          </label>
-          <label className="links-control">
-            <span>Spark speed (ms)</span>
-            <input
-              type="range"
-              min={600}
-              max={2200}
-              step={20}
-              value={controls.softDuration}
-              onChange={handleControlChange('softDuration')}
-            />
-            <span className="links-control__value">
-              {controls.softDuration}
-            </span>
-          </label>
-          <label className="links-control">
-            <span>Strong spark speed (ms)</span>
-            <input
-              type="range"
-              min={600}
-              max={2600}
-              step={20}
-              value={controls.strongDuration}
-              onChange={handleControlChange('strongDuration')}
-            />
-            <span className="links-control__value">
-              {controls.strongDuration}
-            </span>
-          </label>
-          <label className="links-control">
-            <span>Node size</span>
-            <input
-              type="range"
-              min={0.5}
-              max={1.3}
-              step={0.02}
-              value={controls.nodeRadius}
-              onChange={handleControlChange('nodeRadius')}
-            />
-            <span className="links-control__value">
-              {controls.nodeRadius.toFixed(2)}
-            </span>
-          </label>
-          <label className="links-control">
-            <span>Spark thickness</span>
-            <input
-              type="range"
-              min={0.3}
-              max={1.2}
-              step={0.02}
-              value={controls.thickness}
-              onChange={handleControlChange('thickness')}
-            />
-            <span className="links-control__value">
-              {controls.thickness.toFixed(2)}
-            </span>
-          </label>
-        </div>
-      </div>
     </section>
   )
 }

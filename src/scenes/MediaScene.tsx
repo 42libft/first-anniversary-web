@@ -1,5 +1,4 @@
 import {
-  type ChangeEvent,
   type CSSProperties,
   useCallback,
   useEffect,
@@ -23,6 +22,11 @@ const CANVAS_RANGE_X = 0.94
 const CANVAS_RANGE_Y = 0.82
 const PROTECTED_RADIUS = 0.24
 const SLOT_LOOKAHEAD = 18
+const MEDIA_FLIGHT_DURATION = 3600
+const MEDIA_FADE_DURATION = 5400
+const MEDIA_GLOW_INTENSITY = 0.9
+const MEDIA_HUE_SPREAD = 36
+const MEDIA_DRIFT_STRENGTH = 0.7
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value))
@@ -68,20 +72,10 @@ type Fragment = {
   isFading: boolean
 }
 
-type ControlState = {
-  flightDuration: number
-  fadeDuration: number
-  glowIntensity: number
-  hueSpread: number
-  driftStrength: number
-}
-
 type MediaSnapshot = {
   count: number
   phase: 'play' | 'announce' | 'cta'
   ctaVisible: boolean
-  controls: ControlState
-  panelOpen: boolean
   fragments: Fragment[]
   waveSeed: number
   slotOrder: number[]
@@ -164,14 +158,6 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     FINAL_TARGET > 0 ? 'play' : 'announce'
   )
   const [ctaVisible, setCtaVisible] = useState(false)
-  const [controls, setControls] = useState<ControlState>({
-    flightDuration: 3600,
-    fadeDuration: 5400,
-    glowIntensity: 0.9,
-    hueSpread: 36,
-    driftStrength: 0.7,
-  })
-  const [panelOpen, setPanelOpen] = useState(false)
   const [fragments, setFragments] = useState<Fragment[]>([])
   const [waveSeed, setWaveSeed] = useState(() => Math.random())
   const scatterSlots = useMemo(() => generateScatterSlots(SCATTER_SLOT_COUNT), [])
@@ -209,32 +195,26 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     count,
     phase,
     ctaVisible,
-    controls: { ...controls },
-    panelOpen,
     fragments: fragments.map((fragment) => ({ ...fragment })),
     waveSeed,
     slotOrder: [...slotOrderRef.current],
     slotCursor: slotCursorRef.current,
-  }), [controls, count, ctaVisible, fragments, panelOpen, phase, waveSeed])
+  }), [count, ctaVisible, fragments, phase, waveSeed])
 
   const restoreSnapshot = useCallback((snapshot: MediaSnapshot) => {
     clearAllTimers()
     setCount(snapshot.count)
     setPhase(snapshot.phase)
     setCtaVisible(snapshot.ctaVisible)
-    setControls(snapshot.controls)
-    setPanelOpen(snapshot.panelOpen)
     setFragments(snapshot.fragments)
     setWaveSeed(snapshot.waveSeed)
     slotOrderRef.current = [...snapshot.slotOrder]
     slotCursorRef.current = snapshot.slotCursor
   }, [
     clearAllTimers,
-    setControls,
     setCount,
     setCtaVisible,
     setFragments,
-    setPanelOpen,
     setPhase,
     setWaveSeed,
   ])
@@ -315,9 +295,9 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
     })
     fadeTimersRef.current.clear()
     visibleFragments.forEach((fragment) => {
-      startFragmentFade(fragment.id, controls.fadeDuration)
+      startFragmentFade(fragment.id, MEDIA_FADE_DURATION)
     })
-  }, [phase, visibleFragments, clearTimer, startFragmentFade, controls.fadeDuration])
+  }, [phase, visibleFragments, clearTimer, startFragmentFade])
 
   const pickScatterSlot = useCallback(
     (anchor?: { x: number; y: number }) => {
@@ -375,14 +355,14 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
   const stageStyle = useMemo(
     () =>
       ({
-        '--media-flight-duration': `${controls.flightDuration}ms`,
-        '--media-fragment-fade': `${controls.fadeDuration}ms`,
-        '--media-fragment-glow': controls.glowIntensity.toFixed(2),
-        '--media-hue-spread': `${controls.hueSpread}deg`,
-        '--media-drift-strength': controls.driftStrength.toFixed(2),
+        '--media-flight-duration': `${MEDIA_FLIGHT_DURATION}ms`,
+        '--media-fragment-fade': `${MEDIA_FADE_DURATION}ms`,
+        '--media-fragment-glow': MEDIA_GLOW_INTENSITY.toFixed(2),
+        '--media-hue-spread': `${MEDIA_HUE_SPREAD}deg`,
+        '--media-drift-strength': MEDIA_DRIFT_STRENGTH.toFixed(2),
         '--media-wave-seed': waveSeed.toFixed(4),
       }) as CSSProperties,
-    [controls, waveSeed]
+    [waveSeed]
   )
 
   const handlePulse = (position?: { x: number; y: number }) => {
@@ -429,7 +409,7 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
       const delay = Math.floor(Math.random() * 160)
       const flight = Math.max(
         1800,
-        Math.round(controls.flightDuration * (0.88 + drift * controls.driftStrength * 0.6))
+        Math.round(MEDIA_FLIGHT_DURATION * (0.88 + drift * MEDIA_DRIFT_STRENGTH * 0.6))
       )
       const launchOffsetX = (Math.random() - 0.5) * 18
       const launchOffsetY = 12 + Math.random() * 14
@@ -498,24 +478,13 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
       const holdDuration = fragment.flight
       const fadeTimer = registerTimer(() => {
         fadeTimersRef.current.delete(fragment.id)
-        startFragmentFade(fragment.id, controls.fadeDuration)
+        startFragmentFade(fragment.id, MEDIA_FADE_DURATION)
       }, holdDuration)
       fadeTimersRef.current.set(fragment.id, fadeTimer)
     })
 
     setWaveSeed((prev) => prev + 0.28)
   }
-
-  const handleControlChange = (key: keyof ControlState) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const value = Number(event.target.value)
-      const snapshot = snapshotState()
-      record(() => restoreSnapshot(snapshot), { label: `Media: adjust ${key}` })
-      setControls((prev) => ({
-        ...prev,
-        [key]: value,
-      }))
-    }
 
   return (
     <section
@@ -541,7 +510,7 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
               const tiltX = fragment.tiltX.toFixed(2)
               const tiltY = fragment.tiltY.toFixed(2)
               const rotateZ = fragment.rotateZ.toFixed(2)
-              const hueShift = ((fragment.hue - 0.5) * controls.hueSpread * 2).toFixed(2)
+              const hueShift = ((fragment.hue - 0.5) * MEDIA_HUE_SPREAD * 2).toFixed(2)
               const distanceFactor = Math.hypot(
                 (fragment.x / CANVAS_RANGE_X) * 0.8,
                 (fragment.y / CANVAS_RANGE_Y) * 1.06
@@ -634,88 +603,6 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         </div>
       )}
 
-      <div
-        className={`media-control-panel${panelOpen ? ' is-open' : ''}`}
-        aria-hidden={false}
-      >
-        <button
-          type="button"
-          className="media-control-panel__toggle"
-          onClick={() => {
-            const snapshot = snapshotState()
-            record(() => restoreSnapshot(snapshot), { label: 'Media: toggle panel' })
-            setPanelOpen((prev) => !prev)
-          }}
-        >
-          {panelOpen ? 'close' : 'tune'}
-        </button>
-        <div className="media-control-panel__body">
-          <label className="media-control">
-            <span>Flight cycle (ms)</span>
-            <input
-              type="range"
-              min={2600}
-              max={8200}
-              step={100}
-              value={controls.flightDuration}
-              onChange={handleControlChange('flightDuration')}
-            />
-            <span className="media-control__value">{controls.flightDuration}</span>
-          </label>
-          <label className="media-control">
-            <span>Fade duration (ms)</span>
-            <input
-              type="range"
-              min={2200}
-              max={9200}
-              step={100}
-              value={controls.fadeDuration}
-              onChange={handleControlChange('fadeDuration')}
-            />
-            <span className="media-control__value">{controls.fadeDuration}</span>
-          </label>
-          <label className="media-control">
-            <span>Glow intensity</span>
-            <input
-              type="range"
-              min={0.4}
-              max={1.4}
-              step={0.02}
-              value={controls.glowIntensity}
-              onChange={handleControlChange('glowIntensity')}
-            />
-            <span className="media-control__value">
-              {controls.glowIntensity.toFixed(2)}
-            </span>
-          </label>
-          <label className="media-control">
-            <span>Hue spread (deg)</span>
-            <input
-              type="range"
-              min={0}
-              max={72}
-              step={1}
-              value={controls.hueSpread}
-              onChange={handleControlChange('hueSpread')}
-            />
-            <span className="media-control__value">{controls.hueSpread}</span>
-          </label>
-          <label className="media-control">
-            <span>Drift strength</span>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.02}
-              value={controls.driftStrength}
-              onChange={handleControlChange('driftStrength')}
-            />
-            <span className="media-control__value">
-              {controls.driftStrength.toFixed(2)}
-            </span>
-          </label>
-        </div>
-      </div>
     </section>
   )
 }
