@@ -11,6 +11,7 @@ import type {
 } from '../types/journey'
 import type { SceneComponentProps } from '../types/scenes'
 import { useHistoryTrackedState } from '../history/useHistoryTrackedState'
+import { resolveAssetPath } from '../utils/assetPaths'
 
 const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
   year: 'numeric',
@@ -76,16 +77,6 @@ const toRoutePath = (points: JourneyCoordinate[]): string => {
   if (!points.length) return ''
   const [first, ...rest] = points
   return rest.reduce((acc, point) => `${acc} L ${point[0]} ${point[1]}`, `M ${first[0]} ${first[1]}`)
-}
-
-const resolveAssetPath = (path: string): string => {
-  if (!path) return path
-  if (path.startsWith('data:')) return path
-  if (/^(?:https?:)?\/\//.test(path)) return path
-  const base = import.meta.env.BASE_URL ?? '/'
-  const sanitizedBase = base.endsWith('/') ? base.slice(0, -1) : base
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  return `${sanitizedBase}${normalizedPath}`
 }
 
 const JourneyRouteMap = ({ step }: { step: JourneyMoveStep }) => {
