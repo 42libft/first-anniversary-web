@@ -5,7 +5,7 @@ type JourneyInput = Omit<Journey, 'distanceKm'>
 const newJourneyDefinitions: JourneyInput[] = [
   {
     id: 'journey-20241029',
-    title: '旅ログ 2024-10-29',
+    title: '2024-10-29',
     date: '2024-10-29',
     steps: [
       {
@@ -83,7 +83,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20241030',
-    title: '旅ログ 2024-10-30',
+    title: '2024-10-30',
     date: '2024-10-30',
     steps: [
       {
@@ -197,18 +197,11 @@ const newJourneyDefinitions: JourneyInput[] = [
         distanceKm: 1216,
         description: '移動：飛行機　福岡→成田→家（ 1,216km）',
       },
-      {
-        id: 'journey-20241030-episode-017',
-        type: 'episode',
-        text: [
-          '#初めてのクリスマス',
-        ],
-      },
     ],
   },
   {
     id: 'journey-20241223',
-    title: '旅ログ 2024-12-23',
+    title: '2024-12-23',
     date: '2024-12-23',
     steps: [
       {
@@ -224,7 +217,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20241224',
-    title: '旅ログ 2024-12-24',
+    title: '2024-12-24',
     date: '2024-12-24',
     steps: [
       {
@@ -374,7 +367,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20241225',
-    title: '旅ログ 2024-12-25',
+    title: '2024-12-25',
     date: '2024-12-25',
     steps: [
       {
@@ -468,7 +461,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20241226',
-    title: '旅ログ 2024-12-26',
+    title: '2024-12-26',
     date: '2024-12-26',
     steps: [
       {
@@ -575,7 +568,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250225',
-    title: '旅ログ 2025-02-25',
+    title: '2025-02-25',
     date: '2025-02-25',
     steps: [
       {
@@ -771,7 +764,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250226',
-    title: '旅ログ 2025-02-26',
+    title: '2025-02-26',
     date: '2025-02-26',
     steps: [
       {
@@ -992,7 +985,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250227',
-    title: '旅ログ 2025-02-27',
+    title: '2025-02-27',
     date: '2025-02-27',
     steps: [
       {
@@ -1233,7 +1226,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250304',
-    title: '旅ログ 2025-03-04',
+    title: '2025-03-04',
     date: '2025-03-04',
     steps: [
       {
@@ -1555,7 +1548,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250305',
-    title: '旅ログ 2025-03-05',
+    title: '2025-03-05',
     date: '2025-03-05',
     steps: [
       {
@@ -1741,7 +1734,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250416',
-    title: '旅ログ 2025-04-16',
+    title: '2025-04-16',
     date: '2025-04-16',
     steps: [
       {
@@ -1829,7 +1822,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250418',
-    title: '旅ログ 2025-04-18',
+    title: '2025-04-18',
     date: '2025-04-18',
     steps: [
       {
@@ -1987,7 +1980,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250512',
-    title: '旅ログ 2025-05-12',
+    title: '2025-05-12',
     date: '2025-05-12',
     steps: [
       {
@@ -2053,7 +2046,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250513',
-    title: '旅ログ 2025-05-13',
+    title: '2025-05-13',
     date: '2025-05-13',
     steps: [
       {
@@ -2087,7 +2080,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250514',
-    title: '旅ログ 2025-05-14',
+    title: '2025-05-14',
     date: '2025-05-14',
     steps: [
       {
@@ -2118,7 +2111,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250515',
-    title: '旅ログ 2025-05-15',
+    title: '2025-05-15',
     date: '2025-05-15',
     steps: [
       {
@@ -2296,7 +2289,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250516',
-    title: '旅ログ 2025-05-16',
+    title: '2025-05-16',
     date: '2025-05-16',
     steps: [
       {
@@ -2312,7 +2305,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250714',
-    title: '旅ログ 2025-07-14',
+    title: '2025-07-14',
     date: '2025-07-14',
     steps: [
       {
@@ -2422,7 +2415,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250715',
-    title: '旅ログ 2025-07-15',
+    title: '2025-07-15',
     date: '2025-07-15',
     steps: [
       {
@@ -2626,7 +2619,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250716',
-    title: '旅ログ 2025-07-16',
+    title: '2025-07-16',
     date: '2025-07-16',
     steps: [
       {
@@ -2788,7 +2781,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250818',
-    title: '旅ログ 2025-08-18',
+    title: '2025-08-18',
     date: '2025-08-18',
     steps: [
       {
@@ -2841,7 +2834,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250819',
-    title: '旅ログ 2025-08-19',
+    title: '2025-08-19',
     date: '2025-08-19',
     steps: [
       {
@@ -2919,7 +2912,7 @@ const newJourneyDefinitions: JourneyInput[] = [
   },
   {
     id: 'journey-20250820',
-    title: '旅ログ 2025-08-20',
+    title: '2025-08-20',
     date: '2025-08-20',
     steps: [
       {
