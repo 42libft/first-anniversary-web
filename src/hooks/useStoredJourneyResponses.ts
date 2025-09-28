@@ -177,6 +177,102 @@ const sanitizeResponseEntry = (
   }
 }
 
+const getEarliestTimestamp = (entries: JourneyPromptResponse[]): number | undefined => {
+  let earliest: number | undefined
+  entries.forEach((entry) => {
+    const value = Date.parse(entry.recordedAt)
+    if (Number.isNaN(value)) {
+      return
+    }
+    if (earliest === undefined || value < earliest) {
+      earliest = value
+    }
+  })
+  return earliest
+}
+
+const normalizeTimestampIsoString = (timestamp?: number): string => {
+  if (timestamp === undefined) {
+    return new Date().toISOString()
+  }
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString()
+  }
+  return date.toISOString()
+}
+
+const normalizeRecordedAt = (value: string, fallbackIso: string): string => {
+  const parsed = Date.parse(value)
+  if (Number.isNaN(parsed)) {
+    return fallbackIso
+  }
+  return new Date(parsed).toISOString()
+}
+
+const migrateLegacyResponses = (
+  legacyEntries: unknown[],
+): Map<string, JourneyPromptResponse[]> => {
+  const sanitized = legacyEntries
+    .map((entry) => sanitizeResponseEntry(entry, 'legacy'))
+    .filter((entry): entry is JourneyPromptResponse => Boolean(entry))
+
+  if (sanitized.length === 0) {
+    if (isBrowser) {
+      try {
+        window.localStorage.setItem(RESPONSES_STORAGE_KEY, JSON.stringify({}))
+      } catch (error) {
+        console.warn('Failed to clear empty legacy journey responses', error)
+      }
+    }
+    return new Map()
+  }
+
+  const grouped = new Map<string, JourneyPromptResponse[]>()
+  sanitized.forEach((entry) => {
+    const key = entry.sessionId && entry.sessionId !== 'legacy' ? entry.sessionId : 'legacy'
+    const list = grouped.get(key) ?? []
+    list.push(entry)
+    grouped.set(key, list)
+  })
+
+  const migrated = new Map<string, JourneyPromptResponse[]>()
+
+  grouped.forEach((entries, key) => {
+    const earliest = getEarliestTimestamp(entries)
+    const createdAtIso = normalizeTimestampIsoString(earliest)
+
+    const sessionRecord =
+      key === 'legacy'
+        ? (() => {
+            const created = createSessionRecord()
+            return { id: created.id, createdAt: createdAtIso }
+          })()
+        : { id: key, createdAt: createdAtIso }
+
+    const normalizedEntries = entries.map((entry) => ({
+      ...entry,
+      sessionId: sessionRecord.id,
+      recordedAt: normalizeRecordedAt(entry.recordedAt, createdAtIso),
+    }))
+
+    migrated.set(sessionRecord.id, normalizedEntries)
+
+    if (!isBrowser) {
+      return
+    }
+
+    try {
+      persistResponsesForSession(sessionRecord.id, normalizedEntries)
+    } catch (error) {
+      console.warn('Failed to persist migrated journey responses', error)
+    }
+    appendSessionHistory(sessionRecord)
+  })
+
+  return migrated
+}
+
 const readResponsesForSession = (sessionId: string): JourneyPromptResponse[] => {
   if (!isBrowser || !sessionId) {
     return []
@@ -188,9 +284,8 @@ const readResponsesForSession = (sessionId: string): JourneyPromptResponse[] => 
   try {
     const parsed = JSON.parse(raw)
     if (Array.isArray(parsed)) {
-      return parsed
-        .map((entry) => sanitizeResponseEntry(entry, sessionId))
-        .filter((entry): entry is JourneyPromptResponse => Boolean(entry))
+      const migrated = migrateLegacyResponses(parsed)
+      return migrated.get(sessionId) ?? []
     }
     if (typeof parsed === 'object' && parsed !== null) {
       const archive = parsed as JourneyResponseArchive
@@ -198,6 +293,7 @@ const readResponsesForSession = (sessionId: string): JourneyPromptResponse[] => 
       return list
         .map((entry) => sanitizeResponseEntry(entry, sessionId))
         .filter((entry): entry is JourneyPromptResponse => Boolean(entry))
+        .filter((entry) => entry.sessionId === sessionId)
     }
     return []
   } catch (error) {
