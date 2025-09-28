@@ -486,10 +486,9 @@ const newJourneyDefinitions: JourneyInput[] = [
 
 export const journeys: Journey[] = newJourneyDefinitions.map((journey: JourneyInput) => {
   const distanceKm = journey.steps.reduce((total: number, step: Journey['steps'][number]) => {
-    if (step.type === 'move') {
-      return total + step.distanceKm
-    }
-    return total
+    const maybeDistance = (step as { distanceKm?: number }).distanceKm
+    const stepDistance = typeof maybeDistance === 'number' ? maybeDistance : 0
+    return total + stepDistance
   }, 0)
 
   return {

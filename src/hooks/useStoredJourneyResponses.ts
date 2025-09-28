@@ -22,17 +22,62 @@ const SESSION_HISTORY_STORAGE_KEY = 'first-anniversary-web:journey-session-histo
 
 const isBrowser = typeof window !== 'undefined'
 
-const createSessionRecord = (): JourneySessionInfo => ({
-  id: `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-  createdAt: new Date().toISOString(),
-})
+const SESSION_STALE_WINDOW_MS = 1000 * 60 * 60 * 12
+
+const parseTimestamp = (value?: string): number | undefined => {
+  if (!value) {
+    return undefined
+  }
+  const parsed = Date.parse(value)
+  if (Number.isNaN(parsed)) {
+    return undefined
+  }
+  return parsed
+}
+
+const normalizeTimestampString = (value: string | undefined, fallback: string): string => {
+  const parsed = parseTimestamp(value)
+  if (parsed !== undefined) {
+    return new Date(parsed).toISOString()
+  }
+  const fallbackParsed = parseTimestamp(fallback)
+  if (fallbackParsed !== undefined) {
+    return new Date(fallbackParsed).toISOString()
+  }
+  return new Date().toISOString()
+}
+
+const normalizeSessionInfo = (session: JourneySessionInfo): JourneySessionInfo => {
+  const createdAt = normalizeTimestampString(session.createdAt, new Date().toISOString())
+  const lastUpdatedAt = normalizeTimestampString(session.lastUpdatedAt, createdAt)
+  return {
+    ...session,
+    createdAt,
+    lastUpdatedAt,
+  }
+}
+
+const createSessionRecord = (): JourneySessionInfo => {
+  const timestamp = new Date().toISOString()
+  return normalizeSessionInfo({
+    id: `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    createdAt: timestamp,
+    lastUpdatedAt: timestamp,
+  })
+}
 
 const isSessionRecord = (value: unknown): value is JourneySessionInfo => {
   if (typeof value !== 'object' || value === null) {
     return false
   }
   const entry = value as Record<string, unknown>
-  return typeof entry.id === 'string' && typeof entry.createdAt === 'string'
+  if (typeof entry.id !== 'string' || typeof entry.createdAt !== 'string') {
+    return false
+  }
+  if (entry.lastUpdatedAt !== undefined && typeof entry.lastUpdatedAt !== 'string') {
+    return false
+  }
+  return true
 }
 
 const readSessionHistory = (): JourneySessionInfo[] => {
@@ -48,7 +93,7 @@ const readSessionHistory = (): JourneySessionInfo[] => {
     if (!Array.isArray(parsed)) {
       return []
     }
-    return parsed.filter(isSessionRecord)
+    return parsed.filter(isSessionRecord).map((entry) => normalizeSessionInfo(entry))
   } catch (error) {
     console.warn('Failed to read journey session history', error)
     return []
@@ -72,10 +117,11 @@ const appendSessionHistory = (session: JourneySessionInfo) => {
   }
   const history = readSessionHistory()
   const index = history.findIndex((entry) => entry.id === session.id)
+  const normalized = normalizeSessionInfo(session)
   if (index >= 0) {
-    history[index] = session
+    history[index] = normalized
   } else {
-    history.push(session)
+    history.push(normalized)
   }
   writeSessionHistory(history)
 }
@@ -91,7 +137,7 @@ const readCurrentSession = (): JourneySessionInfo | undefined => {
   try {
     const parsed = JSON.parse(raw)
     if (isSessionRecord(parsed)) {
-      return parsed
+      return normalizeSessionInfo(parsed)
     }
     return undefined
   } catch (error) {
@@ -105,7 +151,10 @@ const writeCurrentSession = (session: JourneySessionInfo) => {
     return
   }
   try {
-    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session))
+    window.localStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify(normalizeSessionInfo(session))
+    )
   } catch (error) {
     console.warn('Failed to persist current journey session', error)
   }
@@ -122,6 +171,32 @@ const ensureSession = (): JourneySessionInfo => {
     appendSessionHistory(created)
   }
   return created
+}
+
+const ensureFreshSession = (): JourneySessionInfo => {
+  const session = ensureSession()
+  if (!isBrowser) {
+    return session
+  }
+
+  const history = readSessionHistory()
+  const record = history.find((entry) => entry.id === session.id)
+  const normalized = normalizeSessionInfo(record ?? session)
+  const lastUpdated = parseTimestamp(normalized.lastUpdatedAt)
+  const now = Date.now()
+
+  if (lastUpdated !== undefined && now - lastUpdated > SESSION_STALE_WINDOW_MS) {
+    const next = createSessionRecord()
+    writeCurrentSession(next)
+    appendSessionHistory(next)
+    return next
+  }
+
+  if (!history.some((entry) => entry.id === normalized.id)) {
+    appendSessionHistory(normalized)
+  }
+
+  return normalized
 }
 
 const sanitizeResponseEntry = (
@@ -286,11 +361,30 @@ const persistQuizStatsForSession = (sessionId: string, stats: JourneyQuizStats) 
 }
 
 export const useStoredJourneyResponses = () => {
-  const initialSession = ensureSession()
+  const initialSession = ensureFreshSession()
   const [session, setSession] = useState<JourneySessionInfo>(initialSession)
   const [responses, setResponses] = useState<JourneyPromptResponse[]>(() =>
     readResponsesForSession(initialSession.id)
   )
+
+  const commitSession = useCallback((next: JourneySessionInfo) => {
+    setSession((prev) => {
+      const normalizedNext = normalizeSessionInfo(next)
+      const normalizedPrev = normalizeSessionInfo(prev)
+      if (
+        normalizedPrev.id === normalizedNext.id &&
+        normalizedPrev.createdAt === normalizedNext.createdAt &&
+        normalizedPrev.lastUpdatedAt === normalizedNext.lastUpdatedAt
+      ) {
+        return prev
+      }
+      if (isBrowser) {
+        writeCurrentSession(normalizedNext)
+        appendSessionHistory(normalizedNext)
+      }
+      return normalizedNext
+    })
+  }, [])
 
   useEffect(() => {
     if (!isBrowser) {
@@ -317,6 +411,26 @@ export const useStoredJourneyResponses = () => {
       console.warn('Failed to persist journey responses', error)
     }
 
+    const latestRecordedTimestamp = normalized.reduce<number | undefined>((acc, entry) => {
+      const parsed = parseTimestamp(entry.recordedAt)
+      if (parsed === undefined) {
+        return acc
+      }
+      if (acc === undefined || parsed > acc) {
+        return parsed
+      }
+      return acc
+    }, parseTimestamp(session.lastUpdatedAt))
+
+    const nextSessionState = normalizeSessionInfo({
+      ...session,
+      lastUpdatedAt: latestRecordedTimestamp
+        ? new Date(latestRecordedTimestamp).toISOString()
+        : new Date().toISOString(),
+    })
+
+    commitSession(nextSessionState)
+
     const quizEntries = normalized.filter((entry) => entry.questionType === 'choice')
     const stats: JourneyQuizStats = {
       correctCount: quizEntries.filter((entry) => entry.isCorrect === true).length,
@@ -324,30 +438,13 @@ export const useStoredJourneyResponses = () => {
       recordedAt: new Date().toISOString(),
     }
     persistQuizStatsForSession(session.id, stats)
-  }, [responses, session])
-
-  const commitSession = useCallback((next: JourneySessionInfo) => {
-    setSession((prev) => {
-      if (prev.id === next.id && prev.createdAt === next.createdAt) {
-        return prev
-      }
-      if (isBrowser) {
-        writeCurrentSession(next)
-        appendSessionHistory(next)
-      }
-      return next
-    })
-  }, [])
+  }, [commitSession, responses, session])
 
   const beginNewSession = useCallback(() => {
     const next = createSessionRecord()
-    if (isBrowser) {
-      writeCurrentSession(next)
-      appendSessionHistory(next)
-    }
-    setSession(next)
+    commitSession(next)
     setResponses([])
-  }, [])
+  }, [commitSession])
 
   const saveResponse = useCallback(
     (payload: SaveJourneyResponsePayload) => {

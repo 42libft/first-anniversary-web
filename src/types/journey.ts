@@ -49,6 +49,8 @@ export interface JourneyEpisodeStep {
     alt: string
     objectPosition?: string
   }
+  /** 任意: この思い出ステップに紐付けたい移動距離（km）。 */
+  distanceKm?: number
 }
 
 export type JourneyQuestionStyle = 'choice' | 'text'
@@ -64,6 +66,8 @@ export interface JourneyQuestionStep {
   helper?: string
   readonlyAfterSave?: boolean
   correctAnswer?: string
+  /** 任意: HUDに足し込みたい距離（km）。 */
+  distanceKm?: number
 }
 
 export type JourneyStep =

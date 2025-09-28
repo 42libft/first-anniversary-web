@@ -54,6 +54,13 @@ const defaultRoute: JourneyCoordinate[] = [
   [88, 28],
 ]
 
+const resolveStepDistanceKm = (step: { distanceKm?: number } | undefined): number => {
+  if (!step || typeof step.distanceKm !== 'number') {
+    return 0
+  }
+  return step.distanceKm
+}
+
 const getRoutePoints = (step: JourneyMoveStep): JourneyCoordinate[] => {
   if (step.route && step.route.length >= 2) return step.route
   if (step.fromCoord && step.toCoord) return [step.fromCoord, step.toCoord]
@@ -400,7 +407,10 @@ export const JourneysScene = ({
     let sum = 0
     for (let i = 0; i <= pageIndex && i < pages.length; i += 1) {
       const p = pages[i]
-      if (p.kind === 'move') sum += p.step.distanceKm
+      if (p.kind === 'journey') {
+        continue
+      }
+      sum += resolveStepDistanceKm(p.step)
     }
     return sum
   }, [pages, pageIndex])
