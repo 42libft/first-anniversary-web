@@ -151,10 +151,10 @@ export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
       )}
 
       {phase === 'cta' && ctaVisible && (
-        <div className="messages-cta-wrap">
+        <div className="scene-floating-cta scene-floating-cta--messages">
           <button
             type="button"
-            className="messages-cta"
+            className="scene-floating-cta__button"
             onClick={onAdvance}
           >
             タップで次へ
