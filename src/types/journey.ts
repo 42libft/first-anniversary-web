@@ -44,7 +44,7 @@ export interface JourneyEpisodeStep {
   title?: string
   text: string[]
   artKey?: string
-  photo: {
+  photo?: {
     src: string
     alt: string
     objectPosition?: string

@@ -26,7 +26,7 @@ const SERVER_PROFILE = {
   avatar: '/images/prologue/IMG_nessi.jpeg',
 } as const
 
-const FALLBACK_AVATAR_SRC = '/images/gimmie-placeholder.svg'
+const FALLBACK_AVATAR_SRC = '/images/prologue-partner-placeholder.svg'
 
 const getInitialSpeaker = (): 'self' | 'partner' => {
   const firstSpeaker = prologueScript.find(

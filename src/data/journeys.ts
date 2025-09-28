@@ -27,17 +27,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '本を3冊くらい持ってきてた。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241029-image-003',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0642.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -58,17 +49,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ハロウィン仕様が可愛かったね。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241029-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0652.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -96,10 +78,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'そういうところが可愛いってなった！',
           '寝る頃にはもう夜が明けていた！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
     ],
   },
@@ -117,17 +95,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'この時のエスカレーターで撮ったあやねが最初の写真である。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241030-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0660.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -140,17 +109,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ローストビーフ丼のソースをかけずに完食してしまったあやね。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241030-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0717.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -162,17 +122,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '可愛い。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241030-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0738.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -184,17 +135,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねとねこどっちも可愛いかった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241030-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0843.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -205,17 +147,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '彩音の服を買うミッションがあったが失敗…',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241030-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0865.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -226,17 +159,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'お水をこぼして泣きそうになる。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241030-image-012',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0870.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -255,10 +179,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           '空港まで見送ってくれたのを覚えてる！',
           'ぎゅーした！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20241030-question-015',
@@ -283,10 +203,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           '#初めてのクリスマス',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
     ],
   },
@@ -320,17 +236,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '荷物をロッカーに。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241224-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1220.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -340,8 +247,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '魚町商店街のお店で美味しいランチ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
+          src: '/images/user/IMG_1223.jpeg',
+          alt: '旅の写真',
         },
       },
       {
@@ -367,26 +274,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'パイナップルジュース美味しかった',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241224-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
-          src: '/images/user/IMG_1223.jpeg',
-          alt: '画像',
-        },
-      },
-      {
-        id: 'journey-20241224-image-007',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1226.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -396,10 +285,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'その後、アニメイトに行きたいということで、アニメイトへ。',
           'あやね、漫画を購入。',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20241224-episode-009',
@@ -408,17 +293,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'どこか行きたいみたいなのと迷ってた気がするが、ホテルで休みたすぎるとのことでホテルにチェックイン。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241224-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1230.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -429,17 +305,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '営業前のクリスマスマーケットも少し覗く。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241224-image-012',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1273.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -451,17 +318,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやね人酔いのため少ないところで食べる',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241224-image-014',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1246.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -491,17 +349,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねがケーキの取り分けに失敗。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241224-image-018',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1270.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -534,10 +383,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           '2日目は2時までホテルでのんびり。',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20241225-move-002',
@@ -555,17 +400,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ポケモンセンターでヒスイゾロア購入',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241225-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1295.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -575,17 +411,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '空フェス夜市にてお互いプレゼントを探す',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241225-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1303.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -596,17 +423,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '博多駅内の豚骨ラーメンを食す。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241225-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1313.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -617,17 +435,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやね、人が多すぎて死亡。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241225-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1334.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -637,10 +446,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           '博多に戻って、博多のクリスマスマーケットも人が多すぎることを確認。',
           '小倉に帰る。',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20241225-question-012',
@@ -675,17 +480,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ちいかわポップアップストア、駅ビルをウィンドウショッピング',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241226-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1351.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -696,17 +492,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ロマンチックだし、美味しくて可愛かった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241226-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1395.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -736,17 +523,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '佐藤二朗がよかったの同意！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241226-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1407.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -758,17 +536,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '真剣に取り組むあやねん',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20241226-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_1417.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -785,10 +554,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           'リーガロイヤルの前でお別れし、夜行バス帰宅！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20241226-move-013',
@@ -805,10 +570,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           '#あやねの京都卒業旅行',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
     ],
   },
@@ -835,17 +596,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '恒例の京大立て看を観に行った。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-003',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2663.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -856,17 +608,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'まずは金閣寺に行くことに。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-005',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2707.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -876,17 +619,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'やはりいつ来ても京都はええやね〜',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-007',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2711.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -896,10 +630,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           '金閣の前でこの画角！',
           '流石すぎる、、',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20250225-episode-009',
@@ -908,15 +638,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねはお腹が空いたと！',
           'なんと、次行く龍安寺の道に、彩音の好きな注文の多い料理店にでてくる山猫軒が！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-010',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_2719.jpeg',
           alt: '何は心は意くにあります',
@@ -929,17 +650,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '偶然、彩音にぴったりのお店に出会えてとてもラッキーな気分！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-012',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2727.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -964,17 +676,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '龍安寺は1番好きな寺で、世界遺産でもあるので見せたいなあと思ったのだ',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-015',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2730.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -995,17 +698,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'とゾクゾクしていた。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-018',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2737.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1016,17 +710,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '宿は彩音が選んだが、最高であった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-020',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2773.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1047,17 +732,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かなりご満悦！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-023',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2771.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1068,17 +744,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '誕生日はなかなか祝ってもらえないのでとても今までにない嬉しさだった、。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-025',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2794.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1096,17 +763,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '夜ご飯は浴衣でラーメン屋さんへ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250225-image-028',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2812.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -1123,17 +781,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'お揃いのネッシー帽を被って出発',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2813.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1143,17 +792,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ツーショットを取りたいのにこっちを見てくれないあやねん',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2816.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1165,17 +805,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '早めに到着してしまい、少し待った。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2823.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1186,17 +817,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねご機嫌。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2851.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1215,17 +837,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'カスタマイズできるハンバーガーでとてもおいしかった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-011',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2872.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1234,10 +847,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           '記念ツーショット',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20250226-episode-013',
@@ -1247,10 +856,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやね大興奮！',
           'あやねのプレイしたゲームやデバイスの話に花が咲く。',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20250226-question-014',
@@ -1267,17 +872,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '続いてゲームコーナー10コインの手持ちを消費して好きなゲームを遊べた！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-016',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2890.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1286,10 +882,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           'あやねとの相性チェック、ラブテスター！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20250226-question-018',
@@ -1324,17 +916,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-021',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2939.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1346,17 +929,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねはやっぱり負けず嫌いのよう。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-023',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2922.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1367,17 +941,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '宇宙まで届いて楽しかった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-025',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2931.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1387,17 +952,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'さらば、Nintendoミュージアム。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-027',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2935.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1407,17 +963,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'まさかの帰りの駅が小倉駅。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-029',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2957.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1429,17 +976,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ぐるぐる鶏皮の存在を教えてもらう。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250226-image-031',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_2966.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1449,10 +987,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'このケーキをどこで買ったのか覚えていない。',
           'ファミマでお酒を買ってきた。',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
     ],
   },
@@ -1477,17 +1011,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '確かバスを間違えて、京都水族館に急遽行くことになった。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-003',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3004.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1506,17 +1031,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'アザラシがゴロゴロしていて可愛かった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3021.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1536,17 +1052,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-009',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3048.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1556,17 +1063,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'とにかくいっぱいきれいな写真が撮れた！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-011',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3061.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1576,17 +1074,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'クラゲ可愛い',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-013',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3090.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1596,17 +1085,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '反射するところが多かったので、ツーショットいっぱい！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-015',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3105.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1616,17 +1096,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやね、オオサンショウウオコインげっと！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-017',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3117.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1638,17 +1109,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'しゅうくんはっぴー！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-019',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3137.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1659,10 +1121,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'Nintendoミュージアムで出会った親子と偶然、再会！',
           '蛙の帽子のお兄さんとお姉さんと言われた。',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20250227-episode-021',
@@ -1671,17 +1129,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '動物園などと迷ったが、期間限定の展覧会へ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-022',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3141.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1700,17 +1149,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '人が多かったけれど、きれいな作品を見れた！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-025',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3172.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1729,17 +1169,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '彩音は、カメラに近づいてくるところ可愛くて大好き！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-028',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3176.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1750,17 +1181,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '確か、ここでお金が尽きた。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-030',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3178.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1770,17 +1192,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '時間が余ったので、京都タワーへ登る。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250227-image-032',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3193.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1791,10 +1204,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           '時間が余ってると思いきや、電車の時刻を過ぎてしまい、激焦りのあやね',
           '急いで新幹線のチケットを買って難を凌いだ！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
       {
         id: 'journey-20250227-question-034',
@@ -1819,10 +1228,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           '#',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
       },
     ],
   },
@@ -1847,17 +1252,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねのトムジェ展に着いていきたいとわがままを言ってしまったため、1ヶ月以内の再会。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-003',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3311.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1868,17 +1264,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねは薄い牛タンが好き。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-005',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3314.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1890,17 +1277,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '美術館が近づくにつれ楽しみが増していくあやねん',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-007',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3335.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1911,17 +1289,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'テンションは初めからMAX！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-009',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3351.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1932,17 +1301,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '沢山説明してくれた！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-011',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3366.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1952,17 +1312,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'とにかくトムジェを語るのが楽しそう！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-013',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3399.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1972,17 +1323,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'そして、この手から伝わる熱の入りよう',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-015',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3402.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -1992,17 +1334,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '彩音じゃない写真も。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-017',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3413.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2012,17 +1345,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-019',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3425.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2032,17 +1356,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-021',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3472.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2053,17 +1368,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-023',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3478.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2072,15 +1378,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           '身振り手振り！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-025',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_3479.jpeg',
           alt: 'L#',
@@ -2093,17 +1390,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'チーズの穴から集合写真！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-027',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3495.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2112,15 +1400,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           'これもかわいい',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-029',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_3542.jpeg',
           alt: 'HELDNES',
@@ -2133,17 +1412,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '手の動きが速い！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-031',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3567.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2176,15 +1446,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           '正解はこれ〜',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-035',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_3584.jpeg',
           alt: 'お食事にむかってよーいどん',
@@ -2221,15 +1482,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           '正解はこちら！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-039',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3587.jpeg',
           alt: 'RTELEGRAM',
         },
@@ -2242,17 +1494,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '1時間くらいずっとお買い物した。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-041',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3620.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2270,17 +1513,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ウィンドウショッピングのち、天神の星乃珈琲でおやつ',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-044',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3627.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2290,17 +1524,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-046',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3633.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2310,17 +1535,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '初めてのラブホでうきうき！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-048',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3643.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2331,17 +1547,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '猫カフェの近くで懐かしみがあった。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250304-image-050',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3663.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -2358,17 +1565,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'トムジェ展のお土産で買ったしゅしゅをプレゼント！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3665.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2379,17 +1577,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3670.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2399,17 +1588,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '前日の領収書を自慢げに見せるあやね氏',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3695.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2419,17 +1599,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '博多駅の屋上庭園へ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3704.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2439,17 +1610,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'これかわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3714.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2459,15 +1621,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'レストランの階でトムジェダイナーを探す。',
           '壁にもトムジェだらけ！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-012',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_3729.jpeg',
           alt: '2.10：-3.19：',
@@ -2480,17 +1633,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'トムジェダイナー到着！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-014',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3738.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2501,17 +1645,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'すごくよかったなあ',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-016',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3764.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2521,17 +1656,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '清楚系大好きなのでこの服とあやねも大好き',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-018',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3769.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2541,17 +1667,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ピザもかわいい！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-020',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3773.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2561,17 +1678,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '阪急とアミュのガチャガチャを巡る',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-022',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3798.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2581,17 +1689,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ポケモンセンターにてウィンドウショッピング',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-024',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3802.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2602,17 +1701,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'デートとしていかがなものか、この男…',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-026',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3804.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2623,17 +1713,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ぼんじりとハムチーズと焼きおにぎりはマジでうまいことを学ぶ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-028',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3818.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2643,17 +1724,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '駅にてトムジェ像を発見して駅で解散！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250305-image-030',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_3820.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2688,17 +1760,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '本当に腕がちぎれるかと思った',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250416-image-003',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_4882.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2708,17 +1771,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'お仕事大変なのにお手紙置いてくれてて嬉しかったのだ！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250416-image-005',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_4883.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2731,17 +1785,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'エビを大量に頼むのが流儀。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250416-image-007',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_4890.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2751,17 +1796,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'iPhoneのメルカリ出品を手伝ってくれるメルカリのプロあやね',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250416-image-009',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_4898.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2773,17 +1809,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'チョコバナナ最高！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250416-image-011',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_4906.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2794,17 +1821,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねはよこにあるものにすぐ抱きつく',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250416-image-013',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_4936.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -2822,17 +1840,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '果たして次はいつ見れるのだろうか…',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_4946.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2843,17 +1852,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_4956.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2863,17 +1863,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'まるでお花',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5033.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2883,17 +1874,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '世界一かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5095.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2919,17 +1901,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'なにやら、昔ながらのピカチュウが！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-011',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5137.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2939,17 +1912,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'この日はあやねのツイステの推しのラギー・ブッチの誕生日ということで、ガチャを引くようだ',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-013',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5145.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2960,17 +1924,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'すぐ引き当ててしまった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-015',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5148.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -2980,17 +1935,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'とても嬉しそう',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-017',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5163.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3000,17 +1946,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ご飯を食べ終わりを測ると、軽くなっていた！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-019',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5166.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3021,17 +1958,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '可愛い手紙などを購入。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-021',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5178.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3042,17 +1970,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '豚骨ラーメンならだいたい美味い。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250418-image-023',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5183.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3079,17 +1998,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '新しく出来たビルに行く前に隣のビルでローストビーフ丼',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250512-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5642.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3099,17 +2009,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '謎の黄身だけ取り出す装置を初めて手にする彩音',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250512-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5646.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3120,17 +2021,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'この日はあやね元気なかった…',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250512-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5651.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3141,17 +2033,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'アートはいい感じ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250512-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5665.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3162,17 +2045,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ぐるぐる鶏皮が美味すぎる。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250512-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5670.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -3192,17 +2066,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '嬉しいし、横から見てるのも楽しい。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250513-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5671.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3213,15 +2078,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'お買い物をしたはず。',
           'イオンかな？',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250513-image-004',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_5672.jpeg',
           alt: 'Dream Oaprule',
@@ -3243,15 +2099,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あとミスドのサプライズを計画！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250514-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5679.jpeg',
           alt: 'PP ゆうちょ銀行',
         },
@@ -3263,17 +2110,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ミスドであやねもこの笑顔！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250514-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5694.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -3293,17 +2131,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5699.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3313,17 +2142,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいいすぎる',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5697.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3333,17 +2153,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ぼうしちょこんかわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5701.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3354,26 +2165,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ビジュ◎',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5705.jpeg',
-          alt: '画像',
-        },
-      },
-      {
-        id: 'journey-20250515-image-009',
-        type: 'episode',
-        text: [],
-        photo: {
-          src: '/images/user/IMG_5720.jpeg',
-          alt: 'granjoh.',
+          alt: '旅の写真',
         },
       },
       {
@@ -3386,8 +2179,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'とビックリしました。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
+          src: '/images/user/IMG_5720.jpeg',
+          alt: 'granjoh.',
         },
       },
       {
@@ -3397,17 +2190,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'むふふんかわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-012',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5724.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3417,17 +2201,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'もう一生試着してて欲しい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-014',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5734.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3437,17 +2212,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '民族雑貨系にていい感じの帽子を見つける',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-016',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5750.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3456,15 +2222,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         text: [
           'フードコートに向かいつつ、ブランド物の話をした。',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-018',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_5759.jpeg',
           alt: 'M-PLAZA',
@@ -3477,17 +2234,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'フードコートでもぐるぐる鶏皮を食べる',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-020',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5763.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3497,17 +2245,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '焼きカレーは門司港の方が有名だと教えてもらった',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-022',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5771.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3518,17 +2257,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-024',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5779.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3546,17 +2276,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'クレープ屋さんでおやつ休憩',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-027',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5789.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3567,17 +2288,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'いっぱい貢げてがちで幸せな滞在になったのだ！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250515-image-029',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_5795.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -3620,17 +2332,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいいドンキとか新しいポケセンがあった。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250714-image-003',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9049.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3640,17 +2343,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'もうもはや我々と言えば鶏皮、鶏皮と言えば我々なのだ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250714-image-005',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9055.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3660,17 +2354,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねはローストビーフに取り憑かれているのかもしれない',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250714-image-007',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9063.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3681,17 +2366,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'もうちょっとお土産あげられればなあ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250714-image-009',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9068.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3703,17 +2379,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '彩音にぜひ着て欲しい。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250714-image-011',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9072.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3723,17 +2390,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ホテルまで遠すぎて死にそうなあやね',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250714-image-013',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9075.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3744,17 +2402,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250714-image-015',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9087.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3765,17 +2414,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'びっくりあやねん！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250714-image-017',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9090.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -3792,17 +2432,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'ご覧の通り、ラブホ飯はかなりありということがわかったのだった。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9097.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3812,17 +2443,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '前髪が長くて隠れるの可愛い好き',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9110.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3832,17 +2454,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '海を見に百道浜へー！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9112.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3854,17 +2467,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねの初めて貰っちゃった♡',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9126.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3883,17 +2487,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '頑張って生き物の捕獲をするあやね',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-011',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9139.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3903,17 +2498,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '思ってたより楽しんでくれてたように見えた！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-013',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9154.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3923,17 +2509,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '壁を触ると蝶が落ちていくデジタルアート',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-015',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9209.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3943,17 +2520,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '綱渡りするあやね、かわいい！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-017',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9223.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3963,17 +2531,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねから虫歯ポーズを教えてもらった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-019',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9282.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -3986,17 +2545,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-021',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9297.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4021,17 +2571,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'A,1,スーパーオオサンショウウオ',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-024',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9331.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4041,15 +2582,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           'スーパーオオサンショウウオ！',
           'かわいい！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-026',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_9331.jpeg',
           alt: 'ペーパーサンショウワス',
@@ -4063,17 +2595,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '優しい好き',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-028',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9346.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4083,17 +2606,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '福岡の海はとてもいい！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-030',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9351.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4104,17 +2618,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'らぶほよりも高くてらぶほよりダメだったけど、ほっともっとが美味かった。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250715-image-032',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9401.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -4132,17 +2637,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'メガネ外して肩出しがおとななあやねんすぎて終始興奮が止まらない。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9414.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4153,17 +2649,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'めっちゃ綺麗だった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9422.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4173,17 +2660,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '浮世絵もあやねんも見れて眼福！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9448.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4193,17 +2671,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '好き',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9466.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4213,17 +2682,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'にゃ〜',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9478.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4236,17 +2696,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '手の真似が上手い！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-012',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9508.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4257,17 +2708,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-014',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9542.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4277,17 +2719,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '笑顔が素敵すぎるう',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-016',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9550.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4297,17 +2730,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'リニューアルされたポケセンへ！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-018',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9561.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4317,17 +2741,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'アローラロコンにキュンキュン',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-020',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9565.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4337,17 +2752,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '星乃珈琲で暇つぶし！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-022',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9577.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4357,17 +2763,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かなり暇つぶし！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250716-image-024',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_9585.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4411,17 +2808,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '彩音の住んでる街でテンション爆上がりうぇい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250818-image-003',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0840.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4433,17 +2821,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'くら寿司の横のラブホへ。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250818-image-005',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0853.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4454,17 +2833,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'とてもおいしかった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250818-image-007',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0859.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -4483,17 +2853,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'あやねは音程が上手だった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250819-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0865 2.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4503,17 +2864,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'うどんを歌ってくれるの最高や！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250819-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0870 2.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4524,17 +2876,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'めちゃうまあだった！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250819-image-006',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0880.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4545,17 +2888,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かわいい',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250819-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0882.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4565,17 +2899,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'やはりラブホ飯は無しではない',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250819-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0889.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4586,17 +2911,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250819-image-012',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0894.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
     ],
@@ -4615,17 +2931,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '駅舎が素敵でしたな！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-002',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0905.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4635,17 +2942,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'いつもピースしてくれてかわいいねありがとう',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-004',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0919.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4655,15 +2953,6 @@ const newJourneyDefinitions: JourneyInput[] = [
           '世界の貨幣ガチャにハマってしまう。',
           '彩音がお札くれた！',
         ],
-        photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-006',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_0922.jpeg',
           alt: '000',
@@ -4676,17 +2965,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'かき氷がキンキン🍧',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-008',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0926.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4696,17 +2976,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'お腹空いてきたよまじで',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-010',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0929.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4717,17 +2988,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '2人ともかわいいねえ',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-012',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0932.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4737,17 +2999,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '2人ともかわいいよお！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-014',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0938.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4758,17 +3011,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           '傘を持ってくれた彩音、紳士だ！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-016',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0955.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4780,17 +3024,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'これまじでうますぎるから次三つ頼む。',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-018',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0964.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
@@ -4800,17 +3035,8 @@ const newJourneyDefinitions: JourneyInput[] = [
           'やっぱり彩音の鶏皮が1番やで！',
         ],
         photo: {
-          src: '/images/gimmie-placeholder.svg',
-          alt: 'テキストのみ',
-        },
-      },
-      {
-        id: 'journey-20250820-image-020',
-        type: 'episode',
-        text: [],
-        photo: {
           src: '/images/user/IMG_0966.jpeg',
-          alt: '画像',
+          alt: '旅の写真',
         },
       },
       {
