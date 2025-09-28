@@ -615,11 +615,6 @@ export const MediaScene = ({ onAdvance }: SceneComponentProps) => {
         {formatNumber(count)}
       </div>
 
-      <div className="media-meta" aria-hidden>
-        <p>あなた → 彼女 {formatNumber(mediaExchangeCounts.fromYou)} 枚</p>
-        <p>彼女 → あなた {formatNumber(mediaExchangeCounts.fromPartner)} 枚</p>
-      </div>
-
       {phase !== 'play' && (
         <div className="media-caption" role="status">
           <p>一年間で送りあったメディアは</p>

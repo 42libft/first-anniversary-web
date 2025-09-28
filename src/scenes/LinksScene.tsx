@@ -526,11 +526,6 @@ export const LinksScene = ({ onAdvance }: SceneComponentProps) => {
         {formatNumber(count)}
       </div>
 
-      <div className="links-meta" aria-hidden>
-        <p>あなた → 彼女 {formatNumber(linkExchangeCounts.fromYou)} 件</p>
-        <p>彼女 → あなた {formatNumber(linkExchangeCounts.fromPartner)} 件</p>
-      </div>
-
       {phase !== 'play' && (
         <div
           className={`links-caption${showLines ? ' is-visible' : ''}`}
