@@ -65,7 +65,7 @@ const newJourneyDefinitions: JourneyInput[] = [
           '3,ローソン',
           '4,ミニストップ',
         ],
-        correctAnswer: '１のセブンイレブン',
+        correctAnswer: '1,セブンイレブン',
         readonlyAfterSave: true,
       },
       {
