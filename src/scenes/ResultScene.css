@@ -190,9 +190,9 @@
   flex: 0 0 auto;
   min-width: 0;
   text-align: left;
-  font-size: clamp(0.8rem, 2.2vw, 1.12rem);
+  font-size: clamp(0.62rem, 1.55vw, 0.94rem);
   font-weight: 700;
-  letter-spacing: clamp(0.08em, 0.8vw, 0.16em);
+  letter-spacing: clamp(0.04em, 0.48vw, 0.11em);
   color: rgba(255, 248, 225, 0.92);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
   line-height: 1.1;
@@ -267,25 +267,31 @@
   }
 
   .result-banner__title {
-    font-size: clamp(0.78rem, 4vw, 0.98rem);
-    letter-spacing: clamp(0.05em, 0.8vw, 0.12em);
+    font-size: clamp(0.6rem, 3.2vw, 0.82rem);
+    letter-spacing: clamp(0.03em, 0.5vw, 0.08em);
   }
 
   .result-banner__stats {
-    gap: clamp(6px, 1.2vw, 10px);
+    gap: clamp(4px, 1vw, 8px);
   }
 
   .result-banner__panel {
-    gap: clamp(3px, 1.2vw, 6px);
+    flex-direction: column;
+    align-items: flex-end;
+    gap: clamp(2px, 0.9vw, 4px);
   }
 
   .result-banner__panel-label {
-    font-size: clamp(0.5rem, 2.8vw, 0.62rem);
-    letter-spacing: clamp(0.03em, 0.6vw, 0.08em);
+    font-size: clamp(0.48rem, 2.6vw, 0.6rem);
+    letter-spacing: clamp(0.02em, 0.5vw, 0.06em);
+    line-height: 1.1;
+    white-space: normal;
+    text-align: right;
   }
 
   .result-banner__panel-value {
-    font-size: clamp(0.82rem, 3.6vw, 1.02rem);
+    font-size: clamp(0.78rem, 3.4vw, 0.98rem);
+    line-height: 1.05;
   }
 }
 
