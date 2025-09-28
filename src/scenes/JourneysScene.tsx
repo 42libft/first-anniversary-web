@@ -396,14 +396,25 @@ export const JourneysScene = ({
   const activePage = pages[pageIndex]
   const activeJourney = activePage?.journey
 
+  const getPageDistance = useCallback(
+    (page: StoryPage | undefined): number => {
+      if (!page) return 0
+      if (page.kind === 'move') return page.step.distanceKm
+      if (page.kind === 'memory' || page.kind === 'free' || page.kind === 'quiz') {
+        return page.step.distanceKm ?? 0
+      }
+      return 0
+    },
+    [],
+  )
+
   const traveledDistance = useMemo(() => {
     let sum = 0
     for (let i = 0; i <= pageIndex && i < pages.length; i += 1) {
-      const p = pages[i]
-      if (p.kind === 'move') sum += p.step.distanceKm
+      sum += getPageDistance(pages[i])
     }
     return sum
-  }, [pages, pageIndex])
+  }, [getPageDistance, pages, pageIndex])
 
   useEffect(() => {
     setDistanceTraveled(traveledDistance)

@@ -49,6 +49,8 @@ export interface JourneyEpisodeStep {
     alt: string
     objectPosition?: string
   }
+  /** move以外のステップでも距離HUDに反映したい場合に指定。 */
+  distanceKm?: number
 }
 
 export type JourneyQuestionStyle = 'choice' | 'text'
@@ -64,6 +66,8 @@ export interface JourneyQuestionStep {
   helper?: string
   readonlyAfterSave?: boolean
   correctAnswer?: string
+  /** move以外のステップでも距離HUDに反映したい場合に指定。 */
+  distanceKm?: number
 }
 
 export type JourneyStep =
@@ -75,7 +79,7 @@ export interface Journey {
   id: string
   title: string
   date: string
-  /** 旅全体の距離（moveステップの合計）。 */
+  /** 旅全体の距離（距離指定ステップの合計）。 */
   distanceKm: number
   steps: JourneyStep[]
 }
