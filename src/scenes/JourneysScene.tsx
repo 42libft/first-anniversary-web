@@ -681,7 +681,6 @@ export const JourneysScene = ({
               isLocked={isQuestionReadOnly}
               onAnswerChange={handleAnswerChange}
               onTextBlur={handleTextBlur}
-              onBeginNewSession={handleBeginJourneySession}
             />
           )}
         </div>
