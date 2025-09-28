@@ -36,7 +36,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0642.jpeg',
+          src: '/images/user/IMG_0642.jpeg',
           alt: '画像',
         },
       },
@@ -67,7 +67,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0652.jpeg',
+          src: '/images/user/IMG_0652.jpeg',
           alt: '画像',
         },
       },
@@ -126,7 +126,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0660.jpeg',
+          src: '/images/user/IMG_0660.jpeg',
           alt: '画像',
         },
       },
@@ -149,7 +149,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0717.jpeg',
+          src: '/images/user/IMG_0717.jpeg',
           alt: '画像',
         },
       },
@@ -171,7 +171,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0738.jpeg',
+          src: '/images/user/IMG_0738.jpeg',
           alt: '画像',
         },
       },
@@ -193,7 +193,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0843.jpeg',
+          src: '/images/user/IMG_0843.jpeg',
           alt: '画像',
         },
       },
@@ -214,7 +214,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0865.jpeg',
+          src: '/images/user/IMG_0865.jpeg',
           alt: '画像',
         },
       },
@@ -235,7 +235,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0870.jpeg',
+          src: '/images/user/IMG_0870.jpeg',
           alt: '画像',
         },
       },
@@ -244,7 +244,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0872.jpeg',
+          src: '/images/user/IMG_0872.jpeg',
           alt: '画像',
         },
       },
@@ -329,7 +329,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1220.jpeg',
+          src: '/images/user/IMG_1220.jpeg',
           alt: '画像',
         },
       },
@@ -376,7 +376,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1223.jpeg',
+          src: '/images/user/IMG_1223.jpeg',
           alt: '画像',
         },
       },
@@ -385,7 +385,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1226.jpeg',
+          src: '/images/user/IMG_1226.jpeg',
           alt: '画像',
         },
       },
@@ -417,7 +417,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1230.jpeg',
+          src: '/images/user/IMG_1230.jpeg',
           alt: '画像',
         },
       },
@@ -438,7 +438,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1273.jpeg',
+          src: '/images/user/IMG_1273.jpeg',
           alt: '画像',
         },
       },
@@ -460,7 +460,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1246.jpeg',
+          src: '/images/user/IMG_1246.jpeg',
           alt: '画像',
         },
       },
@@ -469,7 +469,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1261.jpeg',
+          src: '/images/user/IMG_1261.jpeg',
           alt: '画像',
         },
       },
@@ -478,7 +478,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1268.jpeg',
+          src: '/images/user/IMG_1268.jpeg',
           alt: '画像',
         },
       },
@@ -500,7 +500,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1270.jpeg',
+          src: '/images/user/IMG_1270.jpeg',
           alt: '画像',
         },
       },
@@ -509,7 +509,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1279.jpeg',
+          src: '/images/user/IMG_1279.jpeg',
           alt: '画像',
         },
       },
@@ -564,7 +564,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1295.jpeg',
+          src: '/images/user/IMG_1295.jpeg',
           alt: '画像',
         },
       },
@@ -584,7 +584,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1303.jpeg',
+          src: '/images/user/IMG_1303.jpeg',
           alt: '画像',
         },
       },
@@ -605,7 +605,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1313.jpeg',
+          src: '/images/user/IMG_1313.jpeg',
           alt: '画像',
         },
       },
@@ -626,7 +626,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1334.jpeg',
+          src: '/images/user/IMG_1334.jpeg',
           alt: '画像',
         },
       },
@@ -684,7 +684,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1351.jpeg',
+          src: '/images/user/IMG_1351.jpeg',
           alt: '画像',
         },
       },
@@ -705,7 +705,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1395.jpeg',
+          src: '/images/user/IMG_1395.jpeg',
           alt: '画像',
         },
       },
@@ -714,7 +714,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1367.jpeg',
+          src: '/images/user/IMG_1367.jpeg',
           alt: '画像',
         },
       },
@@ -723,7 +723,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1390.jpeg',
+          src: '/images/user/IMG_1390.jpeg',
           alt: '画像',
         },
       },
@@ -745,7 +745,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1407.jpeg',
+          src: '/images/user/IMG_1407.jpeg',
           alt: '画像',
         },
       },
@@ -767,7 +767,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_1417.jpeg',
+          src: '/images/user/IMG_1417.jpeg',
           alt: '画像',
         },
       },
@@ -844,7 +844,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2663.jpeg',
+          src: '/images/user/IMG_2663.jpeg',
           alt: '画像',
         },
       },
@@ -865,7 +865,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2707.jpeg',
+          src: '/images/user/IMG_2707.jpeg',
           alt: '画像',
         },
       },
@@ -885,7 +885,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2711.jpeg',
+          src: '/images/user/IMG_2711.jpeg',
           alt: '画像',
         },
       },
@@ -918,7 +918,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2719.jpeg',
+          src: '/images/user/IMG_2719.jpeg',
           alt: '何は心は意くにあります',
         },
       },
@@ -938,7 +938,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2727.jpeg',
+          src: '/images/user/IMG_2727.jpeg',
           alt: '画像',
         },
       },
@@ -973,7 +973,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2730.jpeg',
+          src: '/images/user/IMG_2730.jpeg',
           alt: '画像',
         },
       },
@@ -982,7 +982,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2731.jpeg',
+          src: '/images/user/IMG_2731.jpeg',
           alt: '画像',
         },
       },
@@ -1004,7 +1004,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2737.jpeg',
+          src: '/images/user/IMG_2737.jpeg',
           alt: '画像',
         },
       },
@@ -1025,7 +1025,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2773.jpeg',
+          src: '/images/user/IMG_2773.jpeg',
           alt: '画像',
         },
       },
@@ -1034,7 +1034,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2749.jpeg',
+          src: '/images/user/IMG_2749.jpeg',
           alt: '画像',
         },
       },
@@ -1056,7 +1056,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2771.jpeg',
+          src: '/images/user/IMG_2771.jpeg',
           alt: '画像',
         },
       },
@@ -1077,7 +1077,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2794.jpeg',
+          src: '/images/user/IMG_2794.jpeg',
           alt: '画像',
         },
       },
@@ -1105,7 +1105,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2812.jpeg',
+          src: '/images/user/IMG_2812.jpeg',
           alt: '画像',
         },
       },
@@ -1132,7 +1132,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2813.jpeg',
+          src: '/images/user/IMG_2813.jpeg',
           alt: '画像',
         },
       },
@@ -1152,7 +1152,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2816.jpeg',
+          src: '/images/user/IMG_2816.jpeg',
           alt: '画像',
         },
       },
@@ -1174,7 +1174,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2823.jpeg',
+          src: '/images/user/IMG_2823.jpeg',
           alt: '画像',
         },
       },
@@ -1195,7 +1195,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2851.jpeg',
+          src: '/images/user/IMG_2851.jpeg',
           alt: '画像',
         },
       },
@@ -1204,7 +1204,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2859.jpeg',
+          src: '/images/user/IMG_2859.jpeg',
           alt: '画像',
         },
       },
@@ -1224,7 +1224,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2872.jpeg',
+          src: '/images/user/IMG_2872.jpeg',
           alt: '画像',
         },
       },
@@ -1276,7 +1276,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2890.jpeg',
+          src: '/images/user/IMG_2890.jpeg',
           alt: '画像',
         },
       },
@@ -1311,7 +1311,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/shooting.jpeg',
+          src: '/images/user/shooting.jpeg',
           alt: '画像',
         },
       },
@@ -1333,7 +1333,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2939.jpeg',
+          src: '/images/user/IMG_2939.jpeg',
           alt: '画像',
         },
       },
@@ -1355,7 +1355,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2922.jpeg',
+          src: '/images/user/IMG_2922.jpeg',
           alt: '画像',
         },
       },
@@ -1376,7 +1376,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2931.jpeg',
+          src: '/images/user/IMG_2931.jpeg',
           alt: '画像',
         },
       },
@@ -1396,7 +1396,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2935.jpeg',
+          src: '/images/user/IMG_2935.jpeg',
           alt: '画像',
         },
       },
@@ -1416,7 +1416,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2957.jpeg',
+          src: '/images/user/IMG_2957.jpeg',
           alt: '画像',
         },
       },
@@ -1438,7 +1438,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2966.jpeg',
+          src: '/images/user/IMG_2966.jpeg',
           alt: '画像',
         },
       },
@@ -1466,7 +1466,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_2976.jpeg',
+          src: '/images/user/IMG_2976.jpeg',
           alt: '画像',
         },
       },
@@ -1486,7 +1486,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3004.jpeg',
+          src: '/images/user/IMG_3004.jpeg',
           alt: '画像',
         },
       },
@@ -1495,7 +1495,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3009.jpeg',
+          src: '/images/user/IMG_3009.jpeg',
           alt: '画像',
         },
       },
@@ -1515,7 +1515,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3021.jpeg',
+          src: '/images/user/IMG_3021.jpeg',
           alt: '画像',
         },
       },
@@ -1524,7 +1524,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3031.jpeg',
+          src: '/images/user/IMG_3031.jpeg',
           alt: '画像',
         },
       },
@@ -1545,7 +1545,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3048.jpeg',
+          src: '/images/user/IMG_3048.jpeg',
           alt: '画像',
         },
       },
@@ -1565,7 +1565,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3061.jpeg',
+          src: '/images/user/IMG_3061.jpeg',
           alt: '画像',
         },
       },
@@ -1585,7 +1585,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3090.jpeg',
+          src: '/images/user/IMG_3090.jpeg',
           alt: '画像',
         },
       },
@@ -1605,7 +1605,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3105.jpeg',
+          src: '/images/user/IMG_3105.jpeg',
           alt: '画像',
         },
       },
@@ -1625,7 +1625,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3117.jpeg',
+          src: '/images/user/IMG_3117.jpeg',
           alt: '画像',
         },
       },
@@ -1647,7 +1647,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3137.jpeg',
+          src: '/images/user/IMG_3137.jpeg',
           alt: '画像',
         },
       },
@@ -1680,7 +1680,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3141.jpeg',
+          src: '/images/user/IMG_3141.jpeg',
           alt: '画像',
         },
       },
@@ -1689,7 +1689,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3162.jpeg',
+          src: '/images/user/IMG_3162.jpeg',
           alt: '画像',
         },
       },
@@ -1709,7 +1709,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3172.jpeg',
+          src: '/images/user/IMG_3172.jpeg',
           alt: '画像',
         },
       },
@@ -1718,7 +1718,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3175.jpeg',
+          src: '/images/user/IMG_3175.jpeg',
           alt: '画像',
         },
       },
@@ -1738,7 +1738,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3176.jpeg',
+          src: '/images/user/IMG_3176.jpeg',
           alt: '画像',
         },
       },
@@ -1759,7 +1759,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3178.jpeg',
+          src: '/images/user/IMG_3178.jpeg',
           alt: '画像',
         },
       },
@@ -1779,7 +1779,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3193.jpeg',
+          src: '/images/user/IMG_3193.jpeg',
           alt: '画像',
         },
       },
@@ -1856,7 +1856,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3311.jpeg',
+          src: '/images/user/IMG_3311.jpeg',
           alt: '画像',
         },
       },
@@ -1877,7 +1877,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3314.jpeg',
+          src: '/images/user/IMG_3314.jpeg',
           alt: '画像',
         },
       },
@@ -1899,7 +1899,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3335.jpeg',
+          src: '/images/user/IMG_3335.jpeg',
           alt: '画像',
         },
       },
@@ -1920,7 +1920,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3351.jpeg',
+          src: '/images/user/IMG_3351.jpeg',
           alt: '画像',
         },
       },
@@ -1941,7 +1941,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3366.jpeg',
+          src: '/images/user/IMG_3366.jpeg',
           alt: '画像',
         },
       },
@@ -1961,7 +1961,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3399.jpeg',
+          src: '/images/user/IMG_3399.jpeg',
           alt: '画像',
         },
       },
@@ -1981,7 +1981,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3402.jpeg',
+          src: '/images/user/IMG_3402.jpeg',
           alt: '画像',
         },
       },
@@ -2001,7 +2001,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3413.jpeg',
+          src: '/images/user/IMG_3413.jpeg',
           alt: '画像',
         },
       },
@@ -2021,7 +2021,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3425.jpeg',
+          src: '/images/user/IMG_3425.jpeg',
           alt: '画像',
         },
       },
@@ -2041,7 +2041,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3472.jpeg',
+          src: '/images/user/IMG_3472.jpeg',
           alt: '画像',
         },
       },
@@ -2062,7 +2062,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3478.jpeg',
+          src: '/images/user/IMG_3478.jpeg',
           alt: '画像',
         },
       },
@@ -2082,7 +2082,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3479.jpeg',
+          src: '/images/user/IMG_3479.jpeg',
           alt: 'L#',
         },
       },
@@ -2102,7 +2102,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3495.jpeg',
+          src: '/images/user/IMG_3495.jpeg',
           alt: '画像',
         },
       },
@@ -2122,7 +2122,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3542.jpeg',
+          src: '/images/user/IMG_3542.jpeg',
           alt: 'HELDNES',
         },
       },
@@ -2142,7 +2142,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3567.jpeg',
+          src: '/images/user/IMG_3567.jpeg',
           alt: '画像',
         },
       },
@@ -2166,7 +2166,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3585.jpeg',
+          src: '/images/user/IMG_3585.jpeg',
           alt: '＃まさに居地的な表術',
         },
       },
@@ -2186,7 +2186,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3584.jpeg',
+          src: '/images/user/IMG_3584.jpeg',
           alt: 'お食事にむかってよーいどん',
         },
       },
@@ -2210,7 +2210,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3586.jpeg',
+          src: '/images/user/IMG_3586.jpeg',
           alt: '＊しっぽをつかんでスヤスヤ',
         },
       },
@@ -2230,7 +2230,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3587.jpeg',
+          src: '/images/user/IMG_3587.jpeg',
           alt: 'RTELEGRAM',
         },
       },
@@ -2251,7 +2251,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3620.jpeg',
+          src: '/images/user/IMG_3620.jpeg',
           alt: '画像',
         },
       },
@@ -2279,7 +2279,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3627.jpeg',
+          src: '/images/user/IMG_3627.jpeg',
           alt: '画像',
         },
       },
@@ -2299,7 +2299,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3633.jpeg',
+          src: '/images/user/IMG_3633.jpeg',
           alt: '画像',
         },
       },
@@ -2319,7 +2319,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3643.jpeg',
+          src: '/images/user/IMG_3643.jpeg',
           alt: '画像',
         },
       },
@@ -2340,7 +2340,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3663.jpeg',
+          src: '/images/user/IMG_3663.jpeg',
           alt: '画像',
         },
       },
@@ -2367,7 +2367,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3665.jpeg',
+          src: '/images/user/IMG_3665.jpeg',
           alt: '画像',
         },
       },
@@ -2388,7 +2388,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3670.jpeg',
+          src: '/images/user/IMG_3670.jpeg',
           alt: '画像',
         },
       },
@@ -2408,7 +2408,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3695.jpeg',
+          src: '/images/user/IMG_3695.jpeg',
           alt: '画像',
         },
       },
@@ -2428,7 +2428,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3704.jpeg',
+          src: '/images/user/IMG_3704.jpeg',
           alt: '画像',
         },
       },
@@ -2448,7 +2448,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3714.jpeg',
+          src: '/images/user/IMG_3714.jpeg',
           alt: '画像',
         },
       },
@@ -2469,7 +2469,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3729.jpeg',
+          src: '/images/user/IMG_3729.jpeg',
           alt: '2.10：-3.19：',
         },
       },
@@ -2489,7 +2489,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3738.jpeg',
+          src: '/images/user/IMG_3738.jpeg',
           alt: '画像',
         },
       },
@@ -2510,7 +2510,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3764.jpeg',
+          src: '/images/user/IMG_3764.jpeg',
           alt: '画像',
         },
       },
@@ -2530,7 +2530,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3769.jpeg',
+          src: '/images/user/IMG_3769.jpeg',
           alt: '画像',
         },
       },
@@ -2550,7 +2550,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3773.jpeg',
+          src: '/images/user/IMG_3773.jpeg',
           alt: '画像',
         },
       },
@@ -2570,7 +2570,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3798.jpeg',
+          src: '/images/user/IMG_3798.jpeg',
           alt: '画像',
         },
       },
@@ -2590,7 +2590,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3802.jpeg',
+          src: '/images/user/IMG_3802.jpeg',
           alt: '画像',
         },
       },
@@ -2611,7 +2611,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3804.jpeg',
+          src: '/images/user/IMG_3804.jpeg',
           alt: '画像',
         },
       },
@@ -2632,7 +2632,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3818.jpeg',
+          src: '/images/user/IMG_3818.jpeg',
           alt: '画像',
         },
       },
@@ -2652,7 +2652,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_3820.jpeg',
+          src: '/images/user/IMG_3820.jpeg',
           alt: '画像',
         },
       },
@@ -2697,7 +2697,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_4882.jpeg',
+          src: '/images/user/IMG_4882.jpeg',
           alt: '画像',
         },
       },
@@ -2717,7 +2717,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_4883.jpeg',
+          src: '/images/user/IMG_4883.jpeg',
           alt: '画像',
         },
       },
@@ -2740,7 +2740,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_4890.jpeg',
+          src: '/images/user/IMG_4890.jpeg',
           alt: '画像',
         },
       },
@@ -2760,7 +2760,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_4898.jpeg',
+          src: '/images/user/IMG_4898.jpeg',
           alt: '画像',
         },
       },
@@ -2782,7 +2782,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_4906.jpeg',
+          src: '/images/user/IMG_4906.jpeg',
           alt: '画像',
         },
       },
@@ -2803,7 +2803,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_4936.jpeg',
+          src: '/images/user/IMG_4936.jpeg',
           alt: '画像',
         },
       },
@@ -2831,7 +2831,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_4946.jpeg',
+          src: '/images/user/IMG_4946.jpeg',
           alt: '画像',
         },
       },
@@ -2852,7 +2852,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_4956.jpeg',
+          src: '/images/user/IMG_4956.jpeg',
           alt: '画像',
         },
       },
@@ -2872,7 +2872,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5033.jpeg',
+          src: '/images/user/IMG_5033.jpeg',
           alt: '画像',
         },
       },
@@ -2892,7 +2892,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5095.jpeg',
+          src: '/images/user/IMG_5095.jpeg',
           alt: '画像',
         },
       },
@@ -2928,7 +2928,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5137.jpeg',
+          src: '/images/user/IMG_5137.jpeg',
           alt: '画像',
         },
       },
@@ -2948,7 +2948,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5145.jpeg',
+          src: '/images/user/IMG_5145.jpeg',
           alt: '画像',
         },
       },
@@ -2969,7 +2969,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5148.jpeg',
+          src: '/images/user/IMG_5148.jpeg',
           alt: '画像',
         },
       },
@@ -2989,7 +2989,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5163.jpeg',
+          src: '/images/user/IMG_5163.jpeg',
           alt: '画像',
         },
       },
@@ -3009,7 +3009,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5166.jpeg',
+          src: '/images/user/IMG_5166.jpeg',
           alt: '画像',
         },
       },
@@ -3030,7 +3030,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5178.jpeg',
+          src: '/images/user/IMG_5178.jpeg',
           alt: '画像',
         },
       },
@@ -3051,7 +3051,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5183.jpeg',
+          src: '/images/user/IMG_5183.jpeg',
           alt: '画像',
         },
       },
@@ -3088,7 +3088,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5642.jpeg',
+          src: '/images/user/IMG_5642.jpeg',
           alt: '画像',
         },
       },
@@ -3108,7 +3108,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5646.jpeg',
+          src: '/images/user/IMG_5646.jpeg',
           alt: '画像',
         },
       },
@@ -3129,7 +3129,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5651.jpeg',
+          src: '/images/user/IMG_5651.jpeg',
           alt: '画像',
         },
       },
@@ -3150,7 +3150,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5665.jpeg',
+          src: '/images/user/IMG_5665.jpeg',
           alt: '画像',
         },
       },
@@ -3171,7 +3171,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5670.jpeg',
+          src: '/images/user/IMG_5670.jpeg',
           alt: '画像',
         },
       },
@@ -3201,7 +3201,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5671.jpeg',
+          src: '/images/user/IMG_5671.jpeg',
           alt: '画像',
         },
       },
@@ -3223,7 +3223,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5672.jpeg',
+          src: '/images/user/IMG_5672.jpeg',
           alt: 'Dream Oaprule',
         },
       },
@@ -3252,7 +3252,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5679.jpeg',
+          src: '/images/user/IMG_5679.jpeg',
           alt: 'PP ゆうちょ銀行',
         },
       },
@@ -3272,7 +3272,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5694.jpeg',
+          src: '/images/user/IMG_5694.jpeg',
           alt: '画像',
         },
       },
@@ -3302,7 +3302,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5699.jpeg',
+          src: '/images/user/IMG_5699.jpeg',
           alt: '画像',
         },
       },
@@ -3322,7 +3322,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5697.jpeg',
+          src: '/images/user/IMG_5697.jpeg',
           alt: '画像',
         },
       },
@@ -3342,7 +3342,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5701.jpeg',
+          src: '/images/user/IMG_5701.jpeg',
           alt: '画像',
         },
       },
@@ -3363,7 +3363,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5705.jpeg',
+          src: '/images/user/IMG_5705.jpeg',
           alt: '画像',
         },
       },
@@ -3372,7 +3372,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5720.jpeg',
+          src: '/images/user/IMG_5720.jpeg',
           alt: 'granjoh.',
         },
       },
@@ -3406,7 +3406,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5724.jpeg',
+          src: '/images/user/IMG_5724.jpeg',
           alt: '画像',
         },
       },
@@ -3426,7 +3426,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5734.jpeg',
+          src: '/images/user/IMG_5734.jpeg',
           alt: '画像',
         },
       },
@@ -3446,7 +3446,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5750.jpeg',
+          src: '/images/user/IMG_5750.jpeg',
           alt: '画像',
         },
       },
@@ -3466,7 +3466,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5759.jpeg',
+          src: '/images/user/IMG_5759.jpeg',
           alt: 'M-PLAZA',
         },
       },
@@ -3486,7 +3486,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5763.jpeg',
+          src: '/images/user/IMG_5763.jpeg',
           alt: '画像',
         },
       },
@@ -3506,7 +3506,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5771.jpeg',
+          src: '/images/user/IMG_5771.jpeg',
           alt: '画像',
         },
       },
@@ -3527,7 +3527,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5779.jpeg',
+          src: '/images/user/IMG_5779.jpeg',
           alt: '画像',
         },
       },
@@ -3555,7 +3555,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5789.jpeg',
+          src: '/images/user/IMG_5789.jpeg',
           alt: '画像',
         },
       },
@@ -3576,7 +3576,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_5795.jpeg',
+          src: '/images/user/IMG_5795.jpeg',
           alt: '画像',
         },
       },
@@ -3629,7 +3629,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9049.jpeg',
+          src: '/images/user/IMG_9049.jpeg',
           alt: '画像',
         },
       },
@@ -3649,7 +3649,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9055.jpeg',
+          src: '/images/user/IMG_9055.jpeg',
           alt: '画像',
         },
       },
@@ -3669,7 +3669,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9063.jpeg',
+          src: '/images/user/IMG_9063.jpeg',
           alt: '画像',
         },
       },
@@ -3690,7 +3690,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9068.jpeg',
+          src: '/images/user/IMG_9068.jpeg',
           alt: '画像',
         },
       },
@@ -3712,7 +3712,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9072.jpeg',
+          src: '/images/user/IMG_9072.jpeg',
           alt: '画像',
         },
       },
@@ -3732,7 +3732,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9075.jpeg',
+          src: '/images/user/IMG_9075.jpeg',
           alt: '画像',
         },
       },
@@ -3753,7 +3753,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9087.jpeg',
+          src: '/images/user/IMG_9087.jpeg',
           alt: '画像',
         },
       },
@@ -3774,7 +3774,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9090.jpeg',
+          src: '/images/user/IMG_9090.jpeg',
           alt: '画像',
         },
       },
@@ -3801,7 +3801,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9097.jpeg',
+          src: '/images/user/IMG_9097.jpeg',
           alt: '画像',
         },
       },
@@ -3821,7 +3821,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9110.jpeg',
+          src: '/images/user/IMG_9110.jpeg',
           alt: '画像',
         },
       },
@@ -3841,7 +3841,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9112.jpeg',
+          src: '/images/user/IMG_9112.jpeg',
           alt: '画像',
         },
       },
@@ -3863,7 +3863,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9126.jpeg',
+          src: '/images/user/IMG_9126.jpeg',
           alt: '画像',
         },
       },
@@ -3892,7 +3892,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9139.jpeg',
+          src: '/images/user/IMG_9139.jpeg',
           alt: '画像',
         },
       },
@@ -3912,7 +3912,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9154.jpeg',
+          src: '/images/user/IMG_9154.jpeg',
           alt: '画像',
         },
       },
@@ -3932,7 +3932,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9209.jpeg',
+          src: '/images/user/IMG_9209.jpeg',
           alt: '画像',
         },
       },
@@ -3952,7 +3952,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9223.jpeg',
+          src: '/images/user/IMG_9223.jpeg',
           alt: '画像',
         },
       },
@@ -3972,7 +3972,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9282.jpeg',
+          src: '/images/user/IMG_9282.jpeg',
           alt: '画像',
         },
       },
@@ -3995,7 +3995,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9297.jpeg',
+          src: '/images/user/IMG_9297.jpeg',
           alt: '画像',
         },
       },
@@ -4030,7 +4030,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9331.jpeg',
+          src: '/images/user/IMG_9331.jpeg',
           alt: '画像',
         },
       },
@@ -4051,7 +4051,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9331.jpeg',
+          src: '/images/user/IMG_9331.jpeg',
           alt: 'ペーパーサンショウワス',
         },
       },
@@ -4072,7 +4072,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9346.jpeg',
+          src: '/images/user/IMG_9346.jpeg',
           alt: '画像',
         },
       },
@@ -4092,7 +4092,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9351.jpeg',
+          src: '/images/user/IMG_9351.jpeg',
           alt: '画像',
         },
       },
@@ -4113,7 +4113,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9401.jpeg',
+          src: '/images/user/IMG_9401.jpeg',
           alt: '画像',
         },
       },
@@ -4141,7 +4141,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9414.jpeg',
+          src: '/images/user/IMG_9414.jpeg',
           alt: '画像',
         },
       },
@@ -4162,7 +4162,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9422.jpeg',
+          src: '/images/user/IMG_9422.jpeg',
           alt: '画像',
         },
       },
@@ -4182,7 +4182,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9448.jpeg',
+          src: '/images/user/IMG_9448.jpeg',
           alt: '画像',
         },
       },
@@ -4202,7 +4202,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9466.jpeg',
+          src: '/images/user/IMG_9466.jpeg',
           alt: '画像',
         },
       },
@@ -4222,7 +4222,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9478.jpeg',
+          src: '/images/user/IMG_9478.jpeg',
           alt: '画像',
         },
       },
@@ -4245,7 +4245,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9508.jpeg',
+          src: '/images/user/IMG_9508.jpeg',
           alt: '画像',
         },
       },
@@ -4266,7 +4266,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9542.jpeg',
+          src: '/images/user/IMG_9542.jpeg',
           alt: '画像',
         },
       },
@@ -4286,7 +4286,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9550.jpeg',
+          src: '/images/user/IMG_9550.jpeg',
           alt: '画像',
         },
       },
@@ -4306,7 +4306,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9561.jpeg',
+          src: '/images/user/IMG_9561.jpeg',
           alt: '画像',
         },
       },
@@ -4326,7 +4326,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9565.jpeg',
+          src: '/images/user/IMG_9565.jpeg',
           alt: '画像',
         },
       },
@@ -4346,7 +4346,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9577.jpeg',
+          src: '/images/user/IMG_9577.jpeg',
           alt: '画像',
         },
       },
@@ -4366,7 +4366,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_9585.jpeg',
+          src: '/images/user/IMG_9585.jpeg',
           alt: '画像',
         },
       },
@@ -4420,7 +4420,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0840.jpeg',
+          src: '/images/user/IMG_0840.jpeg',
           alt: '画像',
         },
       },
@@ -4442,7 +4442,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0853.jpeg',
+          src: '/images/user/IMG_0853.jpeg',
           alt: '画像',
         },
       },
@@ -4463,7 +4463,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0859.jpeg',
+          src: '/images/user/IMG_0859.jpeg',
           alt: '画像',
         },
       },
@@ -4492,7 +4492,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0865 2.jpeg',
+          src: '/images/user/IMG_0865 2.jpeg',
           alt: '画像',
         },
       },
@@ -4512,7 +4512,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0870 2.jpeg',
+          src: '/images/user/IMG_0870 2.jpeg',
           alt: '画像',
         },
       },
@@ -4533,7 +4533,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0880.jpeg',
+          src: '/images/user/IMG_0880.jpeg',
           alt: '画像',
         },
       },
@@ -4554,7 +4554,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0882.jpeg',
+          src: '/images/user/IMG_0882.jpeg',
           alt: '画像',
         },
       },
@@ -4574,7 +4574,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0889.jpeg',
+          src: '/images/user/IMG_0889.jpeg',
           alt: '画像',
         },
       },
@@ -4595,7 +4595,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0894.jpeg',
+          src: '/images/user/IMG_0894.jpeg',
           alt: '画像',
         },
       },
@@ -4624,7 +4624,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0905.jpeg',
+          src: '/images/user/IMG_0905.jpeg',
           alt: '画像',
         },
       },
@@ -4644,7 +4644,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0919.jpeg',
+          src: '/images/user/IMG_0919.jpeg',
           alt: '画像',
         },
       },
@@ -4665,7 +4665,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0922.jpeg',
+          src: '/images/user/IMG_0922.jpeg',
           alt: '000',
         },
       },
@@ -4685,7 +4685,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0926.jpeg',
+          src: '/images/user/IMG_0926.jpeg',
           alt: '画像',
         },
       },
@@ -4705,7 +4705,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0929.jpeg',
+          src: '/images/user/IMG_0929.jpeg',
           alt: '画像',
         },
       },
@@ -4726,7 +4726,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0932.jpeg',
+          src: '/images/user/IMG_0932.jpeg',
           alt: '画像',
         },
       },
@@ -4746,7 +4746,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0938.jpeg',
+          src: '/images/user/IMG_0938.jpeg',
           alt: '画像',
         },
       },
@@ -4767,7 +4767,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0955.jpeg',
+          src: '/images/user/IMG_0955.jpeg',
           alt: '画像',
         },
       },
@@ -4789,7 +4789,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0964.jpeg',
+          src: '/images/user/IMG_0964.jpeg',
           alt: '画像',
         },
       },
@@ -4809,7 +4809,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [],
         photo: {
-          src: 'Attachments/IMG_0966.jpeg',
+          src: '/images/user/IMG_0966.jpeg',
           alt: '画像',
         },
       },
