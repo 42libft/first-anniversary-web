@@ -1363,11 +1363,16 @@ export const LetterExperience = ({
             {isLetterOpen && (hasPages || onLetterClose) && (
               <div className="letter-pack__letter-overlay">
                 {hasPages && (
-                  <>
+                  <div className="letter-pack__nav" role="group" aria-label="手紙のページ操作">
                     <button
                       type="button"
                       className="letter-pack__nav-button letter-pack__nav-button--prev"
-                      onClick={onLetterPrev}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onPointerUp={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onLetterPrev?.()
+                      }}
                       disabled={!onLetterPrev}
                       aria-label="前のページへ"
                     >
@@ -1379,19 +1384,30 @@ export const LetterExperience = ({
                     <button
                       type="button"
                       className="letter-pack__nav-button letter-pack__nav-button--next"
-                      onClick={onLetterNext ?? onLetterClick}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onPointerUp={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        const action = onLetterNext ?? onLetterClick
+                        action?.()
+                      }}
                       disabled={!(onLetterNext ?? onLetterClick)}
                       aria-label="次のページへ"
                     >
                       <span aria-hidden="true">›</span>
                     </button>
-                  </>
+                  </div>
                 )}
                 {onLetterClose && (
                   <button
                     type="button"
                     className="letter-pack__close"
-                    onClick={onLetterClose}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onPointerUp={(event) => event.stopPropagation()}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onLetterClose()
+                    }}
                     aria-label="封筒に戻す"
                   >
                     <span aria-hidden="true">×</span>
