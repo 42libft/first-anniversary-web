@@ -1,0 +1,74 @@
+.letter-scene__viewer {
+  margin-top: clamp(24px, 6vw, 52px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 3vw, 24px);
+  text-align: center;
+  color: rgba(245, 244, 255, 0.85);
+}
+
+.letter-scene__instruction {
+  margin: 0;
+  max-width: min(520px, 90%);
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  line-height: 1.7;
+}
+
+.letter-scene__controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(12px, 3vw, 24px);
+}
+
+.letter-scene__status {
+  min-width: 150px;
+  letter-spacing: 0.08em;
+  font-size: clamp(0.82rem, 1.6vw, 0.95rem);
+  color: rgba(202, 212, 255, 0.85);
+}
+
+.letter-scene__button {
+  appearance: none;
+  border: 1px solid rgba(163, 174, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(16, 21, 55, 0.65);
+  color: rgba(245, 244, 255, 0.92);
+  padding: 0.5rem 1.3rem;
+  font-size: clamp(0.8rem, 1.6vw, 0.95rem);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.letter-scene__button:hover:not(:disabled) {
+  background: rgba(24, 32, 72, 0.72);
+  border-color: rgba(202, 212, 255, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(12, 18, 48, 0.25);
+}
+
+.letter-scene__button:focus-visible {
+  outline: 2px solid rgba(163, 174, 255, 0.85);
+  outline-offset: 3px;
+}
+
+.letter-scene__button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.letter-scene__button--secondary {
+  background: rgba(20, 28, 68, 0.55);
+  border-color: rgba(163, 174, 255, 0.25);
+}
+
+.letter-scene__button--secondary:hover:not(:disabled) {
+  background: rgba(30, 38, 86, 0.7);
+  border-color: rgba(202, 212, 255, 0.45);
+}

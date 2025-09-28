@@ -1,11 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react'
 
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion'
 
@@ -24,6 +18,8 @@ interface LetterExperienceProps {
     alt?: string
   }
   onStageChange?: (stage: InteractionStage) => void
+  onLetterClick?: () => void
+  letterActionLabel?: string
 }
 
 type TearSpeed = 'idle' | 'slow' | 'fast'
@@ -250,7 +246,12 @@ const isWithinCutlineBand = (element: HTMLElement, clientX: number, clientY: num
   )
 }
 
-export const LetterExperience = ({ letterImage, onStageChange }: LetterExperienceProps) => {
+export const LetterExperience = ({
+  letterImage,
+  onStageChange,
+  onLetterClick,
+  letterActionLabel,
+}: LetterExperienceProps) => {
   const prefersReducedMotion = usePrefersReducedMotion()
 
   const [stage, setStage] = useState<InteractionStage>('intro')
@@ -1150,6 +1151,32 @@ export const LetterExperience = ({ letterImage, onStageChange }: LetterExperienc
     return classes.join(' ')
   }, [stage])
 
+  const isLetterInteractive = useMemo(
+    () => stage === 'revealed' && Boolean(letterImage) && typeof onLetterClick === 'function',
+    [letterImage, onLetterClick, stage]
+  )
+
+  const handleLetterClick = useCallback(() => {
+    if (!isLetterInteractive) {
+      return
+    }
+    onLetterClick?.()
+  }, [isLetterInteractive, onLetterClick])
+
+  const handleLetterKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (!isLetterInteractive) {
+        return
+      }
+
+      if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+        event.preventDefault()
+        onLetterClick?.()
+      }
+    },
+    [isLetterInteractive, onLetterClick]
+  )
+
   const particles = useMemo(
     () =>
       Array.from({ length: 8 }, (_, index) => (
@@ -1188,7 +1215,17 @@ export const LetterExperience = ({ letterImage, onStageChange }: LetterExperienc
             <div className="letter-pack__tear-edge" aria-hidden="true" />
           </div>
           <canvas className="letter-pack__lights" ref={floatingCanvasRef} aria-hidden="true" />
-          <div className="letter-pack__letter" ref={letterRef} aria-hidden={!letterImage}>
+          <div
+            className="letter-pack__letter"
+            ref={letterRef}
+            aria-hidden={!letterImage}
+            role={isLetterInteractive ? 'button' : undefined}
+            tabIndex={isLetterInteractive ? 0 : -1}
+            aria-label={isLetterInteractive ? letterActionLabel ?? '手紙を表示する' : undefined}
+            onClick={isLetterInteractive ? handleLetterClick : undefined}
+            onKeyDown={isLetterInteractive ? handleLetterKeyDown : undefined}
+            data-interactive={isLetterInteractive ? 'true' : undefined}
+          >
             {letterImage ? (
               <img src={letterImage.src} alt={letterImage.alt ?? 'スキャンした手紙'} />
             ) : (
