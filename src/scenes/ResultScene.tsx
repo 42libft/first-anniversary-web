@@ -217,7 +217,7 @@ const buildViewData = (payload?: ResultPayload): ResultViewData => {
   })
 
   return {
-    resultTitle: payload?.resultTitle?.trim() || 'forever',
+    resultTitle: payload?.resultTitle?.trim() || 'Forever',
     teamRank: {
       text: teamRankValue ? `${teamRankValue}位` : '— 位',
       ariaLabel: `部隊の順位 ${teamRankValue ?? '—'} 位`,
