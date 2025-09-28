@@ -35,14 +35,16 @@ const SERVER_PROFILE = {
 
 const FALLBACK_AVATAR_SRC = resolveAssetPath('/images/prologue-partner-placeholder.svg')
 
+const toCssUrl = (path: string) => `url("${path}")`
+
 const SPEAKER_BACKDROP_IMAGES = {
   self: {
-    idle: `url(${resolveAssetPath(SPEAKER_PROFILES.self.avatars.idle)})`,
-    speaking: `url(${resolveAssetPath(SPEAKER_PROFILES.self.avatars.speaking)})`,
+    idle: toCssUrl(resolveAssetPath(SPEAKER_PROFILES.self.avatars.idle)),
+    speaking: toCssUrl(resolveAssetPath(SPEAKER_PROFILES.self.avatars.speaking)),
   },
   partner: {
-    idle: `url(${resolveAssetPath(SPEAKER_PROFILES.partner.avatars.idle)})`,
-    speaking: `url(${resolveAssetPath(SPEAKER_PROFILES.partner.avatars.speaking)})`,
+    idle: toCssUrl(resolveAssetPath(SPEAKER_PROFILES.partner.avatars.idle)),
+    speaking: toCssUrl(resolveAssetPath(SPEAKER_PROFILES.partner.avatars.speaking)),
   },
 } as const
 
