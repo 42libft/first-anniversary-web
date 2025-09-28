@@ -5,6 +5,7 @@ import type {
   JourneySessionInfo,
   SaveJourneyResponsePayload,
 } from '../types/experience'
+import { APP_BUILD_ID } from '../constants/build'
 
 interface JourneyQuizStats {
   correctCount: number
@@ -22,9 +23,12 @@ const SESSION_HISTORY_STORAGE_KEY = 'first-anniversary-web:journey-session-histo
 
 const isBrowser = typeof window !== 'undefined'
 
+const CURRENT_BUILD_ID = APP_BUILD_ID
+
 const createSessionRecord = (): JourneySessionInfo => ({
   id: `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
   createdAt: new Date().toISOString(),
+  buildId: CURRENT_BUILD_ID,
 })
 
 const isSessionRecord = (value: unknown): value is JourneySessionInfo => {
@@ -32,7 +36,20 @@ const isSessionRecord = (value: unknown): value is JourneySessionInfo => {
     return false
   }
   const entry = value as Record<string, unknown>
-  return typeof entry.id === 'string' && typeof entry.createdAt === 'string'
+  if (typeof entry.id !== 'string' || typeof entry.createdAt !== 'string') {
+    return false
+  }
+  if ('buildId' in entry && typeof entry.buildId !== 'string' && entry.buildId !== undefined) {
+    return false
+  }
+  return true
+}
+
+const withCurrentBuild = (session: JourneySessionInfo): JourneySessionInfo => {
+  if (session.buildId === CURRENT_BUILD_ID) {
+    return session
+  }
+  return { ...session, buildId: CURRENT_BUILD_ID }
 }
 
 const readSessionHistory = (): JourneySessionInfo[] => {
@@ -113,7 +130,7 @@ const writeCurrentSession = (session: JourneySessionInfo) => {
 
 const ensureSession = (): JourneySessionInfo => {
   const existing = readCurrentSession()
-  if (existing) {
+  if (existing && existing.buildId === CURRENT_BUILD_ID) {
     return existing
   }
   const created = createSessionRecord()
@@ -246,7 +263,7 @@ const migrateLegacyResponses = (
       key === 'legacy'
         ? (() => {
             const created = createSessionRecord()
-            return { id: created.id, createdAt: createdAtIso }
+            return { ...created, createdAt: createdAtIso }
           })()
         : { id: key, createdAt: createdAtIso }
 
@@ -423,15 +440,16 @@ export const useStoredJourneyResponses = () => {
   }, [responses, session])
 
   const commitSession = useCallback((next: JourneySessionInfo) => {
+    const normalized = withCurrentBuild(next)
     setSession((prev) => {
-      if (prev.id === next.id && prev.createdAt === next.createdAt) {
+      if (prev.id === normalized.id && prev.createdAt === normalized.createdAt) {
         return prev
       }
       if (isBrowser) {
-        writeCurrentSession(next)
-        appendSessionHistory(next)
+        writeCurrentSession(normalized)
+        appendSessionHistory(normalized)
       }
-      return next
+      return normalized
     })
   }, [])
 
@@ -467,12 +485,12 @@ export const useStoredJourneyResponses = () => {
 
   const replaceResponses = useCallback(
     (items: JourneyPromptResponse[], sessionOverride?: JourneySessionInfo) => {
-      const targetSession = sessionOverride ?? session
+      const targetSession = sessionOverride ? withCurrentBuild(sessionOverride) : session
       commitSession(targetSession)
       setResponses(
         items.map((entry) =>
           entry.sessionId === targetSession.id
-            ? entry
+            ? { ...entry }
             : { ...entry, sessionId: targetSession.id }
         )
       )
