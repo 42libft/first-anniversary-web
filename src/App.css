@@ -3791,6 +3791,14 @@
   flex-wrap: wrap;
 }
 
+.journeys-card__footer-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .journeys-card__timestamp {
   font-size: 0.78rem;
   letter-spacing: 0.1em;
@@ -3809,6 +3817,33 @@
   text-transform: uppercase;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.journeys-card__reset {
+  border: 1px solid rgba(245, 244, 255, 0.45);
+  border-radius: 999px;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  color: rgba(245, 244, 255, 0.85);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.journeys-card__reset:hover,
+.journeys-card__reset:focus-visible {
+  border-color: rgba(245, 244, 255, 0.75);
+  color: #f5f4ff;
+  background: rgba(245, 244, 255, 0.12);
+  outline: none;
+}
+
+.journeys-card__reset:active {
+  transform: scale(0.97);
 }
 
 .journeys-card__submit:disabled {

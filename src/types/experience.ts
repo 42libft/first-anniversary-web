@@ -3,6 +3,7 @@ import type { JourneyQuestionStyle } from './journey'
 export interface JourneySessionInfo {
   id: string
   createdAt: string
+  buildId?: string
 }
 
 export interface SaveJourneyResponsePayload {

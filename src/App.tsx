@@ -175,6 +175,11 @@ function App() {
     beginNewSession()
   }
 
+  const beginJourneySessionWithHistory = useCallback(() => {
+    recordSnapshot('Begin journey session')
+    beginNewSession()
+  }, [beginNewSession, recordSnapshot])
+
   const saveResponseWithHistory = useCallback(
     (payload: Parameters<typeof saveResponse>[0]) => {
       const existing = responses.find((entry) => entry.storageKey === payload.storageKey)
@@ -199,7 +204,7 @@ function App() {
     saveResponse: saveResponseWithHistory,
     setDistanceTraveled,
     journeySession: session,
-    beginJourneySession: beginNewSession,
+    beginJourneySession: beginJourneySessionWithHistory,
     reportIntroBootState: setIntroBootState,
   }
 
