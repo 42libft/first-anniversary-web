@@ -1,6 +1,7 @@
 import { journeys } from './journeys'
 import { meetupPages } from './meetups'
 import { resultLegends } from './result'
+import { resolveAssetPath } from '../utils/assetPaths'
 
 export type PreloadAssetType = 'image' | 'json' | 'audio'
 
@@ -65,12 +66,13 @@ const makeAssets = (options: {
   const { urls, category, type, priority } = options
   const out: PreloadAsset[] = []
   for (const url of urls) {
+    const resolvedUrl = resolveAssetPath(url)
     out.push({
-      id: createAssetId(category, url),
-      url,
+      id: createAssetId(category, resolvedUrl),
+      url: resolvedUrl,
       type,
       category,
-      label: toLabel(url),
+      label: toLabel(resolvedUrl),
       priority,
     })
   }
