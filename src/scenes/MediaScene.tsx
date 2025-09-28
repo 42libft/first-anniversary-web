@@ -9,7 +9,7 @@ import {
 } from 'react'
 
 import { TapRippleField } from '../components/TapRippleField'
-import { mediaExchangeCounts, totalMedia } from '../data/media'
+import { totalMedia } from '../data/media'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
 

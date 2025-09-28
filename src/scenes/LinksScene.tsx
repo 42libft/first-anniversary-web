@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react'
 
-import { linkExchangeCounts, totalLinks } from '../data/links'
+import { totalLinks } from '../data/links'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
 
