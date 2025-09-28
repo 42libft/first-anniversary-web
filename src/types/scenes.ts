@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { Journey } from './journey'
 import type {
   JourneyPromptResponse,
+  JourneySessionInfo,
   SaveJourneyResponsePayload,
 } from './experience'
 
@@ -33,6 +34,8 @@ export interface SceneComponentProps {
   responses: JourneyPromptResponse[]
   saveResponse: (payload: SaveJourneyResponsePayload) => void
   setDistanceTraveled: Dispatch<SetStateAction<number>>
+  journeySession: JourneySessionInfo
+  beginJourneySession: () => void
   reportIntroBootState?: (state: 'loading' | 'ready' | 'error') => void
 }
 

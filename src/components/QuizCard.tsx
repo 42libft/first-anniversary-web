@@ -11,6 +11,7 @@ type QuizCardProps = {
   hint?: string
   onAnswered?: (value: string, stored: StoredQuizAnswer) => void
   lockAfterSave?: boolean
+  sessionId: string
 }
 
 export const QuizCard = ({
@@ -21,21 +22,31 @@ export const QuizCard = ({
   hint,
   onAnswered,
   lockAfterSave = true,
+  sessionId,
 }: QuizCardProps) => {
-  const [saved, setSaved] = useState<StoredQuizAnswer | undefined>(() => loadQuizAnswer(id))
+  const [saved, setSaved] = useState<StoredQuizAnswer | undefined>(() =>
+    sessionId ? loadQuizAnswer(id, sessionId) : undefined
+  )
   const [selected, setSelected] = useState<string | null>(() => saved?.answer ?? null)
 
   useEffect(() => {
-    setSaved(loadQuizAnswer(id))
-  }, [id])
+    if (!sessionId) {
+      setSaved(undefined)
+      setSelected(null)
+      return
+    }
+    const entry = loadQuizAnswer(id, sessionId)
+    setSaved(entry)
+    setSelected(entry?.answer ?? null)
+  }, [id, sessionId])
 
   const isLocked = lockAfterSave && !!saved
   const isCorrect = correct ? selected === correct : undefined
 
   const handleSelect = (value: string) => {
-    if (isLocked) return
+    if (isLocked || !sessionId) return
     setSelected(value)
-    const entry = saveQuizAnswer(id, value)
+    const entry = saveQuizAnswer(id, value, sessionId)
     setSaved(entry)
     onAnswered?.(value, entry)
   }
@@ -72,4 +83,3 @@ export const QuizCard = ({
     </section>
   )
 }
-

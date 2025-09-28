@@ -85,7 +85,8 @@ function App() {
 
   const [distanceTraveled, setDistanceTraveled] = useState(0)
 
-  const { responses, saveResponse, replaceResponses } = useStoredJourneyResponses()
+  const { responses, saveResponse, replaceResponses, session, beginNewSession } =
+    useStoredJourneyResponses()
   const { record } = useActionHistory()
 
   const introLocked = !allowMaintenanceNavigation && introBootState !== 'ready'
@@ -96,8 +97,9 @@ function App() {
       distanceTraveled,
       introBootState,
       responses: responses.map((entry) => ({ ...entry })),
+      journeySession: { ...session },
     }
-  }, [sceneIndex, distanceTraveled, introBootState, responses])
+  }, [sceneIndex, distanceTraveled, introBootState, responses, session])
 
   const recordSnapshot = useCallback(
     (label?: string) => {
@@ -106,7 +108,10 @@ function App() {
         setSceneIndex(snapshot.sceneIndex)
         setDistanceTraveled(snapshot.distanceTraveled)
         setIntroBootState(snapshot.introBootState)
-        replaceResponses(snapshot.responses.map((entry) => ({ ...entry })))
+        replaceResponses(
+          snapshot.responses.map((entry) => ({ ...entry })),
+          snapshot.journeySession
+        )
       }, { label })
     },
     [createSnapshot, record, replaceResponses]
@@ -167,6 +172,7 @@ function App() {
     setSceneIndex(0)
     setDistanceTraveled(0)
     setIntroBootState('loading')
+    beginNewSession()
   }
 
   const saveResponseWithHistory = useCallback(
@@ -192,6 +198,8 @@ function App() {
     responses,
     saveResponse: saveResponseWithHistory,
     setDistanceTraveled,
+    journeySession: session,
+    beginJourneySession: beginNewSession,
     reportIntroBootState: setIntroBootState,
   }
 
