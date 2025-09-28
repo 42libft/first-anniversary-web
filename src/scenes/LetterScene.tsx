@@ -4,19 +4,20 @@ import { LetterExperience, type InteractionStage } from '../components/LetterExp
 import { SceneLayout } from '../components/SceneLayout'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
+import { resolveAssetPath } from '../utils/resolveAssetPath'
 
 import './LetterScene.css'
 
 const LETTER_ENVELOPE_IMAGE = {
-  src: '/images/letters/20250929022653_005.jpg',
+  src: resolveAssetPath('/images/letters/20250929022653_005.jpg'),
   alt: '手紙が入った封筒のスキャン画像',
 }
 
 const LETTER_PAGE_IMAGES = [
-  { src: '/images/letters/20250929022653_001.jpg', alt: '手紙の1枚目' },
-  { src: '/images/letters/20250929022653_002.jpg', alt: '手紙の2枚目' },
-  { src: '/images/letters/20250929022653_003.jpg', alt: '手紙の3枚目' },
-  { src: '/images/letters/20250929022653_004.jpg', alt: '手紙の4枚目' },
+  { src: resolveAssetPath('/images/letters/20250929022653_001.jpg'), alt: '手紙の1枚目' },
+  { src: resolveAssetPath('/images/letters/20250929022653_002.jpg'), alt: '手紙の2枚目' },
+  { src: resolveAssetPath('/images/letters/20250929022653_003.jpg'), alt: '手紙の3枚目' },
+  { src: resolveAssetPath('/images/letters/20250929022653_004.jpg'), alt: '手紙の4枚目' },
 ]
 
 export const LetterScene = ({ onAdvance }: SceneComponentProps) => {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
+import { resolveAssetPath } from '../utils/resolveAssetPath'
 import type {
   Journey,
   JourneyCoordinate,
