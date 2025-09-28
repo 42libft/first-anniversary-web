@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
-import { resolveAssetPath } from '../utils/resolveAssetPath'
 import type {
   Journey,
   JourneyCoordinate,
@@ -12,7 +11,7 @@ import type {
 } from '../types/journey'
 import type { SceneComponentProps } from '../types/scenes'
 import { useHistoryTrackedState } from '../history/useHistoryTrackedState'
-import { resolveAssetPath } from '../utils/assetPaths'
+import { resolveAssetPath } from '../utils/resolveAssetPath'
 
 const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
   year: 'numeric',

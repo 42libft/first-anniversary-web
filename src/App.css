@@ -2701,22 +2701,22 @@
 
 .prologue__backdrop--self {
   background-image: linear-gradient(160deg, rgba(46, 64, 160, 0.25), rgba(18, 12, 48, 0.65)),
-    url('/images/prologue/Generated Image September 26, 2025 - 2_48AM.png');
+    var(--prologue-self-idle-image);
 }
 
 .prologue__backdrop--self.is-speaking {
   background-image: linear-gradient(160deg, rgba(46, 64, 160, 0.25), rgba(18, 12, 48, 0.65)),
-    url('/images/prologue/Generated Image September 26, 2025 - 2_55AM.png');
+    var(--prologue-self-speaking-image);
 }
 
 .prologue__backdrop--partner {
   background-image: linear-gradient(160deg, rgba(188, 76, 160, 0.35), rgba(32, 18, 68, 0.7)),
-    url('/images/prologue/Generated Image September 26, 2025 - 3_34AM.png');
+    var(--prologue-partner-idle-image);
 }
 
 .prologue__backdrop--partner.is-speaking {
   background-image: linear-gradient(160deg, rgba(188, 76, 160, 0.35), rgba(32, 18, 68, 0.7)),
-    url('/images/prologue/Generated Image September 26, 2025 - 3_37AM.png');
+    var(--prologue-partner-speaking-image);
 }
 
 .prologue__backdrop-overlay {
