@@ -4453,32 +4453,40 @@
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
+  justify-content: space-between;
+  align-items: stretch;
   pointer-events: none;
   padding: clamp(0.6rem, 2.5vw, 1rem);
-  padding-top: clamp(1.35rem, 5vw, 2.4rem);
+  padding-top: clamp(1.2rem, 4.6vw, 2.2rem);
   padding-bottom: calc(clamp(0.6rem, 2.5vw, 1rem) + env(safe-area-inset-bottom, 0px));
-  gap: clamp(0.5rem, 2vw, 0.9rem);
+  gap: clamp(0.45rem, 2vw, 0.85rem);
   z-index: 2;
   background: linear-gradient(
     180deg,
-    rgba(4, 10, 26, 0.02) 0%,
-    rgba(4, 10, 26, 0.22) 60%,
-    rgba(4, 10, 26, 0.4) 100%
+    rgba(4, 10, 26, 0) 0%,
+    rgba(4, 10, 26, 0.24) 58%,
+    rgba(4, 10, 26, 0.48) 100%
   );
-  backdrop-filter: blur(4px);
+}
+
+.letter-pack__overlay-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  gap: clamp(0.45rem, 2vw, 0.9rem);
 }
 
 .letter-pack__overlay-footer {
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
-  gap: clamp(0.4rem, 2vw, 0.8rem);
+  gap: clamp(0.35rem, 2vw, 0.7rem);
   pointer-events: none;
-  transform: translateY(clamp(8px, 2.4vw, 14px));
+  transform: translateY(clamp(4px, 1.6vw, 12px));
 }
 
 .letter-pack__page-status {
@@ -4486,31 +4494,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(0.35rem, 1.8vw, 0.7rem) clamp(0.9rem, 3vw, 1.4rem);
+  padding: clamp(0.32rem, 1.7vw, 0.64rem) clamp(0.85rem, 3vw, 1.3rem);
   border-radius: 999px;
-  background: rgba(18, 24, 56, 0.55);
-  box-shadow: 0 14px 28px rgba(8, 12, 32, 0.38);
-  font-size: clamp(0.74rem, 1.6vw, 0.9rem);
+  background: rgba(18, 24, 56, 0.46);
+  box-shadow: 0 12px 24px rgba(8, 12, 32, 0.32);
+  font-size: clamp(0.72rem, 1.6vw, 0.88rem);
   letter-spacing: 0.1em;
   color: rgba(238, 241, 255, 0.9);
-  text-shadow: 0 3px 12px rgba(4, 8, 24, 0.5);
-  backdrop-filter: blur(6px);
-  margin: 0 auto;
+  text-shadow: 0 3px 10px rgba(4, 8, 24, 0.45);
+  margin: 0;
 }
 
 .letter-pack__hint {
   pointer-events: none;
   margin: 0;
-  font-size: clamp(0.7rem, 1.6vw, 0.88rem);
+  font-size: clamp(0.68rem, 1.6vw, 0.86rem);
   letter-spacing: 0.12em;
   color: rgba(230, 235, 255, 0.78);
-  text-shadow: 0 2px 10px rgba(6, 10, 28, 0.48);
+  text-shadow: 0 2px 10px rgba(6, 10, 28, 0.44);
+  text-align: left;
 }
 
 .letter-pack__close {
-  position: absolute;
-  top: clamp(0.6rem, 2vw, 1rem);
-  right: clamp(0.6rem, 2vw, 1rem);
   appearance: none;
   border: none;
   border-radius: 999px;
@@ -4525,6 +4530,7 @@
   box-shadow: 0 16px 30px rgba(12, 18, 48, 0.28);
   font-size: clamp(1.1rem, 3vw, 1.6rem);
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  margin: calc(-1 * clamp(0.3rem, 1.8vw, 0.75rem)) calc(-1 * clamp(0.3rem, 1.8vw, 0.75rem)) 0 auto;
 }
 
 .letter-pack__close:hover,
@@ -4577,22 +4583,33 @@
   }
 
   .letter-pack__letter-overlay {
+    padding-top: clamp(1rem, 6vw, 1.8rem);
     padding-bottom: calc(clamp(0.8rem, 4vw, 1.1rem) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .letter-pack__overlay-top {
+    gap: clamp(0.35rem, 3vw, 0.6rem);
   }
 
   .letter-pack__page-status {
     width: auto;
-    padding: clamp(0.32rem, 2.4vw, 0.58rem) clamp(0.75rem, 4vw, 1.15rem);
+    padding: clamp(0.28rem, 2.4vw, 0.52rem) clamp(0.68rem, 4vw, 1.05rem);
+    font-size: clamp(0.68rem, 2.4vw, 0.82rem);
   }
 
   .letter-pack__overlay-footer {
-    gap: clamp(0.35rem, 3vw, 0.6rem);
-    transform: translateY(clamp(10px, 5vw, 20px));
+    gap: clamp(0.32rem, 3vw, 0.55rem);
+    transform: translateY(clamp(8px, 5vw, 18px));
   }
 
   .letter-pack__hint {
-    font-size: clamp(0.64rem, 2.2vw, 0.8rem);
+    font-size: clamp(0.62rem, 2.2vw, 0.78rem);
     letter-spacing: 0.1em;
+  }
+
+  .letter-pack__close {
+    margin: calc(-1 * clamp(0.24rem, 2.8vw, 0.55rem))
+      calc(-1 * clamp(0.24rem, 2.8vw, 0.55rem)) 0 auto;
   }
 
   .letter-pack__letter[data-open='true'] {
