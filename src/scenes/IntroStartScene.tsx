@@ -55,8 +55,8 @@ export const IntroStartScene = ({
       <GlobalStarfield />
       <AsciiStartScene />
       <div className="start-ui">
-        <h1 className="start-title">TITLE PLACEHOLDER</h1>
-        <p className="start-subtitle">SUBTITLE PLACEHOLDER</p>
+        <h1 className="start-title">First Anniversary ~libft &amp; reonass0220~</h1>
+        <p className="start-subtitle">First Anniversary ~libft &amp; reonass0220~</p>
         <div className="start-tap">
           <span className="tap-dot" /> TAP ANYWHERE TO START
         </div>
