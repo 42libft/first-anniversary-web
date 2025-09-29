@@ -710,7 +710,11 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250225-image-021',
         type: 'episode',
-        text: [],
+        text: [
+          '早速プレゼント交換！',
+          '札幌で手に入れたお揃いのネッシー帽(超激レア)をプレゼント。',
+          'かなりご満悦！',
+        ],
         photo: {
           src: '/images/user/IMG_2749.jpeg',
           alt: '画像',
@@ -720,9 +724,8 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250225-episode-022',
         type: 'episode',
         text: [
-          '早速プレゼント交換！',
-          '札幌で手に入れたお揃いのネッシー帽(超激レア)をプレゼント。',
-          'かなりご満悦！',
+          'あやねはなんと沢山の誕生日プレゼント！',
+          '誕生日はなかなか祝ってもらえないのでとても今までにない嬉しさだった、。',
         ],
         photo: {
           src: '/images/user/IMG_2771.jpeg',
@@ -732,10 +735,7 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250225-episode-024',
         type: 'episode',
-        text: [
-          'あやねはなんと沢山の誕生日プレゼント！',
-          '誕生日はなかなか祝ってもらえないのでとても今までにない嬉しさだった、。',
-        ],
+        text: [],
         photo: {
           src: '/images/user/IMG_2794.jpeg',
           alt: '旅の写真',
