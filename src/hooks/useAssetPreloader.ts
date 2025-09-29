@@ -100,6 +100,33 @@ const FLAVOR_EVENTS: FlavorScriptEvent[] = [
   },
 ]
 
+const HEARTBEAT_INTERVAL_MS = 1100
+const HEARTBEAT_POLL_MS = 180
+
+const HEARTBEAT_MESSAGES: FlavorScriptEvent[] = [
+  {
+    id: 'heartbeat:verifying',
+    ratio: 0,
+    text: 'status// verifying cached payloads…',
+    tone: 'neutral',
+  },
+  {
+    id: 'heartbeat:compress',
+    ratio: 0,
+    text: 'ops> compressing spritesheets for faster decode…',
+    tone: 'neutral',
+  },
+  {
+    id: 'heartbeat:uplink',
+    ratio: 0,
+    text: 'telemetry// uplink stable · monitoring buffer health',
+    tone: 'hint',
+  },
+]
+
+const SOFT_COMPLETE_MIN_PROGRESS = 0.62
+const SOFT_COMPLETE_MIN_ELAPSED_MS = 9000
+
 const planFlavorEvents = (total: number): PlannedFlavorEvent[] => {
   if (total <= 0) return []
   const planned: PlannedFlavorEvent[] = []
@@ -125,6 +152,10 @@ export interface AssetPreloaderState {
   currentRetries: number
   estimatedRemainingMs: number
   hasMissing: boolean
+  displayStatus: PreloadRunStatus
+  displayProgress: number
+  displayLoaded: number
+  softCompleted: boolean
 }
 
 const loadImage = (url: string) =>
@@ -222,6 +253,12 @@ export const useAssetPreloader = (
   }, [flavorPlan])
   const flavorIndexRef = useRef(0)
 
+  const heartbeatMessagesRef = useRef(HEARTBEAT_MESSAGES)
+  const heartbeatIndexRef = useRef(0)
+
+  const lastLogAtRef = useRef(performance.now())
+  const startTimeRef = useRef<number | null>(null)
+
   const [loaded, setLoaded] = useState(0)
   const [failed, setFailed] = useState(0)
   const [status, setStatus] = useState<PreloadRunStatus>(total === 0 ? 'complete' : 'idle')
@@ -229,6 +266,13 @@ export const useAssetPreloader = (
   const [currentRetries, setCurrentRetries] = useState(0)
   const [hasMissing, setHasMissing] = useState(false)
   const [averageDurationMs, setAverageDurationMs] = useState(0)
+
+  const [displayStatus, setDisplayStatus] = useState<PreloadRunStatus>(
+    total === 0 ? 'complete' : 'idle'
+  )
+  const [displayProgress, setDisplayProgress] = useState(total === 0 ? 1 : 0)
+  const [displayLoaded, setDisplayLoaded] = useState(total === 0 ? total : 0)
+  const [softCompleted, setSoftCompleted] = useState(total === 0)
 
   const durationsRef = useRef<number[]>([])
 
@@ -243,15 +287,21 @@ export const useAssetPreloader = (
         return line
       })
     )
+    lastLogAtRef.current = performance.now()
   }, [])
 
   const appendLogLine = useCallback((entry: TerminalLogLine) => {
     setLogs((prev) => [...prev, entry])
+    lastLogAtRef.current = performance.now()
   }, [])
 
   useEffect(() => {
     if (!total) {
       setStatus('complete')
+      setDisplayStatus('complete')
+      setDisplayProgress(1)
+      setDisplayLoaded(0)
+      setSoftCompleted(true)
       return
     }
 
@@ -260,15 +310,22 @@ export const useAssetPreloader = (
     let failedCount = 0
 
     flavorIndexRef.current = 0
+    heartbeatIndexRef.current = 0
 
     setLoaded(0)
     setFailed(0)
     setStatus('loading')
+    setDisplayStatus('loading')
+    setDisplayProgress(0)
+    setDisplayLoaded(0)
+    setSoftCompleted(false)
     setCurrentAsset(null)
     setCurrentRetries(0)
     setHasMissing(false)
     durationsRef.current = []
     setAverageDurationMs(0)
+    startTimeRef.current = performance.now()
+    lastLogAtRef.current = performance.now()
 
     const timers: ReturnType<typeof setTimeout>[] = []
 
@@ -438,6 +495,97 @@ export const useAssetPreloader = (
   const pending = Math.max(0, total - loaded - failed)
   const estimatedRemainingMs = averageDurationMs * pending
 
+  useEffect(() => {
+    if (status === 'complete') {
+      setDisplayStatus('complete')
+      setDisplayProgress(1)
+      setDisplayLoaded(total)
+      return
+    }
+    if (status === 'error') {
+      setDisplayStatus('error')
+      setDisplayProgress(progress)
+      setDisplayLoaded(loaded)
+      return
+    }
+    if (!softCompleted) {
+      setDisplayStatus(status)
+      setDisplayProgress(progress)
+      setDisplayLoaded(loaded)
+    }
+  }, [loaded, progress, softCompleted, status, total])
+
+  useEffect(() => {
+    if (softCompleted) {
+      setLogs((prev) =>
+        prev.map((line) => {
+          if (line.kind === 'category') {
+            return { ...line, loaded: line.total, status: 'complete' }
+          }
+          return line
+        })
+      )
+      lastLogAtRef.current = performance.now()
+    }
+  }, [softCompleted])
+
+  useEffect(() => {
+    if (status !== 'loading') return
+    if (softCompleted) return
+    const checkSoftComplete = () => {
+      if (softCompleted) return
+      if (failed > 0 || hasMissing) return
+      const start = startTimeRef.current
+      if (start == null) return
+      const elapsed = performance.now() - start
+      if (elapsed < SOFT_COMPLETE_MIN_ELAPSED_MS) return
+      if (progress < SOFT_COMPLETE_MIN_PROGRESS) return
+      setSoftCompleted(true)
+      setDisplayStatus('complete')
+      setDisplayProgress(1)
+      setDisplayLoaded(total)
+      appendLogLine({
+        kind: 'flavor',
+        id: 'soft-complete:stabilize',
+        text: 'observer override › buffers stabilized — preparing handoff',
+        tone: 'hint',
+      })
+      appendLogLine({
+        kind: 'flavor',
+        id: 'soft-complete:handoff',
+        text: 'handoff sequence initiated · forwarding to start scene',
+        tone: 'neutral',
+      })
+    }
+
+    const interval = setInterval(checkSoftComplete, 240)
+    return () => clearInterval(interval)
+  }, [appendLogLine, failed, hasMissing, progress, softCompleted, status, total])
+
+  useEffect(() => {
+    if (status !== 'loading') return
+    if (softCompleted) return
+    const interval = setInterval(() => {
+      const now = performance.now()
+      if (now - lastLogAtRef.current < HEARTBEAT_INTERVAL_MS) {
+        return
+      }
+      const messages = heartbeatMessagesRef.current
+      if (!messages.length) return
+      const index = heartbeatIndexRef.current % messages.length
+      heartbeatIndexRef.current += 1
+      const message = messages[index]
+      appendLogLine({
+        kind: 'flavor',
+        id: `heartbeat:${message.id}:${heartbeatIndexRef.current}`,
+        text: message.text,
+        tone: message.tone,
+      })
+    }, HEARTBEAT_POLL_MS)
+
+    return () => clearInterval(interval)
+  }, [appendLogLine, softCompleted, status])
+
   return {
     total,
     loaded,
@@ -449,5 +597,9 @@ export const useAssetPreloader = (
     currentRetries,
     estimatedRemainingMs,
     hasMissing,
+    displayStatus,
+    displayProgress,
+    displayLoaded,
+    softCompleted,
   }
 }
