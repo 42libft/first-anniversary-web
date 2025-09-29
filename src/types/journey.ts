@@ -38,17 +38,19 @@ export interface JourneyMoveStep {
   description?: string
 }
 
+export interface JourneyStepPhoto {
+  src: string
+  alt: string
+  objectPosition?: string
+}
+
 export interface JourneyEpisodeStep {
   id: string
   type: 'episode'
   title?: string
   text: string[]
   artKey?: string
-  photo?: {
-    src: string
-    alt: string
-    objectPosition?: string
-  }
+  photo?: JourneyStepPhoto
   /** move以外のステップでも距離HUDに反映したい場合に指定。 */
   distanceKm?: number
 }
@@ -66,6 +68,7 @@ export interface JourneyQuestionStep {
   helper?: string
   readonlyAfterSave?: boolean
   correctAnswer?: string
+  photo?: JourneyStepPhoto
   /** move以外のステップでも距離HUDに反映したい場合に指定。 */
   distanceKm?: number
 }

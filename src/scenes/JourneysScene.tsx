@@ -256,6 +256,7 @@ const QuestionCard = ({
     ? answerValue === step.correctAnswer
     : undefined
   const canBeginNewSession = Boolean(onBeginNewSession) && isLocked
+  const photoSrc = step.photo ? resolveAssetPath(step.photo.src) : undefined
 
   useEffect(() => {
     if (!isSubmitEffectActive) return
@@ -278,6 +279,21 @@ const QuestionCard = ({
       <h3 className="journeys-card__title">{step.prompt}</h3>
       {step.helper ? (
         <p className="journeys-card__helper">{step.helper}</p>
+      ) : null}
+      {step.photo && photoSrc ? (
+        <figure className="journeys-card__figure">
+          <img
+            className="journeys-map journeys-map--image"
+            src={photoSrc}
+            alt={step.photo.alt}
+            loading="lazy"
+            style={
+              step.photo.objectPosition
+                ? { objectPosition: step.photo.objectPosition }
+                : undefined
+            }
+          />
+        </figure>
       ) : null}
       {isChoice ? (
         <>
