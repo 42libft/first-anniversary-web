@@ -100,7 +100,7 @@ const FLAVOR_EVENTS: FlavorScriptEvent[] = [
   },
 ]
 
-const HEARTBEAT_INTERVAL_MS = 1100
+const HEARTBEAT_INTERVAL_MS = 550
 const HEARTBEAT_POLL_MS = 180
 
 const HEARTBEAT_MESSAGES: FlavorScriptEvent[] = [
