@@ -83,6 +83,7 @@ export const prologueScript: PrologueLine[] = [
   {
     id: 'narration-transition',
     variant: 'narration',
-    text: 'この一年分の二人での思い出をもう一度…',
+    text:
+      'この一年分の二人での思い出をもう一度…\nこの一年で一緒に過ごした日々を振り返ります。\nクイズや自由入力欄を通して思い出を忘れられないものにしましょう！',
   },
 ]
