@@ -34,13 +34,15 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
   const {
     logs,
     status,
-    progress,
-    loaded,
     total,
     currentAsset,
     currentRetries,
     estimatedRemainingMs,
     hasMissing,
+    displayStatus,
+    displayProgress,
+    displayLoaded,
+    softCompleted,
   } = preloader
 
   const lastMissingLabel = useMemo(() => {
@@ -55,43 +57,46 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
 
   useEffect(() => {
     if (!reportIntroBootState) return
-    if (status === 'complete') {
+    if (displayStatus === 'complete') {
       reportIntroBootState('ready')
-    } else if (status === 'error') {
+    } else if (displayStatus === 'error') {
       reportIntroBootState('error')
     } else {
       reportIntroBootState('loading')
     }
-  }, [reportIntroBootState, status])
+  }, [displayStatus, reportIntroBootState])
 
-  const percent = useMemo(() => formatPercent(progress, status), [progress, status])
+  const percent = useMemo(
+    () => formatPercent(displayProgress, displayStatus),
+    [displayProgress, displayStatus]
+  )
 
   const progressBar = useMemo(() => {
     const rawFilled = (percent / 100) * PROGRESS_BAR_UNITS
     const filledUnits = Math.floor(rawFilled)
-    const hasTail = status === 'loading' && filledUnits < PROGRESS_BAR_UNITS
+    const hasTail = displayStatus === 'loading' && filledUnits < PROGRESS_BAR_UNITS
     const tailChar = hasTail ? '>' : filledUnits > 0 || percent === 100 ? '=' : ' '
     const remainingUnits = PROGRESS_BAR_UNITS - filledUnits - (hasTail ? 1 : 0)
     const barCore = `${'='.repeat(filledUnits)}${hasTail ? tailChar : ''}${'.'.repeat(Math.max(0, remainingUnits))}`
     return `[${barCore}]`
-  }, [percent, status])
+  }, [displayStatus, percent])
 
   const progressLine = useMemo(() => {
-    const counts = total > 0 ? `${loaded}/${total}` : `${loaded}`
-    if (status === 'complete') {
+    const counts = total > 0 ? `${displayLoaded}/${total}` : `${displayLoaded}`
+    if (displayStatus === 'complete') {
       return `progress ${progressBar} 100% (${counts}) [done]`
     }
-    if (status === 'error') {
+    if (displayStatus === 'error') {
       return `progress ${progressBar} ${percent}% (${counts}) [halted]`
     }
-    if (status === 'idle') {
+    if (displayStatus === 'idle') {
       return `progress ${progressBar} ${percent}% (${counts}) [idle]`
     }
-    if (status === 'loading' && percent === 100) {
+    if (displayStatus === 'loading' && percent === 100) {
       return `progress ${progressBar} 100% (${counts}) [finalizing…]`
     }
     return `progress ${progressBar} ${percent}% (${counts})`
-  }, [loaded, percent, progressBar, status, total])
+  }, [displayLoaded, displayStatus, percent, progressBar, total])
 
   const footerLabel = useMemo(() => {
     if (hasMissing) {
@@ -101,7 +106,7 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
         tone: 'error',
       } as const
     }
-    if (status === 'complete') {
+    if (displayStatus === 'complete') {
       return {
         label: 'all assets verified',
         status: 'ready to launch',
@@ -116,7 +121,7 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
       status: retry ? `${remaining} · ${retry}` : remaining,
       tone: 'default',
     } as const
-  }, [currentAsset?.label, currentRetries, estimatedRemainingMs, hasMissing, status])
+  }, [currentAsset?.label, currentRetries, displayStatus, estimatedRemainingMs, hasMissing])
 
   const terminalViewportRef = useRef<HTMLDivElement | null>(null)
 
@@ -127,18 +132,31 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
   }, [logs.length, progressLine])
 
   const handleClick = () => {
-    if (status === 'complete') {
+    if (displayStatus === 'complete') {
       onAdvance()
     }
   }
+
+  useEffect(() => {
+    if (displayStatus !== 'complete') return
+    if (status === 'error') return
+    const timer = window.setTimeout(() => {
+      onAdvance()
+    }, softCompleted ? 1200 : 900)
+    return () => window.clearTimeout(timer)
+  }, [displayStatus, onAdvance, softCompleted, status])
 
   return (
     <section
       className="intro-scene stage-terminal"
       role="button"
       onClick={handleClick}
-      aria-disabled={status !== 'complete'}
-      aria-label={status === 'complete' ? 'Tap to continue to launch screen' : 'Terminal boot in progress'}
+      aria-disabled={displayStatus !== 'complete'}
+      aria-label={
+        displayStatus === 'complete'
+          ? 'Tap to continue to launch screen'
+          : 'Terminal boot in progress'
+      }
     >
       <div className="intro-terminal" role="status" aria-live="polite">
         <div className="intro-terminal__logs">
@@ -193,7 +211,7 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
         </div>
 
         <div className="intro-terminal__meter" aria-live="polite">
-          <div className="intro-terminal__counts">{loaded}/{total}</div>
+          <div className="intro-terminal__counts">{displayLoaded}/{total}</div>
         </div>
 
         <div className="intro-terminal__footer" aria-live="polite">
