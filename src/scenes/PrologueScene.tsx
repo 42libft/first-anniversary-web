@@ -154,7 +154,6 @@ export const PrologueScene = ({ onAdvance }: SceneComponentProps) => {
             activeBackdrop === 'partner' ? 'is-active' : ''
           } ${isPartnerLine ? 'is-speaking' : ''}`}
         />
-        <div className="prologue__backdrop-overlay" />
       </div>
       <div className="prologue__content">
         <header className="prologue__call-ui" aria-live="polite">

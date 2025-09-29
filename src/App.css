@@ -5,14 +5,24 @@
   min-height: 100lvh;
   min-height: 100dvh;
   position: relative;
-  background: radial-gradient(circle at top, rgba(38, 61, 136, 0.55), transparent 60%),
-    linear-gradient(180deg, #050516 0%, #090320 100%);
+  background: var(
+    --app-shell-background,
+    radial-gradient(circle at top, rgba(38, 61, 136, 0.55), transparent 60%),
+    linear-gradient(180deg, #050516 0%, #090320 100%)
+  );
+  transition: background 420ms ease;
   color: #f5f4ff;
   font-family: 'Inter', 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell {
+    transition: none;
+  }
 }
 
 .tap-ripple-field {
@@ -2489,33 +2499,19 @@
 }
 
 .prologue__backdrop--self {
-  background-image: linear-gradient(160deg, rgba(46, 64, 160, 0.25), rgba(18, 12, 48, 0.65)),
-    var(--prologue-self-idle-image);
+  background-image: var(--prologue-self-idle-image);
 }
 
 .prologue__backdrop--self.is-speaking {
-  background-image: linear-gradient(160deg, rgba(46, 64, 160, 0.25), rgba(18, 12, 48, 0.65)),
-    var(--prologue-self-speaking-image);
+  background-image: var(--prologue-self-speaking-image);
 }
 
 .prologue__backdrop--partner {
-  background-image: linear-gradient(160deg, rgba(188, 76, 160, 0.35), rgba(32, 18, 68, 0.7)),
-    var(--prologue-partner-idle-image);
+  background-image: var(--prologue-partner-idle-image);
 }
 
 .prologue__backdrop--partner.is-speaking {
-  background-image: linear-gradient(160deg, rgba(188, 76, 160, 0.35), rgba(32, 18, 68, 0.7)),
-    var(--prologue-partner-speaking-image);
-}
-
-.prologue__backdrop-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(255, 188, 255, 0.18), transparent 45%),
-    radial-gradient(circle at 82% 85%, rgba(82, 140, 255, 0.22), transparent 55%);
-  mix-blend-mode: screen;
-  pointer-events: none;
-  opacity: 0.8;
+  background-image: var(--prologue-partner-speaking-image);
 }
 
 .prologue__content {
