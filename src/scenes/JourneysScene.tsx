@@ -440,6 +440,40 @@ export const JourneysScene = ({
   const activePage = pages[pageIndex]
   const activeJourney = activePage?.journey
 
+  const prefetchedImages = useRef(new Set<string>())
+
+  const getPageImageSources = useCallback(
+    (page: StoryPage | undefined): string[] => {
+      if (!page) return []
+      if (page.kind === 'move') {
+        return page.step.mapImage?.src ? [page.step.mapImage.src] : []
+      }
+      if (page.kind === 'memory') {
+        return page.step.photo?.src ? [page.step.photo.src] : []
+      }
+      if (page.kind === 'free' || page.kind === 'quiz') {
+        return page.step.photo?.src ? [page.step.photo.src] : []
+      }
+      return []
+    },
+    [],
+  )
+
+  useEffect(() => {
+    const cache = prefetchedImages.current
+    const upcomingPages = pages.slice(pageIndex, pageIndex + 4)
+    upcomingPages.forEach((page) => {
+      const sources = getPageImageSources(page)
+      sources.forEach((source) => {
+        const resolved = resolveAssetPath(source)
+        if (!resolved || cache.has(resolved)) return
+        const img = new Image()
+        img.src = resolved
+        cache.add(resolved)
+      })
+    })
+  }, [getPageImageSources, pageIndex, pages])
+
   const getPageDistance = useCallback(
     (page: StoryPage | undefined): number => {
       if (!page) return 0
