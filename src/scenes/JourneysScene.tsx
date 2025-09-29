@@ -695,7 +695,7 @@ export const JourneysScene = ({
   })()
 
   return (
-    <SceneLayout eyebrow="Journeys">
+    <SceneLayout>
       <div
         ref={stageRef}
         className="journeys-stage"
