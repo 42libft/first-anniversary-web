@@ -419,10 +419,10 @@
 
 .result-card__title {
   margin: 0;
-  font-size: clamp(1.28rem, 3vw, 1.72rem);
+  font-size: clamp(1.1rem, 2.4vw, 1.42rem);
   font-weight: 700;
   letter-spacing: 0.18em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .result-card__stats {
