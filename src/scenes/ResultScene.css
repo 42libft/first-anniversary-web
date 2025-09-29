@@ -316,6 +316,25 @@
   }
 }
 
+@media (max-width: 720px) {
+  .result-card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'body'
+      'image';
+    aspect-ratio: auto;
+    height: auto;
+  }
+
+  .result-card__body {
+    height: auto;
+  }
+
+  .result-card__image {
+    min-height: clamp(200px, 62vw, 260px);
+  }
+}
+
 .result-header__divider {
   width: calc(100% - clamp(40px, 6vw, 72px));
   height: 1px;
