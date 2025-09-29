@@ -121,6 +121,17 @@ const JourneyRouteMap = ({ step }: { step: JourneyMoveStep }) => {
   )
 }
 
+const normalizeChoiceAnswer = (value: string): string =>
+  value
+    .trim()
+    .replace(/^[0-9０-９]+[.,、．]?\s*/, '')
+    .replace(/\s+/g, '')
+
+const isChoiceAnswerCorrect = (answer: string, correctAnswer?: string): boolean => {
+  if (!correctAnswer) return false
+  return normalizeChoiceAnswer(answer) === normalizeChoiceAnswer(correctAnswer)
+}
+
 // Single-view cards
 const TitleCard = ({ eyebrow, title }: { eyebrow: string; title: string }) => (
   <article className="journeys-card journeys-card--intro" tabIndex={-1}>
@@ -253,7 +264,9 @@ const QuestionCard = ({
   const hasAnswer = answerValue.trim().length > 0
   const shouldShowQuizFeedback = Boolean(isChoice && step.correctAnswer && hasAnswer)
   const isCorrectAnswer = shouldShowQuizFeedback
-    ? answerValue === step.correctAnswer
+    ? isChoice
+      ? isChoiceAnswerCorrect(answerValue, step.correctAnswer)
+      : answerValue.trim() === step.correctAnswer?.trim()
     : undefined
   const canBeginNewSession = Boolean(onBeginNewSession) && isLocked
   const photoSrc = step.photo ? resolveAssetPath(step.photo.src) : undefined
@@ -533,7 +546,7 @@ export const JourneysScene = ({
         if (draftAnswer === value) return
         setDraftAnswer(value, { label: 'Journeys: edit answer' })
         const isCorrect = activeQuestion.correctAnswer
-          ? activeQuestion.correctAnswer === value
+          ? isChoiceAnswerCorrect(value, activeQuestion.correctAnswer)
           : undefined
         saveResponse({
           journeyId: activeJourney.id,
