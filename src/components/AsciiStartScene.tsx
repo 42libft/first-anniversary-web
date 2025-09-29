@@ -7,13 +7,13 @@ const CHARACTER_LEFT = {
     ' (•‿•)',
     '  /|\\',
     `  / ${BACKSLASH}${BACKSLASH}`,
-    '+',
+    '  ^ ^',
   ]),
   frameB: createFrame([
     ' (•‿•)',
     '  /|\\',
-    ` ${BACKSLASH}/  ${BACKSLASH}`,
-    '+',
+    ` ${BACKSLASH}/ ${BACKSLASH}`,
+    '  ^ ^',
   ]),
 }
 
@@ -22,13 +22,13 @@ const CHARACTER_RIGHT = {
     ' (•‿•)~',
     '  /|\\',
     `  / ${BACKSLASH}${BACKSLASH}`,
-    '+',
+    '  ^ ^',
   ]),
   frameB: createFrame([
     ' (•‿•)~',
     '  /|\\',
-    ` ${BACKSLASH}/  ${BACKSLASH}`,
-    '+',
+    ` ${BACKSLASH}/ ${BACKSLASH}`,
+    '  ^ ^',
   ]),
 }
 
