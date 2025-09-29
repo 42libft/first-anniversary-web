@@ -502,6 +502,7 @@
 
 .intro-scene.stage-start {
   cursor: pointer;
+  overflow: hidden;
 }
 
 .intro-scene.stage-terminal {
