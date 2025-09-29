@@ -1550,29 +1550,33 @@ export const LetterExperience = ({
             )}
             {isLetterOpen && (hasPages || onLetterClose) && (
               <div className="letter-pack__letter-overlay">
+                {(hasPages || onLetterClose) && (
+                  <div className="letter-pack__overlay-top">
+                    {hasPages && (
+                      <div className="letter-pack__page-status" role="status" aria-live="polite">
+                        {pageStatus ?? ''}
+                      </div>
+                    )}
+                    {onLetterClose && (
+                      <button
+                        type="button"
+                        className="letter-pack__close"
+                        onPointerDown={(event) => event.stopPropagation()}
+                        onPointerUp={(event) => event.stopPropagation()}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          onLetterClose()
+                        }}
+                        aria-label="封筒に戻す"
+                      >
+                        <span aria-hidden="true">×</span>
+                      </button>
+                    )}
+                  </div>
+                )}
                 <div className="letter-pack__overlay-footer">
-                  {hasPages && (
-                    <div className="letter-pack__page-status" role="status" aria-live="polite">
-                      {pageStatus ?? ''}
-                    </div>
-                  )}
                   <p className="letter-pack__hint" aria-hidden="true">{letterHintText}</p>
                 </div>
-                {onLetterClose && (
-                  <button
-                    type="button"
-                    className="letter-pack__close"
-                    onPointerDown={(event) => event.stopPropagation()}
-                    onPointerUp={(event) => event.stopPropagation()}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      onLetterClose()
-                    }}
-                    aria-label="封筒に戻す"
-                  >
-                    <span aria-hidden="true">×</span>
-                  </button>
-                )}
               </div>
             )}
           </div>
