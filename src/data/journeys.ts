@@ -1377,6 +1377,10 @@ const newJourneyDefinitions: JourneyInput[] = [
         style: 'choice',
         prompt: 'トムジェカレンダー！あやねの誕生日の以下の作品のタイトルはどれ？',
         storageKey: 'journey-20250304-q-032',
+        photo: {
+          src: '/images/user/IMG_3585.jpeg',
+          alt: '＃まさに居地的な表術',
+        },
         choices: [
           '1,道具に使われる2人',
           '2,作戦了解の合図',
@@ -1385,15 +1389,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         ],
         correctAnswer: '4,食事に向かってよーいどん',
         readonlyAfterSave: true,
-      },
-      {
-        id: 'journey-20250304-image-033',
-        type: 'episode',
-        text: [],
-        photo: {
-          src: '/images/user/IMG_3585.jpeg',
-          alt: '＃まさに居地的な表術',
-        },
       },
       {
         id: 'journey-20250304-episode-034',
@@ -1412,6 +1407,10 @@ const newJourneyDefinitions: JourneyInput[] = [
         style: 'choice',
         prompt: 'トムジェカレンダー！あやねの誕生日の以下の作品のタイトルはどれ？',
         storageKey: 'journey-20250304-q-036',
+        photo: {
+          src: '/images/user/IMG_3586.jpeg',
+          alt: '＊しっぽをつかんでスヤスヤ',
+        },
         choices: [
           '1,チーズをつまみ食い',
           '2,一緒には食べられないふたり',
@@ -1420,15 +1419,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         ],
         correctAnswer: '2,一緒には食べられないふたり',
         readonlyAfterSave: true,
-      },
-      {
-        id: 'journey-20250304-image-037',
-        type: 'episode',
-        text: [],
-        photo: {
-          src: '/images/user/IMG_3586.jpeg',
-          alt: '＊しっぽをつかんでスヤスヤ',
-        },
       },
       {
         id: 'journey-20250304-episode-038',
