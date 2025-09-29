@@ -501,9 +501,6 @@ export const JourneysScene = ({
   const responseMap = useMemo(() => {
     const map = new Map<string, typeof responses[number]>()
     responses.forEach((entry) => {
-      if (entry.questionType === 'choice') {
-        return
-      }
       map.set(entry.storageKey, entry)
     })
     return map
@@ -530,6 +527,9 @@ export const JourneysScene = ({
       if (!activeQuestion || !activeJourney) return
 
       if (activeQuestion.style === 'choice') {
+        if (storedResponse) {
+          return
+        }
         if (draftAnswer === value) return
         setDraftAnswer(value, { label: 'Journeys: edit answer' })
         const isCorrect = activeQuestion.correctAnswer
