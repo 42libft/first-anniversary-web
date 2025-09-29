@@ -817,7 +817,9 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250226-image-009',
         type: 'episode',
-        text: [],
+        text: [
+          'カスタマイズできるハンバーガーでとてもおいしかった！',
+        ],
         photo: {
           src: '/images/user/IMG_2859.jpeg',
           alt: '画像',
@@ -826,17 +828,10 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250226-episode-010',
         type: 'episode',
-        text: [
-          'カスタマイズできるハンバーガーでとてもおいしかった！',
-        ],
         photo: {
           src: '/images/user/IMG_2872.jpeg',
           alt: '旅の写真',
         },
-      },
-      {
-        id: 'journey-20250226-episode-012',
-        type: 'episode',
         text: [
           '記念ツーショット',
         ],
@@ -863,18 +858,12 @@ const newJourneyDefinitions: JourneyInput[] = [
         type: 'episode',
         text: [
           '続いてゲームコーナー10コインの手持ちを消費して好きなゲームを遊べた！',
+          'あやねとの相性チェック、ラブテスター！',
         ],
         photo: {
           src: '/images/user/IMG_2890.jpeg',
           alt: '旅の写真',
         },
-      },
-      {
-        id: 'journey-20250226-episode-017',
-        type: 'episode',
-        text: [
-          'あやねとの相性チェック、ラブテスター！',
-        ],
       },
       {
         id: 'journey-20250226-question-018',
@@ -883,18 +872,22 @@ const newJourneyDefinitions: JourneyInput[] = [
         prompt: '二人の最終的なラブ度は？',
         storageKey: 'journey-20250226-q-018',
         choices: [
-          '1,105',
-          '2,95',
-          '3,100',
-          '4,115',
+          '105',
+          '95',
+          '100',
+          '115',
         ],
-        correctAnswer: '4,115',
+        correctAnswer: '115',
         readonlyAfterSave: true,
       },
       {
         id: 'journey-20250226-image-019',
         type: 'episode',
-        text: [],
+         text: [
+          '2人ともFPSゲーマーなのでザッパーandスコープ！',
+          'なんと1位2位フィニッシュ！',
+          '！',
+        ],
         photo: {
           src: '/images/user/shooting.jpeg',
           alt: '画像',
@@ -904,9 +897,9 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250226-episode-020',
         type: 'episode',
         text: [
-          '2人ともFPSゲーマーなのでザッパーandスコープ！',
-          'なんと1位2位フィニッシュ！',
-          '！',
+          'でっかいコントローラーでゲームを遊べた！',
+          'あやね、しゅうくんの操作にちょい不満、。',
+          'あやねはやっぱり負けず嫌いのよう。',
         ],
         photo: {
           src: '/images/user/IMG_2939.jpeg',
@@ -917,9 +910,8 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250226-episode-022',
         type: 'episode',
         text: [
-          'でっかいコントローラーでゲームを遊べた！',
-          'あやね、しゅうくんの操作にちょい不満、。',
-          'あやねはやっぱり負けず嫌いのよう。',
+          '最後は、簡単なアイスクリーム積み！',
+          '宇宙まで届いて楽しかった！',
         ],
         photo: {
           src: '/images/user/IMG_2922.jpeg',
@@ -930,8 +922,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250226-episode-024',
         type: 'episode',
         text: [
-          '最後は、簡単なアイスクリーム積み！',
-          '宇宙まで届いて楽しかった！',
+          'さらば、Nintendoミュージアム。',
         ],
         photo: {
           src: '/images/user/IMG_2931.jpeg',
@@ -942,7 +933,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250226-episode-026',
         type: 'episode',
         text: [
-          'さらば、Nintendoミュージアム。',
+          'まさかの帰りの駅が小倉駅。',
         ],
         photo: {
           src: '/images/user/IMG_2935.jpeg',
@@ -953,7 +944,9 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250226-episode-028',
         type: 'episode',
         text: [
-          'まさかの帰りの駅が小倉駅。',
+          '夜ご飯は京都の焼き鳥チェーン店。',
+          'あやねに',
+          'ぐるぐる鶏皮の存在を教えてもらう。',
         ],
         photo: {
           src: '/images/user/IMG_2957.jpeg',
@@ -964,22 +957,13 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250226-episode-030',
         type: 'episode',
         text: [
-          '夜ご飯は京都の焼き鳥チェーン店。',
-          'あやねに',
-          'ぐるぐる鶏皮の存在を教えてもらう。',
+          'このケーキをどこで買ったのか覚えていない。',
+          'ファミマでお酒を買ってきた。',
         ],
         photo: {
           src: '/images/user/IMG_2966.jpeg',
           alt: '旅の写真',
         },
-      },
-      {
-        id: 'journey-20250226-episode-032',
-        type: 'episode',
-        text: [
-          'このケーキをどこで買ったのか覚えていない。',
-          'ファミマでお酒を買ってきた。',
-        ],
       },
     ],
   },
@@ -991,7 +975,9 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250227-image-001',
         type: 'episode',
-        text: [],
+        text: [
+          '確かバスを間違えて、京都水族館に急遽行くことになった。',
+        ],
         photo: {
           src: '/images/user/IMG_2976.jpeg',
           alt: '画像',
@@ -1011,7 +997,9 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250227-image-004',
         type: 'episode',
-        text: [],
+        text: [
+          'アザラシがゴロゴロしていて可愛かった！',
+        ],
         photo: {
           src: '/images/user/IMG_3009.jpeg',
           alt: '画像',
@@ -1021,7 +1009,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-005',
         type: 'episode',
         text: [
-          'アザラシがゴロゴロしていて可愛かった！',
+          'ツーショット',
         ],
         photo: {
           src: '/images/user/IMG_3021.jpeg',
@@ -1031,7 +1019,10 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250227-image-007',
         type: 'episode',
-        text: [],
+        text: [
+          '帽子かぶったあやねがペンギンみたい。',
+          'かわいい。',
+        ],
         photo: {
           src: '/images/user/IMG_3031.jpeg',
           alt: '画像',
@@ -1041,8 +1032,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-008',
         type: 'episode',
         text: [
-          '帽子かぶったあやねがペンギンみたい。',
-          'かわいい。',
+          'とにかくいっぱいきれいな写真が撮れた！',
         ],
         photo: {
           src: '/images/user/IMG_3048.jpeg',
@@ -1053,7 +1043,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-010',
         type: 'episode',
         text: [
-          'とにかくいっぱいきれいな写真が撮れた！',
+          'クラゲ可愛い',
         ],
         photo: {
           src: '/images/user/IMG_3061.jpeg',
@@ -1064,7 +1054,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-012',
         type: 'episode',
         text: [
-          'クラゲ可愛い',
+          '反射するところが多かったので、ツーショットいっぱい！',
         ],
         photo: {
           src: '/images/user/IMG_3090.jpeg',
@@ -1075,7 +1065,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-014',
         type: 'episode',
         text: [
-          '反射するところが多かったので、ツーショットいっぱい！',
+          'あやね、オオサンショウウオコインげっと！',
         ],
         photo: {
           src: '/images/user/IMG_3105.jpeg',
@@ -1086,7 +1076,9 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-016',
         type: 'episode',
         text: [
-          'あやね、オオサンショウウオコインげっと！',
+          '京都駅にて和食が食べれるお店を探した。',
+          'なんと漬物、食べ放題！',
+          'しゅうくんはっぴー！',
         ],
         photo: {
           src: '/images/user/IMG_3117.jpeg',
@@ -1096,10 +1088,10 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250227-episode-018',
         type: 'episode',
-        text: [
-          '京都駅にて和食が食べれるお店を探した。',
-          'なんと漬物、食べ放題！',
-          'しゅうくんはっぴー！',
+         text: [
+          'お昼の後は、銀閣寺。',
+          'Nintendoミュージアムで出会った親子と偶然、再会！',
+          '蛙の帽子のお兄さんとお姉さんと言われた。',
         ],
         photo: {
           src: '/images/user/IMG_3137.jpeg',
@@ -1107,29 +1099,11 @@ const newJourneyDefinitions: JourneyInput[] = [
         },
       },
       {
-        id: 'journey-20250227-episode-020',
-        type: 'episode',
-        text: [
-          'お昼の後は、銀閣寺。',
-          'Nintendoミュージアムで出会った親子と偶然、再会！',
-          '蛙の帽子のお兄さんとお姉さんと言われた。',
-        ],
-      },
-      {
-        id: 'journey-20250227-episode-021',
+        id: 'journey-20250227-image-023',
         type: 'episode',
         text: [
           '動物園などと迷ったが、期間限定の展覧会へ。',
         ],
-        photo: {
-          src: '/images/user/IMG_3141.jpeg',
-          alt: '旅の写真',
-        },
-      },
-      {
-        id: 'journey-20250227-image-023',
-        type: 'episode',
-        text: [],
         photo: {
           src: '/images/user/IMG_3162.jpeg',
           alt: '画像',
@@ -1149,7 +1123,9 @@ const newJourneyDefinitions: JourneyInput[] = [
       {
         id: 'journey-20250227-image-026',
         type: 'episode',
-        text: [],
+        text: [
+          '彩音は、カメラに近づいてくるところ可愛くて大好き！',
+        ],
         photo: {
           src: '/images/user/IMG_3175.jpeg',
           alt: '画像',
@@ -1159,7 +1135,8 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-027',
         type: 'episode',
         text: [
-          '彩音は、カメラに近づいてくるところ可愛くて大好き！',
+          '京都駅に戻り、夜ご飯はを食べたあやねん。',
+          '確か、ここでお金が尽きた。',
         ],
         photo: {
           src: '/images/user/IMG_3176.jpeg',
@@ -1170,8 +1147,7 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-029',
         type: 'episode',
         text: [
-          '京都駅に戻り、夜ご飯はを食べたあやねん。',
-          '確か、ここでお金が尽きた。',
+          '時間が余ったので、京都タワーへ登る。',
         ],
         photo: {
           src: '/images/user/IMG_3178.jpeg',
@@ -1182,21 +1158,14 @@ const newJourneyDefinitions: JourneyInput[] = [
         id: 'journey-20250227-episode-031',
         type: 'episode',
         text: [
-          '時間が余ったので、京都タワーへ登る。',
+          '京都の夜景を見れた。',
+          '時間が余ってると思いきや、電車の時刻を過ぎてしまい、激焦りのあやね',
+          '急いで新幹線のチケットを買って難を凌いだ！',
         ],
         photo: {
           src: '/images/user/IMG_3193.jpeg',
           alt: '旅の写真',
         },
-      },
-      {
-        id: 'journey-20250227-episode-033',
-        type: 'episode',
-        text: [
-          '京都の夜景を見れた。',
-          '時間が余ってると思いきや、電車の時刻を過ぎてしまい、激焦りのあやね',
-          '急いで新幹線のチケットを買って難を凌いだ！',
-        ],
       },
       {
         id: 'journey-20250227-question-034',
@@ -1214,13 +1183,6 @@ const newJourneyDefinitions: JourneyInput[] = [
         to: 'バスタ新宿→家',
         distanceKm: 491,
         description: '移動：バス　京都駅→バスタ新宿→家　(491km)',
-      },
-      {
-        id: 'journey-20250227-episode-036',
-        type: 'episode',
-        text: [
-          '#',
-        ],
       },
     ],
   },
