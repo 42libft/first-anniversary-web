@@ -72,6 +72,10 @@ const TEAR_VECTOR_LENGTH = Math.hypot(TEAR_VECTOR_X, TEAR_VECTOR_Y)
 const TEAR_DIRECTION_X = TEAR_VECTOR_LENGTH > 0 ? TEAR_VECTOR_X / TEAR_VECTOR_LENGTH : 1
 const TEAR_DIRECTION_Y = TEAR_VECTOR_LENGTH > 0 ? TEAR_VECTOR_Y / TEAR_VECTOR_LENGTH : 0
 
+const LETTER_MIN_ZOOM = 1
+const LETTER_MAX_ZOOM = 2.4
+const LETTER_DOUBLE_TAP_WINDOW = 320
+
 type WavePoint = {
   x: number
   y: number
@@ -300,6 +304,15 @@ export const LetterExperience = ({
   const pointerModeRef = useRef<PointerMode>('mouse')
   const letterGestureRef = useRef<{ id: number; x: number; y: number } | null>(null)
   const letterSwipeHandledRef = useRef(false)
+  const [letterZoom, setLetterZoom] = useState(1)
+  const [letterOffset, setLetterOffset] = useState({ x: 0, y: 0 })
+  const letterPointerPositionsRef = useRef(new Map<number, { x: number; y: number }>())
+  const letterPanSessionRef = useRef<
+    { pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null
+  >(null)
+  const letterPinchDistanceRef = useRef<number | null>(null)
+  const letterPinchBaseZoomRef = useRef(1)
+  const letterLastTapRef = useRef(0)
 
   const floatingCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const floatingCtxRef = useRef<CanvasRenderingContext2D | null>(null)
@@ -1133,6 +1146,47 @@ export const LetterExperience = ({
     }
   }, [stage, tearPercent])
 
+  const isLetterZoomed = letterZoom > 1.01
+
+  const letterImageStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!isLetterOpen) {
+      return undefined
+    }
+    return {
+      transform: `translate3d(${letterOffset.x}px, ${letterOffset.y}px, 0) scale(${letterZoom})`,
+    }
+  }, [isLetterOpen, letterOffset.x, letterOffset.y, letterZoom])
+
+  const letterHintText = useMemo(
+    () => (hasPages ? 'スワイプでページ / ダブルタップ・ピンチで拡大' : 'ダブルタップ・ピンチで拡大 / ドラッグで移動'),
+    [hasPages]
+  )
+
+  useEffect(() => {
+    if (!isLetterOpen) {
+      setLetterZoom(1)
+      setLetterOffset({ x: 0, y: 0 })
+      letterPointerPositionsRef.current.clear()
+      letterPanSessionRef.current = null
+      letterPinchDistanceRef.current = null
+      letterLastTapRef.current = 0
+      letterSwipeHandledRef.current = false
+    }
+  }, [isLetterOpen])
+
+  useEffect(() => {
+    if (!letterImage?.src) {
+      return
+    }
+    setLetterZoom(1)
+    setLetterOffset({ x: 0, y: 0 })
+    letterPointerPositionsRef.current.clear()
+    letterPanSessionRef.current = null
+    letterPinchDistanceRef.current = null
+    letterLastTapRef.current = 0
+    letterSwipeHandledRef.current = false
+  }, [letterImage?.src])
+
   const visualStyle = useMemo(() => {
     const tearDepth = (8 + tearProgress * 40).toFixed(2)
     const tearScale = (0.08 + tearProgress * 0.92).toFixed(3)
@@ -1193,15 +1247,89 @@ export const LetterExperience = ({
       if (!isLetterInteractive) {
         return
       }
-      letterGestureRef.current = {
-        id: event.pointerId,
-        x: event.clientX,
-        y: event.clientY,
+
+      const pointerId = event.pointerId
+      const pointerPositions = letterPointerPositionsRef.current
+
+      pointerPositions.set(pointerId, { x: event.clientX, y: event.clientY })
+
+      if (pointerPositions.size === 1) {
+        if (isLetterZoomed) {
+          letterGestureRef.current = null
+          letterSwipeHandledRef.current = true
+          letterPanSessionRef.current = {
+            pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            baseX: letterOffset.x,
+            baseY: letterOffset.y,
+          }
+        } else {
+          letterGestureRef.current = { id: pointerId, x: event.clientX, y: event.clientY }
+          letterSwipeHandledRef.current = false
+          letterPanSessionRef.current = null
+        }
+      } else if (pointerPositions.size === 2) {
+        const entries = Array.from(pointerPositions.values())
+        const distance = Math.hypot(entries[0].x - entries[1].x, entries[0].y - entries[1].y)
+        letterPinchDistanceRef.current = distance
+        letterPinchBaseZoomRef.current = letterZoom
+        letterGestureRef.current = null
+        letterPanSessionRef.current = null
+        letterSwipeHandledRef.current = true
+      } else {
+        letterGestureRef.current = null
+        letterSwipeHandledRef.current = true
       }
-      letterSwipeHandledRef.current = false
-      event.currentTarget.setPointerCapture?.(event.pointerId)
+
+      event.currentTarget.setPointerCapture?.(pointerId)
     },
-    [isLetterInteractive]
+    [isLetterInteractive, isLetterZoomed, letterOffset.x, letterOffset.y, letterZoom]
+  )
+
+  const handleLetterPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!isLetterInteractive) {
+        return
+      }
+
+      const pointerPositions = letterPointerPositionsRef.current
+      const pointer = pointerPositions.get(event.pointerId)
+      if (pointer) {
+        pointer.x = event.clientX
+        pointer.y = event.clientY
+      } else {
+        pointerPositions.set(event.pointerId, { x: event.clientX, y: event.clientY })
+      }
+
+      if (pointerPositions.size >= 2) {
+        const values = Array.from(pointerPositions.values())
+        if (values.length >= 2) {
+          const distance = Math.hypot(values[0].x - values[1].x, values[0].y - values[1].y)
+          if (letterPinchDistanceRef.current === null) {
+            letterPinchDistanceRef.current = distance
+            letterPinchBaseZoomRef.current = letterZoom
+          } else {
+            const ratio = distance / Math.max(letterPinchDistanceRef.current, 1)
+            const nextZoom = clamp(letterPinchBaseZoomRef.current * ratio, LETTER_MIN_ZOOM, LETTER_MAX_ZOOM)
+            setLetterZoom(nextZoom)
+          }
+        }
+        letterSwipeHandledRef.current = true
+        return
+      }
+
+      const panSession = letterPanSessionRef.current
+      if (panSession && panSession.pointerId === event.pointerId) {
+        const nextOffset = {
+          x: panSession.baseX + (event.clientX - panSession.startX),
+          y: panSession.baseY + (event.clientY - panSession.startY),
+        }
+        setLetterOffset(nextOffset)
+        letterSwipeHandledRef.current = true
+      }
+    },
+    [isLetterInteractive, letterZoom]
   )
 
   const handleLetterPointerUp = useCallback(
@@ -1209,16 +1337,35 @@ export const LetterExperience = ({
       if (!isLetterInteractive) {
         return
       }
+
+      const pointerId = event.pointerId
+      event.currentTarget.releasePointerCapture?.(pointerId)
+
+      const pointerPositions = letterPointerPositionsRef.current
+      pointerPositions.delete(pointerId)
+
+      if (letterPanSessionRef.current?.pointerId === pointerId) {
+        letterPanSessionRef.current = null
+      }
+
+      if (pointerPositions.size < 2) {
+        letterPinchDistanceRef.current = null
+        letterPinchBaseZoomRef.current = letterZoom
+      }
+
       const gesture = letterGestureRef.current
-      if (!gesture || gesture.id !== event.pointerId) {
+      if (!gesture || gesture.id !== pointerId) {
+        if (isLetterZoomed) {
+          letterSwipeHandledRef.current = true
+        }
         return
       }
-      event.currentTarget.releasePointerCapture?.(event.pointerId)
+
+      letterGestureRef.current = null
       const dx = event.clientX - gesture.x
       const dy = event.clientY - gesture.y
-      letterGestureRef.current = null
 
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      if (!isLetterZoomed && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
         letterSwipeHandledRef.current = true
         if (dx > 0) {
           onLetterPrev?.()
@@ -1229,28 +1376,60 @@ export const LetterExperience = ({
             onLetterClick?.()
           }
         }
+        return
       }
+
+      if (isLetterZoomed) {
+        letterSwipeHandledRef.current = true
+        return
+      }
+
+      const now = typeof performance !== 'undefined' ? performance.now() : Date.now()
+      if (now - letterLastTapRef.current < LETTER_DOUBLE_TAP_WINDOW) {
+        const nextZoom = letterZoom > 1.05 ? LETTER_MIN_ZOOM : Math.min(LETTER_MAX_ZOOM, 2)
+        setLetterZoom(nextZoom)
+        if (nextZoom === LETTER_MIN_ZOOM) {
+          setLetterOffset({ x: 0, y: 0 })
+        }
+        letterLastTapRef.current = 0
+        letterSwipeHandledRef.current = true
+        return
+      }
+
+      letterLastTapRef.current = now
     },
-    [isLetterInteractive, onLetterClick, onLetterNext, onLetterPrev]
+    [isLetterInteractive, isLetterZoomed, letterZoom, onLetterClick, onLetterNext, onLetterPrev]
   )
 
   const handleLetterPointerCancel = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    const gesture = letterGestureRef.current
-    if (!gesture || gesture.id !== event.pointerId) {
-      return
+    const pointerId = event.pointerId
+    event.currentTarget.releasePointerCapture?.(pointerId)
+    letterPointerPositionsRef.current.delete(pointerId)
+    if (letterPanSessionRef.current?.pointerId === pointerId) {
+      letterPanSessionRef.current = null
     }
-    event.currentTarget.releasePointerCapture?.(event.pointerId)
-    letterGestureRef.current = null
+    if (letterGestureRef.current?.id === pointerId) {
+      letterGestureRef.current = null
+    }
+    if (letterPointerPositionsRef.current.size < 2) {
+      letterPinchDistanceRef.current = null
+    }
     letterSwipeHandledRef.current = false
   }, [])
 
   const handleLetterPointerLeave = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    const gesture = letterGestureRef.current
-    if (!gesture || gesture.id !== event.pointerId) {
-      return
+    const pointerId = event.pointerId
+    event.currentTarget.releasePointerCapture?.(pointerId)
+    letterPointerPositionsRef.current.delete(pointerId)
+    if (letterPanSessionRef.current?.pointerId === pointerId) {
+      letterPanSessionRef.current = null
     }
-    event.currentTarget.releasePointerCapture?.(event.pointerId)
-    letterGestureRef.current = null
+    if (letterGestureRef.current?.id === pointerId) {
+      letterGestureRef.current = null
+    }
+    if (letterPointerPositionsRef.current.size < 2) {
+      letterPinchDistanceRef.current = null
+    }
     letterSwipeHandledRef.current = false
   }, [])
 
@@ -1348,13 +1527,19 @@ export const LetterExperience = ({
             onKeyDown={isLetterInteractive ? handleLetterKeyDown : undefined}
             data-interactive={isLetterInteractive ? 'true' : undefined}
             data-open={isLetterOpen ? 'true' : undefined}
+            data-zoom={isLetterZoomed ? 'true' : undefined}
             onPointerDown={isLetterInteractive ? handleLetterPointerDown : undefined}
+            onPointerMove={isLetterInteractive ? handleLetterPointerMove : undefined}
             onPointerUp={isLetterInteractive ? handleLetterPointerUp : undefined}
             onPointerCancel={isLetterInteractive ? handleLetterPointerCancel : undefined}
             onPointerLeave={isLetterInteractive ? handleLetterPointerLeave : undefined}
           >
             {letterImage ? (
-              <img src={letterImage.src} alt={letterImage.alt ?? 'スキャンした手紙'} />
+              <img
+                src={letterImage.src}
+                alt={letterImage.alt ?? 'スキャンした手紙'}
+                style={letterImageStyle}
+              />
             ) : (
               <div className="letter-pack__letter-placeholder" aria-hidden="true">
                 <span />
@@ -1365,42 +1550,14 @@ export const LetterExperience = ({
             )}
             {isLetterOpen && (hasPages || onLetterClose) && (
               <div className="letter-pack__letter-overlay">
-                {hasPages && (
-                  <div className="letter-pack__nav" role="group" aria-label="手紙のページ操作">
-                    <button
-                      type="button"
-                      className="letter-pack__nav-button letter-pack__nav-button--prev"
-                      onPointerDown={(event) => event.stopPropagation()}
-                      onPointerUp={(event) => event.stopPropagation()}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        onLetterPrev?.()
-                      }}
-                      disabled={!onLetterPrev}
-                      aria-label="前のページへ"
-                    >
-                      <span aria-hidden="true">‹</span>
-                    </button>
+                <div className="letter-pack__overlay-footer">
+                  {hasPages && (
                     <div className="letter-pack__page-status" role="status" aria-live="polite">
                       {pageStatus ?? ''}
                     </div>
-                    <button
-                      type="button"
-                      className="letter-pack__nav-button letter-pack__nav-button--next"
-                      onPointerDown={(event) => event.stopPropagation()}
-                      onPointerUp={(event) => event.stopPropagation()}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        const action = onLetterNext ?? onLetterClick
-                        action?.()
-                      }}
-                      disabled={!(onLetterNext ?? onLetterClick)}
-                      aria-label="次のページへ"
-                    >
-                      <span aria-hidden="true">›</span>
-                    </button>
-                  </div>
-                )}
+                  )}
+                  <p className="letter-pack__hint" aria-hidden="true">{letterHintText}</p>
+                </div>
                 {onLetterClose && (
                   <button
                     type="button"

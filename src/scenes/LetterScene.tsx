@@ -141,7 +141,7 @@ export const LetterScene = ({ onAdvance }: SceneComponentProps) => {
         <div className="letter-scene__viewer" role="group" aria-label="手紙の表示コントロール">
           <p className="letter-scene__instruction">
             {isLetterOpen && hasPages
-              ? '浮かび上がった手紙を左右にドラッグ / タップするとページをめくれます。'
+              ? '浮かび上がった手紙はスワイプでページ移動、ダブルタップやピンチで拡大できます。'
               : '封筒をタップすると中の手紙が浮かび上がります。'}
           </p>
           <span className="letter-scene__status" role="status" aria-live="polite">
