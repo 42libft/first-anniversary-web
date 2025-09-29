@@ -28,6 +28,11 @@ const formatRemaining = (ms: number) => {
   return `${minutes}m`
 }
 
+const isSensitiveAssetLabel = (label: string) => /\.jpe?g(?:\?|$)/i.test(label.trim())
+
+const sanitizeAssetLabel = (label: string) =>
+  isSensitiveAssetLabel(label) ? 'media asset' : label
+
 export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentProps) => {
   const preloader = useAssetPreloader(preloadAssets, { maxRetries: 3 })
 
@@ -71,6 +76,19 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
     [displayProgress, displayStatus]
   )
 
+  const visibleLogs = useMemo(
+    () =>
+      logs.filter((line) => {
+        if (line.kind === 'retry' || line.kind === 'missing') {
+          if (isSensitiveAssetLabel(line.label)) {
+            return false
+          }
+        }
+        return true
+      }),
+    [logs]
+  )
+
   const progressBar = useMemo(() => {
     const rawFilled = (percent / 100) * PROGRESS_BAR_UNITS
     const filledUnits = Math.floor(rawFilled)
@@ -101,7 +119,9 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
   const footerLabel = useMemo(() => {
     if (hasMissing) {
       return {
-        label: lastMissingLabel ? `missing: ${lastMissingLabel}` : 'missing asset',
+        label: lastMissingLabel
+          ? `missing: ${sanitizeAssetLabel(lastMissingLabel)}`
+          : 'missing asset',
         status: '再確認が必要です',
         tone: 'error',
       } as const
@@ -113,7 +133,7 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
         tone: 'success',
       } as const
     }
-    const label = currentAsset?.label ?? 'queue idle'
+    const label = sanitizeAssetLabel(currentAsset?.label ?? 'queue idle')
     const remaining = estimatedRemainingMs > 0 ? `~${formatRemaining(estimatedRemainingMs)} remaining` : 'estimating…'
     const retry = currentRetries > 0 ? `retry x${currentRetries}` : null
     return {
@@ -129,7 +149,7 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
     const viewport = terminalViewportRef.current
     if (!viewport) return
     viewport.scrollTop = viewport.scrollHeight
-  }, [logs.length, progressLine])
+  }, [progressLine, visibleLogs.length])
 
   const handleClick = () => {
     if (displayStatus === 'complete') {
@@ -162,7 +182,7 @@ export const IntroScene = ({ onAdvance, reportIntroBootState }: SceneComponentPr
         <div className="intro-terminal__logs">
           <div className="terminal" aria-live="polite">
             <div className="terminal__viewport" ref={terminalViewportRef}>
-              {logs.map((line) => {
+              {visibleLogs.map((line) => {
                 if (line.kind === 'category') {
                   return (
                     <div
