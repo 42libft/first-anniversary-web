@@ -2506,7 +2506,7 @@ const newJourneyDefinitions: JourneyInput[] = [
           '3,ビックオオサンショウウオ',
           '4,メガオオサンショウウオ',
         ],
-        correctAnswer: '',
+        correctAnswer: '1,スーパーオオサンショウウオ',
         readonlyAfterSave: true,
       },
       {
