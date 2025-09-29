@@ -305,16 +305,14 @@
 
 @media (max-width: 820px) {
   .result-card {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'body'
-      'image';
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 48%, 200px);
+    grid-template-areas: 'body image';
+    align-items: stretch;
     gap: clamp(16px, 5vw, 24px);
   }
 
   .result-card__image {
-    min-height: clamp(210px, 58vw, 280px);
-    justify-self: stretch;
+    min-height: auto;
   }
 }
 
