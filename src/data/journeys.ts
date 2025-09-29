@@ -659,7 +659,7 @@ const newJourneyDefinitions: JourneyInput[] = [
           '3,伏見稲荷',
           '4,平安神宮',
         ],
-        correctAnswer: '２の龍安寺',
+        correctAnswer: '2,龍安寺',
         readonlyAfterSave: true,
       },
       {
