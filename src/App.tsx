@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState, type CSSProperties } from 'react'
 import './App.css'
 import { SceneQuickPanel } from './components/SceneQuickPanel'
 import { DistanceHUD } from './components/DistanceHUD'
-import { BuildStamp } from './components/BuildStamp'
 import { GlobalBackButton } from './components/GlobalBackButton'
 import { journeys } from './data/journeys'
 import { useStoredJourneyResponses } from './hooks/useStoredJourneyResponses'
@@ -256,7 +255,6 @@ function App() {
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}
       </main>
-      <BuildStamp />
       <footer className="scene-footer" aria-hidden="true">
         <span className="scene-footer__label">SCENE</span>
         <span className="scene-footer__value">{sceneTitleMap[currentSceneId]}</span>
