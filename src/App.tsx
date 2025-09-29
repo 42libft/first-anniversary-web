@@ -214,13 +214,15 @@ function App() {
       {currentSceneId === 'journeys' && (
         <DistanceHUD distanceKm={distanceTraveled} />
       )}
-      <SceneQuickPanel
-        currentSceneId={currentSceneId}
-        goToScene={goToScene}
-        goToNext={goToNextScene}
-        goToPrevious={goToPreviousScene}
-        onRestart={restartExperience}
-      />
+      {allowMaintenanceNavigation && (
+        <SceneQuickPanel
+          currentSceneId={currentSceneId}
+          goToScene={goToScene}
+          goToNext={goToNextScene}
+          goToPrevious={goToPreviousScene}
+          onRestart={restartExperience}
+        />
+      )}
       <main className="scene-container">
         {renderScene(currentSceneId, sceneProps)}
       </main>
