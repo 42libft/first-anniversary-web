@@ -65,7 +65,7 @@ export const CanvasMemoryStream = ({ messages: _messages, onReveal, disabled = f
     c.height = Math.max(1, Math.floor(r.height * d))
   }
 
-  const MAX_TRAILS = 12
+  const MAX_TRAILS = 18
   const MAX_CHARS = 12
 
   const spawnTrail = (x: number, y: number, msg: string) => {
