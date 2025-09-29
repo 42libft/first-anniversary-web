@@ -47,6 +47,17 @@ resultLegends.forEach((legend) => {
   }
 })
 
+const prologueBackdropImages = new Set([
+  '/images/prologue/Generated Image September 26, 2025 - 2_48AM.png',
+  '/images/prologue/Generated Image September 26, 2025 - 2_55AM.png',
+  '/images/prologue/Generated Image September 26, 2025 - 3_34AM.png',
+  '/images/prologue/Generated Image September 26, 2025 - 3_37AM.png',
+])
+
+prologueBackdropImages.forEach((src) => {
+  localImageSet.add(src)
+})
+
 const remoteMeetupImages = new Set<string>()
 
 meetupPages.forEach((page) => {
