@@ -1,6 +1,6 @@
 export const linkExchangeCounts = {
-  fromYou: 132,
-  fromPartner: 118,
+  fromYou: 578,
+  fromPartner: 2830,
 } as const
 
 export const totalLinks =

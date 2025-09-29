@@ -1,9 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, TouchEvent } from 'react'
 
 import { SceneLayout } from '../components/SceneLayout'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
+import {
+  journeyDistance,
+  likeTotals,
+  linkTotals,
+  messageTotals,
+  photoTotals,
+  teamMetrics,
+  QUIZ_TOTAL_COUNT,
+} from '../data/resultMetrics'
 
 import './ResultScene.css'
 
@@ -15,6 +24,12 @@ type StatKey =
   | 'distanceKm'
   | 'saidLove'
   | 'photos'
+
+type StatCustomization = {
+  label?: string
+  unit?: string
+  ariaUnit?: string
+}
 
 interface ResultPayloadPlayer {
   role: PlayerRole
@@ -30,6 +45,7 @@ interface ResultPayloadPlayer {
     saidLove?: number
     photos?: number
   }
+  statCustomizations?: Partial<Record<StatKey, StatCustomization>>
 }
 
 export interface ResultPayload {
@@ -88,6 +104,16 @@ const STAT_LABELS: Record<StatKey, string> = {
   photos: '撮った写真枚数',
 }
 
+const DEFAULT_STAT_UNITS: Partial<Record<StatKey, string>> = {
+  distanceKm: ' km',
+}
+
+const DEFAULT_STAT_ARIA_UNITS: Partial<Record<StatKey, string>> = {
+  distanceKm: ' キロメートル',
+}
+
+const QUIZ_TOTAL = QUIZ_TOTAL_COUNT > 0 ? QUIZ_TOTAL_COUNT : 3
+
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value)
 
@@ -131,61 +157,106 @@ const buildDefaultStats = (): PlayerStatDisplay[] => [
   },
 ]
 
+const formatValueWithUnit = (formatted?: string, unit?: string) => {
+  if (!formatted) {
+    if (!unit) {
+      return '—'
+    }
+    return `—${unit}`
+  }
+  return unit ? `${formatted}${unit}` : formatted
+}
+
+const buildAriaValue = (formatted?: string, unit?: string) => {
+  if (!formatted) {
+    if (!unit) {
+      return '—'
+    }
+    return `—${unit}`
+  }
+  return unit ? `${formatted}${unit}` : formatted
+}
+
 const createPlayerView = (role: PlayerRole, payload?: ResultPayloadPlayer): ResultPlayerView => {
   const name = payload?.name?.trim() || PLAYER_DEFAULT_NAMES[role]
+  const statCustomizations = payload?.statCustomizations ?? {}
+
   const stats = buildDefaultStats().map((stat) => {
+    const override = statCustomizations[stat.key]
+    const label = override?.label ?? stat.label
+
     if (!payload?.stats) {
-      return stat
+      return {
+        ...stat,
+        label,
+        ariaLabel: `${label} ${stat.value}`,
+      }
     }
 
     if (stat.key === 'quizCorrect') {
       const quiz = payload.stats.quizCorrect
-      const denominator = formatNumber(quiz?.of ?? 3) ?? '3'
+      const denominatorRaw = quiz?.of ?? QUIZ_TOTAL
+      const denominatorFormatted = formatNumber(denominatorRaw) ?? `${denominatorRaw}`
       const formattedValue = formatNumber(quiz?.value)
-      const value = formattedValue ?? '—'
+      const valueText = formattedValue ?? '—'
       return {
         ...stat,
-        value: `${value} / ${denominator}`,
-        ariaLabel: `クイズ正解数 ${value} / ${denominator}`,
+        label,
+        value: `${valueText} / ${denominatorFormatted}`,
+        ariaLabel: `${label} ${valueText} / ${denominatorFormatted}`,
       }
     }
 
+    const unit = override?.unit ?? DEFAULT_STAT_UNITS[stat.key]
+    const ariaUnit =
+      override?.ariaUnit ??
+      DEFAULT_STAT_ARIA_UNITS[stat.key] ??
+      (unit && unit.trim().length > 0 ? unit : '')
+
     if (stat.key === 'messages') {
       const formatted = formatNumber(payload.stats.messages)
-      const value = formatted ?? '—'
+      const valueText = formatValueWithUnit(formatted, unit)
+      const ariaValue = buildAriaValue(formatted, ariaUnit)
       return {
         ...stat,
-        value,
-        ariaLabel: `送ったメッセージ数 ${value}`,
+        label,
+        value: valueText,
+        ariaLabel: `${label} ${ariaValue}`,
       }
     }
 
     if (stat.key === 'distanceKm') {
       const formatted = formatNumber(payload.stats.distanceKm)
-      const value = formatted ? `${formatted} km` : '— km'
+      const valueText = formatValueWithUnit(formatted, unit)
+      const ariaValue = buildAriaValue(formatted, ariaUnit)
       return {
         ...stat,
-        value,
-        ariaLabel: `合計移動距離 ${formatted ?? '—'} キロメートル`,
+        label,
+        value: valueText,
+        ariaLabel: `${label} ${ariaValue}`,
       }
     }
 
     if (stat.key === 'saidLove') {
       const formatted = formatNumber(payload.stats.saidLove)
-      const value = formatted ?? '—'
+      const valueText = formatValueWithUnit(formatted, unit)
+      const ariaValue = buildAriaValue(formatted, ariaUnit)
       return {
         ...stat,
-        value,
-        ariaLabel: `好きって言った回数 ${value}`,
+        label,
+        value: valueText,
+        ariaLabel: `${label} ${ariaValue}`,
       }
     }
 
     const formatted = formatNumber(payload.stats.photos)
-    const value = formatted ?? '—'
+    const valueText = formatValueWithUnit(formatted, unit)
+    const ariaValue = buildAriaValue(formatted, ariaUnit)
     return {
       ...stat,
-      value,
-      ariaLabel: `撮った写真枚数 ${value}`,
+      label,
+      value: valueText,
+      ariaLabel: `${label} ${ariaValue}`,
     }
   })
 
@@ -204,6 +275,47 @@ const createPlayerView = (role: PlayerRole, payload?: ResultPayloadPlayer): Resu
       : undefined,
   }
 }
+
+const createBaseResultPayload = (): ResultPayload => ({
+  resultTitle: 'Forever',
+  team: {
+    rank: teamMetrics.rank,
+    totalDaysTogether: teamMetrics.totalDaysTogether,
+  },
+  players: [
+    {
+      role: 'you',
+      name: 'libft',
+      stats: {
+        quizCorrect: { of: QUIZ_TOTAL },
+        messages: messageTotals.you,
+        distanceKm: journeyDistance.totalKm,
+        saidLove: likeTotals.you,
+        photos: photoTotals.you,
+      },
+      statCustomizations: {
+        saidLove: { label: '好きと送った回数' },
+        photos: { label: 'あやねを撮った枚数', unit: '枚', ariaUnit: ' 枚' },
+      },
+    },
+    {
+      role: 'ally',
+      name: 'reonass0220',
+      stats: {
+        quizCorrect: { of: QUIZ_TOTAL },
+        messages: messageTotals.ally,
+        distanceKm: linkTotals.ally,
+        saidLove: likeTotals.ally,
+        photos: photoTotals.ally,
+      },
+      statCustomizations: {
+        distanceKm: { label: '共有したリンクの数', unit: '', ariaUnit: ' 件' },
+        saidLove: { label: '好きと送った回数' },
+        photos: { label: '送った画像の枚数', unit: '枚', ariaUnit: ' 枚' },
+      },
+    },
+  ],
+})
 
 const buildViewData = (payload?: ResultPayload): ResultViewData => {
   const teamRankValue = formatNumber(payload?.team?.rank)
@@ -232,7 +344,7 @@ const buildViewData = (payload?: ResultPayload): ResultViewData => {
   }
 }
 
-const DEFAULT_VIEW_DATA = buildViewData()
+const DEFAULT_VIEW_DATA = buildViewData(createBaseResultPayload())
 
 declare global {
   interface Window {
@@ -297,11 +409,71 @@ const ResultPlayerCard = ({
   )
 }
 
-export const ResultScene = ({ onRestart }: SceneComponentProps) => {
+export const ResultScene = ({
+  onRestart,
+  responses,
+  totalJourneyDistance,
+}: SceneComponentProps) => {
   const [viewData, setViewData] = useState<ResultViewData>(DEFAULT_VIEW_DATA)
   const [activePlayerIndex, setActivePlayerIndex] = useState(0)
   const touchStartXRef = useRef<number | null>(null)
   const { record } = useActionHistory()
+  const derivedDistance = useMemo(
+    () => Math.round(totalJourneyDistance + journeyDistance.additionalKm),
+    [totalJourneyDistance]
+  )
+
+  const quizStats = useMemo(() => {
+    const choiceEntries = responses.filter((entry) => entry.questionType === 'choice')
+    const correctCount = choiceEntries.filter((entry) => entry.isCorrect === true).length
+    return {
+      answered: choiceEntries.length,
+      correct: correctCount,
+    }
+  }, [responses])
+
+  const resolvedPayload = useMemo(() => {
+    const basePayload = createBaseResultPayload()
+    const quizValue = quizStats.answered > 0 ? quizStats.correct : undefined
+
+    const players = basePayload.players?.map((player) => {
+      if (!player.stats) {
+        return player
+      }
+
+      if (player.role === 'you') {
+        return {
+          ...player,
+          stats: {
+            ...player.stats,
+            quizCorrect: { of: QUIZ_TOTAL, value: quizValue },
+            distanceKm: derivedDistance,
+          },
+        }
+      }
+
+      if (player.role === 'ally') {
+        return {
+          ...player,
+          stats: {
+            ...player.stats,
+            quizCorrect: { of: QUIZ_TOTAL, value: quizValue },
+          },
+        }
+      }
+
+      return player
+    })
+
+    return {
+      ...basePayload,
+      players,
+    }
+  }, [derivedDistance, quizStats.answered, quizStats.correct])
+
+  useEffect(() => {
+    setViewData(buildViewData(resolvedPayload))
+  }, [resolvedPayload])
 
   useEffect(() => {
     const handleSetData = (payload?: ResultPayload) => {

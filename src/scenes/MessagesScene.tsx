@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { CanvasMemoryStream } from '../components/CanvasMemoryStream'
 import { messageMilestones } from '../data/messages'
+import { resultTotals } from '../data/resultMetrics'
 import type { SceneComponentProps } from '../types/scenes'
 import { useActionHistory } from '../history/ActionHistoryContext'
 import { useHistoryTrackedState } from '../history/useHistoryTrackedState'
@@ -10,7 +11,7 @@ const formatNumber = (value: number) => value.toLocaleString('ja-JP')
 
 // フルブリードのメディアアートに刷新したMessagesシーン
 export const MessagesScene = ({ onAdvance }: SceneComponentProps) => {
-  const FINAL_TARGET = 41086
+  const FINAL_TARGET = resultTotals.messages
   const TAPS_TO_COMPLETE = 120
   const TAP_INCREMENT = Math.ceil(FINAL_TARGET / TAPS_TO_COMPLETE)
   const [count, setCount] = useHistoryTrackedState('messages:count', 0)

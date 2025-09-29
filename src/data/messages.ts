@@ -98,7 +98,7 @@ const baseMilestones: BaseMessageMilestone[] = [
     cumulativeDistanceKm: 3240,
     highlight: '一年分のメッセージをプレイバック。Result演出の構想をここで固めた。',
     preview: [
-      { speaker: 'me', text: 'この一年で3947通はエモすぎ', timestamp: '23:10' },
+      { speaker: 'me', text: 'この一年で41959通はエモすぎ', timestamp: '23:10' },
       { speaker: 'you', text: '距離3240kmより長い、言葉の旅だね', timestamp: '23:11' },
       { speaker: 'me', text: 'Result画面で全部証明しよう', timestamp: '23:12' },
     ],
