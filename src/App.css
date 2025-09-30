@@ -806,6 +806,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  z-index: 20;
+  white-space: nowrap;
 }
 
 .distance-hud__label {
