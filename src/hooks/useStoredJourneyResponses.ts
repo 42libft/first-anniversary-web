@@ -7,14 +7,7 @@ import type {
 } from '../types/experience'
 import { APP_BUILD_ID } from '../constants/build'
 
-interface JourneyQuizStats {
-  correctCount: number
-  answeredCount: number
-  recordedAt: string
-}
-
 type JourneyResponseArchive = Record<string, JourneyPromptResponse[]>
-type JourneyQuizStatsArchive = Record<string, JourneyQuizStats>
 
 const RESPONSES_STORAGE_KEY = 'first-anniversary-web:journey-responses'
 const QUIZ_STATS_STORAGE_KEY = 'first-anniversary-web:journey-quiz-stats'
@@ -24,6 +17,11 @@ const SESSION_HISTORY_STORAGE_KEY = 'first-anniversary-web:journey-session-histo
 const isBrowser = typeof window !== 'undefined'
 
 const CURRENT_BUILD_ID = APP_BUILD_ID
+
+const filterPersistableResponses = (
+  entries: JourneyPromptResponse[],
+): JourneyPromptResponse[] =>
+  entries.filter((entry) => entry.questionType !== 'choice')
 
 const createSessionRecord = (): JourneySessionInfo => ({
   id: `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
@@ -307,10 +305,21 @@ const readResponsesForSession = (sessionId: string): JourneyPromptResponse[] => 
     if (typeof parsed === 'object' && parsed !== null) {
       const archive = parsed as JourneyResponseArchive
       const list = Array.isArray(archive[sessionId]) ? archive[sessionId] : []
-      return list
+      const sanitized = list
         .map((entry) => sanitizeResponseEntry(entry, sessionId))
         .filter((entry): entry is JourneyPromptResponse => Boolean(entry))
         .filter((entry) => entry.sessionId === sessionId)
+
+      const filtered = filterPersistableResponses(sanitized)
+      if (filtered.length !== sanitized.length) {
+        try {
+          persistResponsesForSession(sessionId, filtered)
+        } catch (error) {
+          console.warn('Failed to clean stored quiz responses', error)
+        }
+      }
+
+      return filtered
     }
     return []
   } catch (error) {
@@ -339,62 +348,12 @@ const persistResponsesForSession = (
         })
       }
     }
-    archive[sessionId] = responses
+
+    const persistable = filterPersistableResponses(responses)
+    archive[sessionId] = persistable
     window.localStorage.setItem(RESPONSES_STORAGE_KEY, JSON.stringify(archive))
   } catch (error) {
     throw error
-  }
-}
-
-const readQuizStatsArchive = (): JourneyQuizStatsArchive => {
-  if (!isBrowser) {
-    return {}
-  }
-  const raw = window.localStorage.getItem(QUIZ_STATS_STORAGE_KEY)
-  if (!raw) {
-    return {}
-  }
-  try {
-    const parsed = JSON.parse(raw)
-    if (typeof parsed === 'object' && parsed !== null) {
-      const archive: JourneyQuizStatsArchive = {}
-      Object.entries(parsed as Record<string, unknown>).forEach(([sessionId, value]) => {
-        if (typeof value !== 'object' || value === null) {
-          return
-        }
-        const stats = value as Record<string, unknown>
-        const correctCount = Number(stats.correctCount)
-        const answeredCount = Number(stats.answeredCount)
-        const recordedAt =
-          typeof stats.recordedAt === 'string' ? stats.recordedAt : new Date().toISOString()
-        if (Number.isNaN(correctCount) || Number.isNaN(answeredCount)) {
-          return
-        }
-        archive[sessionId] = {
-          correctCount,
-          answeredCount,
-          recordedAt,
-        }
-      })
-      return archive
-    }
-    return {}
-  } catch (error) {
-    console.warn('Failed to read journey quiz stats', error)
-    return {}
-  }
-}
-
-const persistQuizStatsForSession = (sessionId: string, stats: JourneyQuizStats) => {
-  if (!isBrowser || !sessionId) {
-    return
-  }
-  const archive = readQuizStatsArchive()
-  archive[sessionId] = stats
-  try {
-    window.localStorage.setItem(QUIZ_STATS_STORAGE_KEY, JSON.stringify(archive))
-  } catch (error) {
-    console.warn('Failed to persist journey quiz stats', error)
   }
 }
 
@@ -404,6 +363,17 @@ export const useStoredJourneyResponses = () => {
   const [responses, setResponses] = useState<JourneyPromptResponse[]>(() =>
     readResponsesForSession(initialSession.id)
   )
+
+  useEffect(() => {
+    if (!isBrowser) {
+      return
+    }
+    try {
+      window.localStorage.removeItem(QUIZ_STATS_STORAGE_KEY)
+    } catch (error) {
+      console.warn('Failed to clear legacy journey quiz stats', error)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isBrowser) {
@@ -430,13 +400,6 @@ export const useStoredJourneyResponses = () => {
       console.warn('Failed to persist journey responses', error)
     }
 
-    const quizEntries = normalized.filter((entry) => entry.questionType === 'choice')
-    const stats: JourneyQuizStats = {
-      correctCount: quizEntries.filter((entry) => entry.isCorrect === true).length,
-      answeredCount: quizEntries.length,
-      recordedAt: new Date().toISOString(),
-    }
-    persistQuizStatsForSession(session.id, stats)
   }, [responses, session])
 
   const commitSession = useCallback((next: JourneySessionInfo) => {
